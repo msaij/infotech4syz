@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useEffect } from "react";
-import '@/styles/sample.css';
+// import '@/styles/sample.css';
 
 
 export default function Home() {
@@ -77,10 +77,10 @@ export default function Home() {
             Explore Services
           </a>
           <a
-            href="mailto:info@4syz.com"
+            href="/home-navigation/our-work"
             className="border border-black font-semibold rounded-md px-8 py-3 text-lg hover:bg-gray-100 transition"
           >
-            Contact Us
+            Our Work
           </a>
         </div>
         {/* Commitment Section */}
