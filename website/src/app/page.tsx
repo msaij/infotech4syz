@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useEffect } from "react";
-// import '@/styles/sample.css';
+import '@/styles/home-page.css';
 
 
 export default function Home() {
@@ -23,10 +23,10 @@ export default function Home() {
 
   const services = [
     {
-      title: "Housekeeping",
+      title: "Housekeeping Material",
       icon: <span className="material-symbols-rounded text-4xl text-blue-600">cleaning_services</span>,
       description:
-        "Comprehensive cleaning and maintenance for a spotless, healthy workspace.",
+        "Essential cleaning materials and supplies for maintaining a spotless workspace.",
       href: "/home-navigation/services/housekeeping",
     },
     {
@@ -113,12 +113,12 @@ export default function Home() {
       <section ref={servicesRef} id="services" className="max-w-4xl mx-auto bg-gray-50 rounded-xl shadow p-8 mt-12 scroll-mt-24">
         <h2 className="text-3xl font-extrabold text-center mb-2">Core Services</h2>
         <p className="text-center text-gray-700 mb-10">Comprehensive solutions designed to support and elevate your business operations.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => (
             <a
               key={service.title}
               href={service.href}
-              className="group block rounded-xl p-6 bg-white shadow transition-all duration-200 border border-gray-200 hover:border-transparent hover:shadow-xl hover:bg-blue-50/60 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="group block rounded-xl p-6 bg-white shadow transition-all duration-200 border border-gray-200 hover:border-transparent hover:shadow-xl hover:bg-blue-50/60 focus:outline-none focus:ring-2 focus:ring-blue-400 text-center"
             >
               <div className="mb-4 flex items-center justify-center">
                 {service.icon}

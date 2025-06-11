@@ -1,7 +1,7 @@
 "use client";
 
 import { Roboto } from "next/font/google";
-import "./globals.css";
+import '@/styles/home-page.css';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
@@ -31,7 +31,7 @@ export default function RootLayout({
     return (
       <nav className="navbar">
         <div className="navbar-left">
-          <a
+          <Link
             href="/"
             className="navbar-logo"
             style={{
@@ -46,7 +46,7 @@ export default function RootLayout({
             }}
           >
             4SYZ
-          </a>
+          </Link>
         </div>
         <div className="navbar-right">
           <a href="#about" className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-gray-200 hover:text-black hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black" onClick={handleNav("#about")}>About Us</a>
