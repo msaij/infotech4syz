@@ -3,7 +3,6 @@
 import { Roboto } from "next/font/google";
 import '@/styles/home-page.css';
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 const roboto = Roboto({
@@ -18,18 +17,9 @@ export default function RootLayout({
 }>) {
   // Navbar as a client component
   function Navbar() {
-    const router = useRouter();
-    const pathname = usePathname();
-    const handleNav = (hash: string) => (e: React.MouseEvent) => {
-      e.preventDefault();
-      if (pathname === "/") {
-        window.location.hash = hash;
-      } else {
-        router.push(`/${hash}`);
-      }
-    };
     return (
       <nav className="navbar">
+        {/* Left section of the navbar: Logo */}
         <div className="navbar-left">
           <Link
             href="/"
@@ -48,10 +38,25 @@ export default function RootLayout({
             4SYZ
           </Link>
         </div>
+        {/* Right section of the navbar: Navigation links */}
         <div className="navbar-right">
-          <a href="#about" className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-gray-200 hover:text-black hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black" onClick={handleNav("#about")}>About Us</a>
-          <a href="#services" className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-gray-200 hover:text-black hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black" onClick={handleNav("#services")}>Services</a>
-          <Link href="/home-navigation/contact-us" className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-gray-200 hover:text-black hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black">Contact Us</Link>
+          {/* Link to the About Us section */}
+          <Link href="/#about"
+            className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-gray-200 hover:text-black hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black">
+            About Us
+          </Link>
+
+          {/* Link to the Services section */}
+          <Link href="/#services"
+            className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-gray-200 hover:text-black hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black">
+            Services
+          </Link>
+
+          {/* Link to the Contact Us page */}
+          <a href="/home-navigation/contact-us"
+            className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-gray-200 hover:text-black hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black">
+            Contact Us
+          </a>
         </div>
       </nav>
     );
@@ -61,8 +66,11 @@ export default function RootLayout({
       <body className="antialiased">
         {/* Google Material Symbols font for icons */}
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet" />
+        {/* Render the Navbar component */}
         <Navbar />
+        {/* Render the main content of the page */}
         {children}
+        {/* Footer section */}
         <footer className="w-full border-t bg-gray-50 text-gray-500 text-xs text-center py-2 mt-8">
           &copy; {new Date().getFullYear()} 4syz infotech solutions private limited. All rights reserved.
         </footer>

@@ -8,6 +8,23 @@ export async function POST(request: Request) {
 
   console.log("Received Data:", body); // Debugging log to verify received data
 
+  // Validate input lengths
+  if (body.name.length > 100) {
+    return NextResponse.json({ success: false, error: "Name exceeds the maximum length of 100 characters." });
+  }
+  if (body.phone && body.phone.length > 15) {
+    return NextResponse.json({ success: false, error: "Phone number exceeds the maximum length of 15 characters." });
+  }
+  if (body.email.length > 250) {
+    return NextResponse.json({ success: false, error: "Email exceeds the maximum length of 250 characters." });
+  }
+  if (body.city && body.city.length > 50) {
+    return NextResponse.json({ success: false, error: "City exceeds the maximum length of 50 characters." });
+  }
+  if (body.zip.length > 10) {
+    return NextResponse.json({ success: false, error: "Zip code exceeds the maximum length of 10 characters." });
+  }
+
   const connection = await getConnection();
 
   try {

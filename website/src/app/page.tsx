@@ -1,25 +1,7 @@
 "use client";
-import { useRef, useEffect } from "react";
 import '@/styles/home-page.css';
 
-
 export default function Home() {
-  const aboutRef = useRef<HTMLDivElement | null>(null);
-  const servicesRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      if (window.location.hash === "#about" && aboutRef.current) {
-        aboutRef.current.scrollIntoView({ behavior: "smooth" });
-      } else if (window.location.hash === "#services" && servicesRef.current) {
-        servicesRef.current.scrollIntoView({ behavior: "smooth" });
-      }
-    };
-    window.addEventListener("hashchange", handleHashChange);
-    // On mount, check if hash is present
-    handleHashChange();
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
 
   const services = [
     {
@@ -62,7 +44,7 @@ export default function Home() {
   return (
     <div className="min-h-screen p-8 pb-20 sm:p-20">
       {/* About Us Section */}
-      <section ref={aboutRef} id="about" className="mb-32 max-w-3xl mx-auto flex flex-col items-center text-center scroll-mt-24">
+      <section id="about" className="mb-32 max-w-3xl mx-auto flex flex-col items-center text-center scroll-mt-24">
         <h1 className="text-5xl sm:text-6xl font-extrabold mb-6 leading-tight">
           Empowering Corporate Operations with Trusted Supply Solutions.
         </h1>
@@ -110,7 +92,7 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <section ref={servicesRef} id="services" className="max-w-4xl mx-auto bg-gray-50 rounded-xl shadow p-8 mt-12 scroll-mt-24">
+      <section id="services" className="max-w-4xl mx-auto bg-gray-50 rounded-xl shadow p-8 mt-12 scroll-mt-24">
         <h2 className="text-3xl font-extrabold text-center mb-2">Core Services</h2>
         <p className="text-center text-gray-700 mb-10">Comprehensive solutions designed to support and elevate your business operations.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">

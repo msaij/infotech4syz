@@ -13,17 +13,52 @@ export default function ContactPage() {
 
     const formData = new FormData(event.target as HTMLFormElement);
     const data = {
-      name: formData.get("name"),
-      phone: formData.get("phone"),
-      email: formData.get("email"),
-      city: formData.get("city"),
-      zip: formData.get("zip"),
-      message: formData.get("message"),
+      name: formData.get("name") as string,
+      phone: formData.get("phone") as string,
+      email: formData.get("email") as string,
+      city: formData.get("city") as string,
+      zip: formData.get("zip") as string,
+      message: formData.get("message") as string,
     };
 
     // Client-side validation
     if (!data.name || !data.email || !data.message) {
       setFormMessage("Please fill in all required fields.");
+      setMessageType("error");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (data.name.length > 100) {
+      setFormMessage("Name exceeds the maximum length of 100 characters.");
+      setMessageType("error");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (data.phone && data.phone.length > 15) {
+      setFormMessage("Phone number exceeds the maximum length of 15 characters.");
+      setMessageType("error");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (data.email.length > 250) {
+      setFormMessage("Email exceeds the maximum length of 250 characters.");
+      setMessageType("error");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (data.city && data.city.length > 50) {
+      setFormMessage("City exceeds the maximum length of 50 characters.");
+      setMessageType("error");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (data.zip.length > 10) {
+      setFormMessage("Zip code exceeds the maximum length of 10 characters.");
       setMessageType("error");
       setIsSubmitting(false);
       return;
@@ -71,6 +106,7 @@ export default function ContactPage() {
                   placeholder="e.g. Shrek"
                   className="w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   required
+                  maxLength={100}
                 />
               </div>
               <div>
@@ -78,9 +114,10 @@ export default function ContactPage() {
                 <input
                   type="text"
                   name="phone"
-                  placeholder="e.g. +91 98765 43210"
+                  placeholder="e.g. 9876543210"
                   className="w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   aria-describedby="phone-help"
+                  maxLength={15}
                 />
                 <small id="phone-help" className="text-gray-500">
                   Optional - We'll use this if we need to reach you about your message.
@@ -94,6 +131,7 @@ export default function ContactPage() {
                   placeholder="e.g. shrek@swamp.com"
                   className="w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   required
+                  maxLength={250}
                 />
               </div>
               <div>
@@ -105,6 +143,7 @@ export default function ContactPage() {
                   className="w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   aria-describedby="city-help"
                   required
+                  maxLength={50}
                 />
                 <small id="city-help" className="text-gray-500">
                   Required - Please provide your city.
@@ -119,6 +158,7 @@ export default function ContactPage() {
                   className="w-full rounded border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   aria-describedby="zip-help"
                   required
+                  maxLength={10}
                 />
                 <small id="zip-help" className="text-gray-500">
                   Required - Please provide your zip code.
