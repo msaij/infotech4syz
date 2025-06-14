@@ -3,7 +3,7 @@
 import { Roboto } from "next/font/google";
 import '@/styles/home-page.css';
 import Link from "next/link";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -57,10 +57,23 @@ export default function RootLayout({
             className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-gray-200 hover:text-black hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black">
             Contact Us
           </a>
+
+          {/* Link to the Login page */}
+          <Link href="/login"
+            className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-black hover:text-white hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black">
+            Login
+          </Link>
         </div>
       </nav>
     );
   }
+
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
   return (
     <html lang="en">
       <body className="antialiased">
@@ -71,8 +84,8 @@ export default function RootLayout({
         {/* Render the main content of the page */}
         {children}
         {/* Footer section */}
-        <footer className="w-full border-t bg-gray-50 text-gray-500 text-xs text-center py-2 mt-8">
-          &copy; {new Date().getFullYear()} 4syz infotech solutions private limited. All rights reserved.
+        <footer className="w-full border-t bg-gray-50 text-gray-500 text-xs text-center py-2 mt-1">
+          &copy; {currentYear} 4syz infotech solutions private limited. All rights reserved.
         </footer>
       </body>
     </html>
