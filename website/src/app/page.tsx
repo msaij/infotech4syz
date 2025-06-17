@@ -9,35 +9,35 @@ export default function Home() {
       icon: <span className="material-symbols-rounded text-4xl text-blue-600">cleaning_services</span>,
       description:
         "Essential cleaning materials and supplies for maintaining a spotless workspace.",
-      href: "/home-navigation/services/housekeeping",
+      href: "/services/housekeeping",
     },
     {
       title: "Pantry",
       icon: <span className="material-symbols-rounded text-4xl text-green-600">restaurant</span>,
       description:
         "Pantry management, snacks, beverages, and regular restocking for your team.",
-      href: "/home-navigation/services/pantry",
+      href: "/services/pantry",
     },
     {
       title: "Stationery",
       icon: <span className="material-symbols-rounded text-4xl text-yellow-600">stylus_note</span>,
       description:
         "Office stationery, branded supplies, and custom kits for all your business needs.",
-      href: "/home-navigation/services/stationery",
+      href: "/services/stationery",
     },
     {
       title: "Adhoc",
       icon: <span className="material-symbols-rounded text-4xl text-purple-600">build_circle</span>,
       description:
         "On-demand, special, and emergency services tailored to unique requirements.",
-      href: "/home-navigation/services/adhoc",
+      href: "/services/adhoc",
     },
     {
       title: "Corporate Events",
       icon: <span className="material-symbols-rounded text-4xl text-pink-600">event</span>,
       description:
         "End-to-end planning, management, and support for corporate events, conferences, and meetings.",
-      href: "/home-navigation/services/corporate-events",
+      href: "/services/corporate-events",
     },
   ];
 
@@ -59,7 +59,7 @@ export default function Home() {
             Explore Services
           </a>
           <a
-            href="/home-navigation/our-work"
+            href="/our-work"
             className="border border-black font-semibold rounded-md px-8 py-3 text-lg hover:bg-gray-100 transition"
           >
             Our Work

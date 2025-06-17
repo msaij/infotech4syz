@@ -53,7 +53,7 @@ export default function RootLayout({
           </Link>
 
           {/* Link to the Contact Us page */}
-          <a href="/home-navigation/contact-us"
+          <a href="/contact-us"
             className="navbar-link font-semibold rounded-md px-6 py-2 text-base transition bg-transparent hover:bg-gray-200 hover:text-black hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-black">
             Contact Us
           </a>
