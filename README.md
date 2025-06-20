@@ -13,11 +13,15 @@ This project contains:
    ```bash
    source venv/Scripts/activate
    ```
-3. Run migrations:
+3. Create migrations:
+   ```bash
+   python manage.py makemigrations
+   ```
+4. Run migrations:
    ```bash
    python manage.py migrate
    ```
-4. Start the server:
+5. Start the server:
    ```bash
    python manage.py runserver
    ```
