@@ -9,6 +9,11 @@ export function middleware(request) {
     return NextResponse.next();
   }
 
+  // Never redirect API routes
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next();
+  }
+
   // If logged in and path does not start with /start/, redirect
   if (session && !pathname.startsWith('/start/')) {
     // allow logout
