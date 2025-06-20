@@ -140,6 +140,11 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
 
 # Email backend for password reset
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -156,3 +161,8 @@ DEFAULT_FROM_EMAIL = 'sample4syz@gmail.com'
 # EMAIL_HOST_USER = 'your@email.com'
 # EMAIL_HOST_PASSWORD = 'yourpassword'
 # EMAIL_USE_TLS = True
+
+AUTHENTICATION_BACKENDS = [
+    'api.auth_backend.EmailBackend',  # Custom email backend
+    'django.contrib.auth.backends.ModelBackend',  # Default
+]

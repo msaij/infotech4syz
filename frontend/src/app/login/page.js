@@ -2,7 +2,7 @@
 // Handles email verification, password entry, and forgot password flow
 
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
@@ -25,6 +25,17 @@ export default function LoginPage() {
   const [forgotError, setForgotError] = useState("");
   const [emailChecking, setEmailChecking] = useState(false);
   const router = useRouter();
+
+  // Redirect if already authenticated (sessionid cookie exists)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const cookies = document.cookie.split(';').map(c => c.trim());
+      const sessionCookie = cookies.find(c => c.startsWith('sessionid='));
+      if (sessionCookie) {
+        router.replace("/start/dashboard");
+      }
+    }
+  }, [router]);
 
   // Handle email step: verify if email exists before proceeding
   const handleEmailNext = async (e) => {
@@ -67,7 +78,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        router.push("/dashboard"); // Redirect to dashboard on successful login
+        router.push("/start/dashboard"); // Redirect to new dashboard path after login
       } else {
         setError("Invalid email or password. Please try again.");
       }

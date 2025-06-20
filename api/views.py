@@ -58,13 +58,11 @@ class ForgotPasswordView(APIView):
 @api_view(["POST"])
 def check_email(request):
     email = request.data.get("email")
-    print(f"Checking email: {email}")  # Debug log
     exists = False
     if email:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1 FROM auth_user WHERE email = %s LIMIT 1", [email])
             exists = cursor.fetchone() is not None
-    print(f"Email exists: {exists}")  # Debug log
     return Response({"exists": exists})
 
 @api_view(["POST"])
@@ -74,11 +72,12 @@ def login_view(request):
     password = request.data.get("password")
     user = None
     if email and password:
-        from django.contrib.auth.models import User
+        from django.contrib.auth import get_user_model
+        UserModel = get_user_model()
         try:
-            user_obj = User.objects.get(email=email)
-            user = authenticate(request, username=user_obj.username, password=password)
-        except User.DoesNotExist:
+            user_obj = UserModel.objects.get(email=email)
+            user = authenticate(request, email=email, password=password)
+        except UserModel.DoesNotExist:
             user = None
     if user is not None:
         login(request, user)
