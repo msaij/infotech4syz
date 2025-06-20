@@ -78,7 +78,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        router.push("/start/dashboard"); // Redirect to new dashboard path after login
+        router.replace("/start/dashboard"); // Redirect to new dashboard path after login
       } else {
         setError("Invalid email or password. Please try again.");
       }

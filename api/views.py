@@ -96,3 +96,12 @@ class UserListView(generics.ListAPIView):
     def get_queryset(self):
         User = get_user_model()
         return User.objects.all()
+
+
+class CurrentUserView(APIView):
+    """Return the currently authenticated user."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
