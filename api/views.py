@@ -16,7 +16,9 @@ from rest_framework.decorators import api_view
 from django.db import connection
 from django.contrib.auth import authenticate, login
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import generics
+from .serializers import UserSerializer
 
 # Create your views here.
 
@@ -84,3 +86,13 @@ def login_view(request):
         return Response({"success": True, "message": "Login successful."})
     else:
         return Response({"success": False, "message": "Invalid email or password."}, status=401)
+
+
+class UserListView(generics.ListAPIView):
+    """Return a list of users. Requires authentication."""
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        User = get_user_model()
+        return User.objects.all()
