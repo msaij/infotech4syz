@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import ProtectedPage from "./components/ProtectedPage";
+import ProtectedPage from "@/components/ProtectedPage";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
