@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
-import ProtectedPage from "./components/ProtectedPage";
+import ProtectedPage from "@/components/ProtectedPage";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/items/users/", {
+    fetch("http://127.0.0.1:8000/api/users/", {
       credentials: "include",
     })
       .then((res) => {
