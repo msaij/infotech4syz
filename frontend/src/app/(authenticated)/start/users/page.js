@@ -7,7 +7,7 @@ export default function UsersPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/users/", {
+    fetch("http://127.0.0.1:8000/api/items/users/", {
       credentials: "include",
     })
       .then((res) => {
