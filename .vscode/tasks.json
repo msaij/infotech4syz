@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Django Backend",
+      "type": "shell",
+      "command": "source venv/Scripts/activate && python manage.py runserver",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Next.js Frontend",
+      "type": "shell",
+      "command": "cd frontend && npm run dev",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
