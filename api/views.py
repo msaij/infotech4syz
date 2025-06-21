@@ -100,7 +100,6 @@ def login_view(request):
     else:
         return Response({"success": False, "message": "Invalid email or password."}, status=401)
 
-
 class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """Expose a user viewset with a `me` action."""
     serializer_class = UserSerializer
