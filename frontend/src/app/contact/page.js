@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 import NavBar from "@/components/NavBar";
 import Footer from "../components/Footer";
 import { useRouter } from "next/navigation";
@@ -25,7 +27,7 @@ export default function Contact() {
         return;
       }
     }
-    fetch("http://127.0.0.1:8000/api/csrf/", { credentials: "include" })
+    fetch(`${API_BASE_URL}/api/csrf/`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setCsrfToken(data.csrfToken))
       .catch(() => {});
@@ -36,7 +38,7 @@ export default function Contact() {
     setError("");
     setSubmitted(false);
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/contact/", {
+      const res = await fetch(`${API_BASE_URL}/api/contact/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ name, phone, email, city, zip, message }),

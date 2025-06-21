@@ -2,6 +2,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/#services", label: "Services" },
@@ -16,18 +18,18 @@ export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/users/me/", { credentials: "include" })
+    fetch(`${API_BASE_URL}/api/users/me/`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setUser(data))
       .catch(() => {});
-    fetch("http://127.0.0.1:8000/api/csrf/", { credentials: "include" })
+    fetch(`${API_BASE_URL}/api/csrf/`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setCsrfToken(data.csrfToken))
       .catch(() => {});
   }, []);
 
   const handleLogout = async () => {
-    await fetch("http://127.0.0.1:8000/api/logout/", {
+    await fetch(`${API_BASE_URL}/api/logout/`, {
       method: "POST",
       headers: { "X-CSRFToken": csrfToken },
       credentials: "include",
