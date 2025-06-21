@@ -1,11 +1,10 @@
-from rest_framework import generics
 from .models import ContactUs
 from .serializers import ContactUsSerializer
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -59,7 +58,7 @@ class ForgotPasswordView(APIView):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         reset_url = request.build_absolute_uri(
-            reverse('password-reset-confirm', kwargs={'uidb64': uid, 'token': token})
+            reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
         )
         send_mail(
             subject='Password Reset for 4SYZ',
@@ -101,23 +100,13 @@ def login_view(request):
         return Response({"success": False, "message": "Invalid email or password."}, status=401)
 
 
-class UserListView(generics.ListAPIView):
-    """Return a list of users. Requires authentication."""
+class CurrentUserView(generics.RetrieveAPIView):
+    """Return the currently authenticated user using DRF's generic view."""
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        User = get_user_model()
-        return User.objects.all()
-
-
-class CurrentUserView(APIView):
-    """Return the currently authenticated user."""
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+    def get_object(self):
+        return self.request.user
 
 
 @api_view(["GET"])

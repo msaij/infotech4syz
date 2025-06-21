@@ -6,7 +6,6 @@ from .views import (
     login_view,
     logout_view,
     csrf_token,
-    UserListView,
     CurrentUserView,
 )
 
@@ -19,7 +18,6 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('csrf/', csrf_token, name='csrf-token'),
-    path('users/', UserListView.as_view(), name='user-list'),
     path('me/', CurrentUserView.as_view(), name='current-user'),
 ]
 
