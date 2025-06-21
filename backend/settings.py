@@ -142,14 +142,14 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
+    # 'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
 
 # Ensure session cookies work with the frontend running on a different port
 SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = False  # Changed to False for local development
+CSRF_COOKIE_SECURE = False     # Changed to False for local development
 
 # Email backend for password reset
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
