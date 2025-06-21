@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, generics
+from rest_framework import status, viewsets, mixins
+from rest_framework.decorators import action
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -99,14 +100,19 @@ def login_view(request):
     else:
         return Response({"success": False, "message": "Invalid email or password."}, status=401)
 
-
-class CurrentUserView(generics.RetrieveAPIView):
-    """Return the currently authenticated user using DRF's generic view."""
+class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """Expose a user viewset with a `me` action."""
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user
+    def get_queryset(self):
+        User = get_user_model()
+        return User.objects.all()
+
+    @action(detail=False, methods=["get"], url_path="me")
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
 
 
 @api_view(["GET"])

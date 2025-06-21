@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 from .views import (
     ContactUsCreateView,
     ForgotPasswordView,
@@ -6,7 +7,7 @@ from .views import (
     login_view,
     logout_view,
     csrf_token,
-    CurrentUserView,
+    UserViewSet,
 )
 
 app_name = "api"
@@ -18,6 +19,10 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('csrf/', csrf_token, name='csrf-token'),
-    path('me/', CurrentUserView.as_view(), name='current-user'),
 ]
+
+router = DefaultRouter()
+router.register('users', UserViewSet, basename='user')
+
+urlpatterns += router.urls
 
