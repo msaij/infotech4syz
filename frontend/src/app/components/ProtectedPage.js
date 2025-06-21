@@ -7,7 +7,7 @@ export default function ProtectedPage({ children }) {
 
   useEffect(() => {
     async function checkAuth() {
-      const res = await fetch("http://127.0.0.1:8000/api/me/", {
+      const res = await fetch("http://127.0.0.1:8000/api/users/me/", {
         credentials: "include",
       });
       if (!res.ok) {

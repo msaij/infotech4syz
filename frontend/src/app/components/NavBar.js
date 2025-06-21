@@ -16,7 +16,7 @@ export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/me/", { credentials: "include" })
+    fetch("http://127.0.0.1:8000/api/users/me/", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setUser(data))
       .catch(() => {});
