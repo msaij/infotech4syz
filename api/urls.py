@@ -1,5 +1,14 @@
 from django.urls import path
-from .views import ContactUsCreateView, ForgotPasswordView, check_email, login_view, UserListView, CurrentUserView
+from .views import (
+    ContactUsCreateView,
+    ForgotPasswordView,
+    check_email,
+    login_view,
+    logout_view,
+    csrf_token,
+    UserListView,
+    CurrentUserView,
+)
 
 app_name = "api"
 
@@ -8,6 +17,8 @@ urlpatterns = [
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     path('check-email/', check_email, name='check-email'),
     path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('csrf/', csrf_token, name='csrf-token'),
     path('users/', UserListView.as_view(), name='user-list'),
     path('me/', CurrentUserView.as_view(), name='current-user'),
 ]
