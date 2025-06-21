@@ -2,21 +2,19 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export default function LogoutPage() {
   const router = useRouter();
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/csrf/`, { credentials: "include" })
+    fetch("http://127.0.0.1:8000/api/csrf/", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setCsrfToken(data.csrfToken))
       .catch(() => {});
   }, []);
 
   const handleLogout = async () => {
-    await fetch(`${API_BASE_URL}/api/logout/`, {
+    await fetch("http://127.0.0.1:8000/api/logout/", {
       method: "POST",
       headers: { "X-CSRFToken": csrfToken },
       credentials: "include",

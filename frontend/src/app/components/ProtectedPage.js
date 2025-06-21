@@ -2,14 +2,12 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export default function ProtectedPage({ children }) {
   const router = useRouter();
 
   useEffect(() => {
     async function checkAuth() {
-      const res = await fetch(`${API_BASE_URL}/api/users/me/`, {
+      const res = await fetch("http://127.0.0.1:8000/api/users/me/", {
         credentials: "include",
       });
       if (!res.ok) {

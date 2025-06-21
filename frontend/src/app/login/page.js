@@ -4,8 +4,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 
@@ -31,7 +29,7 @@ export default function LoginPage() {
 
   // Redirect if already authenticated (sessionid cookie exists)
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/csrf/`, { credentials: "include" })
+    fetch("http://127.0.0.1:8000/api/csrf/", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setCsrfToken(data.csrfToken))
       .catch(() => {});
@@ -50,7 +48,7 @@ export default function LoginPage() {
     setError("");
     setEmailChecking(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/check-email/`, {
+      const res = await fetch("http://127.0.0.1:8000/api/check-email/", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ email }),
@@ -78,7 +76,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/login/`, {
+      const res = await fetch("http://127.0.0.1:8000/api/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ email, password }),
@@ -103,7 +101,7 @@ export default function LoginPage() {
     setForgotSent(false);
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/forgot-password/`, {
+      const res = await fetch("http://127.0.0.1:8000/api/forgot-password/", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ email: forgotEmail }),

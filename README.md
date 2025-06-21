@@ -37,12 +37,9 @@ This project contains:
    ```
 
 ## API Integration
-- The frontend consumes the REST API exposed by the Django backend.
-- Configure the API base URL by creating a `frontend/.env.local` file:
-  ```
-  NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
-  ```
-  All fetch requests reference this variable. For authenticated requests, fetch a CSRF token from `/api/csrf/` and include it as the `X-CSRFToken` header.
+- The frontend will consume the REST API exposed by the Django backend.
+- Update API URLs in the frontend as needed. For authenticated requests, fetch a
+  CSRF token from `/api/csrf/` and include it as the `X-CSRFToken` header.
 
 ## Customization
 - Add your Django models, serializers, and views in the `api` app.
