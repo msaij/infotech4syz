@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 class ContactUsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactUs
-        fields = ['id', 'name', 'phone', 'email', 'city', 'zip', 'message', 'created_at']
+        fields = ['name', 'phone', 'email', 'city', 'zip', 'message']
 
 
 class UserSerializer(serializers.ModelSerializer):

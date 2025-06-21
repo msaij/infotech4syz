@@ -3,8 +3,13 @@ import uuid
 
 # Create your models here.
 
+def _uuid_bytes():
+    """Return a random UUID as 16 bytes."""
+    return uuid.uuid4().bytes
+
+
 class ContactUs(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.BinaryField(primary_key=True, default=_uuid_bytes, editable=False, max_length=16)
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, blank=True, null=True)
     email = models.EmailField(max_length=320)

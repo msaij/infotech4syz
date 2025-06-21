@@ -1,9 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import Footer from "../components/Footer";
+import { useRouter } from "next/navigation";
 
 export default function Contact() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -12,6 +14,22 @@ export default function Contact() {
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const cookies = document.cookie.split(";").map((c) => c.trim());
+      const sessionCookie = cookies.find((c) => c.startsWith("sessionid="));
+      if (sessionCookie) {
+        router.replace("/start/dashboard");
+        return;
+      }
+    }
+    fetch("http://127.0.0.1:8000/api/csrf/", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => setCsrfToken(data.csrfToken))
+      .catch(() => {});
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,8 +38,9 @@ export default function Contact() {
     try {
       const res = await fetch("http://127.0.0.1:8000/api/contact/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ name, phone, email, city, zip, message }),
+        credentials: "include",
       });
       if (res.ok) {
         setSubmitted(true);

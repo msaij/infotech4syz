@@ -2,6 +2,8 @@
 import Link from "next/link";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const commitments = [
 	{
@@ -61,7 +63,19 @@ const services = [
 ];
 
 export default function Home() {
-	return (
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const cookies = document.cookie.split(";").map((c) => c.trim());
+      const sessionCookie = cookies.find((c) => c.startsWith("sessionid="));
+      if (sessionCookie) {
+        router.replace("/start/dashboard");
+      }
+    }
+  }, [router]);
+
+  return (
 		<div className="min-h-screen flex flex-col bg-gradient-to-br from-white via-gray-50 to-gray-200 text-black">
 			<NavBar />
 

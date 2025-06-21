@@ -24,10 +24,15 @@ export default function LoginPage() {
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotError, setForgotError] = useState("");
   const [emailChecking, setEmailChecking] = useState(false);
+  const [csrfToken, setCsrfToken] = useState("");
   const router = useRouter();
 
   // Redirect if already authenticated (sessionid cookie exists)
   useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/csrf/", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => setCsrfToken(data.csrfToken))
+      .catch(() => {});
     if (typeof window !== "undefined") {
       const cookies = document.cookie.split(';').map(c => c.trim());
       const sessionCookie = cookies.find(c => c.startsWith('sessionid='));
@@ -45,8 +50,9 @@ export default function LoginPage() {
     try {
       const res = await fetch("http://127.0.0.1:8000/api/check-email/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ email }),
+        credentials: "include",
       });
       if (res.ok) {
         const data = await res.json();
@@ -72,7 +78,7 @@ export default function LoginPage() {
     try {
       const res = await fetch("http://127.0.0.1:8000/api/login/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ email, password }),
         credentials: "include",
       });
@@ -97,8 +103,9 @@ export default function LoginPage() {
     try {
       const res = await fetch("http://127.0.0.1:8000/api/forgot-password/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ email: forgotEmail }),
+        credentials: "include",
       });
       if (res.ok) {
         setForgotSent(true);

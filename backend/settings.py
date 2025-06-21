@@ -148,6 +148,8 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Ensure session cookies work with the frontend running on a different port
 SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Email backend for password reset
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

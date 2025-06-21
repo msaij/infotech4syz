@@ -38,7 +38,8 @@ This project contains:
 
 ## API Integration
 - The frontend will consume the REST API exposed by the Django backend.
-- Update API URLs in the frontend as needed.
+- Update API URLs in the frontend as needed. For authenticated requests, fetch a
+  CSRF token from `/api/csrf/` and include it as the `X-CSRFToken` header.
 
 ## Customization
 - Add your Django models, serializers, and views in the `api` app.

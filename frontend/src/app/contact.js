@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Contact() {
   const [name, setName] = useState("");
@@ -7,6 +7,14 @@ export default function Contact() {
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/csrf/", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => setCsrfToken(data.csrfToken))
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,8 +23,9 @@ export default function Contact() {
     try {
       const res = await fetch("http://127.0.0.1:8000/api/contact/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ name, email, message }),
+        credentials: "include",
       });
       if (res.ok) {
         setSubmitted(true);
