@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/components/(access-providers)/auth-context";
+import LoadingPage from "@/components/LoadingPage";
 
 // Utility function to validate email format
 function validateEmail(email) {
@@ -48,8 +49,21 @@ export default function LoginPage() {
   const [forgotError, setForgotError] = useState("");
   const [emailChecking, setEmailChecking] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
-  const router = useRouter();
   const { login, authFetch, user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Show loading spinner while auth state is being determined
+  if (authLoading) {
+    return <LoadingPage />;
+  }
+
+  // If user is already logged in, redirect and render nothing
+  if (user) {
+    if (typeof window !== "undefined") {
+      router.replace("/start/dashboard");
+    }
+    return null;
+  }
 
   // Prevent access to /login if already authenticated
   useEffect(() => {
