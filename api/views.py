@@ -26,19 +26,7 @@ class ContactUsCreateView(APIView):
     def post(self, request):
         serializer = ContactUsSerializer(data=request.data)
         if serializer.is_valid():
-            data = serializer.validated_data
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "INSERT INTO contact_us (name, phone, email, city, zip, message) VALUES (%s, %s, %s, %s, %s, %s)",
-                    [
-                        data.get('name'),
-                        data.get('phone'),
-                        data.get('email'),
-                        data.get('city'),
-                        data.get('zip'),
-                        data.get('message'),
-                    ],
-                )
+            contact = ContactUs.objects.create(**serializer.validated_data)
             return Response({'success': True}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
