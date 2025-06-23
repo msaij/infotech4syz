@@ -9,9 +9,9 @@ This project contains:
 
 ### Backend (Django)
 1. Create a `.env` file for your MySQL credentials.
-2. Activate the virtual environment:
+2. Install Python dependencies:
    ```bash
-   source venv/Scripts/activate
+   pip install -r requirements.txt
    ```
 3. Create migrations:
    ```bash
@@ -31,15 +31,20 @@ This project contains:
    ```bash
    cd frontend
    ```
-2. Start the development server:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
    ```bash
    npm run dev
    ```
 
 ## API Integration
-- The frontend will consume the REST API exposed by the Django backend.
+- The frontend consumes the REST API exposed by the Django backend.
 - Update API URLs in the frontend as needed. For authenticated requests, fetch a
   CSRF token from `/api/csrf/` and include it as the `X-CSRFToken` header.
+- User authentication uses DRF's token authentication. Login and session management are handled via `/api/api-token-auth/` and `/api/logout/` endpoints.
 
 ## Customization
 - Add your Django models, serializers, and views in the `api` app.
