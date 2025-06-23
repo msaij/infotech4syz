@@ -55,29 +55,37 @@ export default function NavBar() {
           <Link href="/start/dashboard" className="font-medium">
             Dashboard
           </Link>
-          <button
-            className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold"
-            onClick={() => setMenuOpen((v) => !v)}
+          <div
+            className="relative"
+            onMouseEnter={() => setMenuOpen(true)}
+            onMouseLeave={() => setMenuOpen(false)}
           >
-            {user.email ? user.email[0].toUpperCase() : "U"}
-          </button>
-          {menuOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-md text-black">
-              <Link
-                href="/start/profile"
-                className="block px-4 py-2 hover:bg-gray-100"
-                onClick={() => setMenuOpen(false)}
-              >
-                View Profile
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              >
-                Logout
-              </button>
-            </div>
-          )}
+            <button
+              className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold"
+              type="button"
+              tabIndex={0}
+              aria-label="Profile menu"
+            >
+              {user.email ? user.email[0].toUpperCase() : "U"}
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-full z-10 w-40 bg-white border rounded shadow-md text-black">
+                <Link
+                  href="/start/profile"
+                  className="block px-4 py-2 hover:bg-gray-100"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  View Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="flex gap-6 text-lg font-medium">
