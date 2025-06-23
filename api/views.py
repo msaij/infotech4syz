@@ -18,22 +18,24 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.csrf import csrf_protect
 
-# Create your views here.
-
+# API endpoint for creating ContactUs entries from the frontend contact form
 class ContactUsCreateView(APIView):
-    permission_classes = []
+    permission_classes = []  # Allow unauthenticated access
 
     def post(self, request):
+        """Accepts contact form data and creates a ContactUs record."""
         serializer = ContactUsSerializer(data=request.data)
         if serializer.is_valid():
             contact = ContactUs.objects.create(**serializer.validated_data)
             return Response({'success': True}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# API endpoint for handling forgot password requests
 class ForgotPasswordView(APIView):
-    permission_classes = []
+    permission_classes = []  # Allow unauthenticated access
 
     def post(self, request):
+        """Sends a password reset email if the user exists. Always returns success for security."""
         email = request.data.get('email')
         if not email:
             return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,8 +62,10 @@ class ForgotPasswordView(APIView):
         )
         return Response({'success': True})
 
+# API endpoint to check if a username exists (for login/registration UX)
 @api_view(["POST"])
 def check_username(request):
+    """Checks if a username exists in the database."""
     username = request.data.get("username")
     exists = False
     if username:
@@ -70,6 +74,7 @@ def check_username(request):
             exists = cursor.fetchone() is not None
     return Response({"exists": exists})
 
+# ViewSet for authenticated user info and profile endpoints
 class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
@@ -77,14 +82,15 @@ class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
+        """Returns the current authenticated user's info."""
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-
+# API endpoint to get a CSRF token for frontend use
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def csrf_token(request):
-    """Return a CSRF token and ensure the cookie is set."""
+    """Return a CSRF token and ensure the cookie is set for frontend requests."""
     token = get_token(request)
     return Response({"csrfToken": token})
 
@@ -100,6 +106,7 @@ def logout_view(request):
 @permission_classes([AllowAny])
 @csrf_protect
 def session_login(request):
+    """Log in a user with username and password."""
     username = request.data.get("username")
     password = request.data.get("password")
     user = authenticate(request, username=username, password=password)
@@ -112,5 +119,6 @@ def session_login(request):
 @permission_classes([AllowAny])
 @csrf_protect
 def session_logout(request):
+    """Log out the current user."""
     logout(request)
     return Response({"success": True})

@@ -10,6 +10,7 @@ export default function LogoutPage() {
   const [csrfToken, setCsrfToken] = useState("");
   const { logout: logoutContext } = useAuth();
 
+  // Fetch CSRF token on mount for secure logout
   useEffect(() => {
     fetch(`${API_URL}/api/csrf/`, { credentials: "include" })
       .then((res) => res.json())
@@ -17,6 +18,7 @@ export default function LogoutPage() {
       .catch(() => {});
   }, []);
 
+  // Handle logout: POST to backend, clear user context, redirect to login
   const handleLogout = async () => {
     await fetch(`${API_URL}/api/session-logout/`, {
       method: "POST",

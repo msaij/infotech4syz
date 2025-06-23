@@ -7,6 +7,7 @@ import { useAuth } from "@/components/(access-providers)/auth-context";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Contact() {
+  // State variables for form fields and UI state
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -18,6 +19,7 @@ export default function Contact() {
   const [csrfToken, setCsrfToken] = useState("");
   const { authFetch } = useAuth();
 
+  // Fetch CSRF token on mount for secure form submission
   useEffect(() => {
     const fetchCsrfToken = async () => {
       const res = await authFetch(`${API_URL}/api/csrf/`, { credentials: "include" });
@@ -27,6 +29,7 @@ export default function Contact() {
     fetchCsrfToken();
   }, [authFetch]);
 
+  // Handle contact form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -69,6 +72,7 @@ export default function Contact() {
           <p className="text-gray-600 mb-6">
             Fill out the form below, and we'll be in touch promptly.
           </p>
+          {/* Contact form with controlled inputs and error/success messages */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>

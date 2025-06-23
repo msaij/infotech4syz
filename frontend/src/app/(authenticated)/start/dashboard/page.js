@@ -1,4 +1,5 @@
 // Dashboard page for authenticated users
+// Redirects to login if not authenticated, shows user info if logged in
 "use client";
 
 import { useAuth } from "@/components/(access-providers)/auth-context";
@@ -8,6 +9,7 @@ export default function Dashboard() {
   const { user, loading } = useAuth();
 
   if (loading) {
+    // Show loading spinner while checking authentication
     return <LoadingPage />;
   }
 
