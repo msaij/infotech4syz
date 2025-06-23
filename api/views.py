@@ -16,6 +16,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import UserSerializer
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
+from rest_framework.authtoken.models import Token
 
 # Create your views here.
 
@@ -85,31 +86,13 @@ def check_email(request):
 @permission_classes([AllowAny])
 @ensure_csrf_cookie
 def login_view(request):
-    email = request.data.get("email")
-    password = request.data.get("password")
-    user = None
-    if email and password:
-        from django.contrib.auth import get_user_model
-        UserModel = get_user_model()
-        try:
-            user_obj = UserModel.objects.get(email=email)
-            user = authenticate(request, email=email, password=password)
-        except UserModel.DoesNotExist:
-            user = None
-    if user is not None:
-        login(request, user)
-        return Response({"success": True, "message": "Login successful."})
-    else:
-        return Response({"success": False, "message": "Invalid email or password."}, status=401)
+    # This view is deprecated in favor of DRF's obtain_auth_token
+    return Response({"detail": "Use /api/api-token-auth/ for login."}, status=400)
 
 class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    """Expose a user viewset with a `me` action."""
+    queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        User = get_user_model()
-        return User.objects.all()
 
     @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
@@ -128,6 +111,9 @@ def csrf_token(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def logout_view(request):
-    """Log out the current user."""
-    logout(request)
+    """Log out the current user and delete their token."""
+    user = request.user
+    if user.is_authenticated:
+        Token.objects.filter(user=user).delete()
+        logout(request)
     return Response({"success": True})

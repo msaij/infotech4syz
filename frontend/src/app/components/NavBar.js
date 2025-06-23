@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/(access-providers)/auth-context";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -9,29 +10,28 @@ const navLinks = [
   { href: "/login", label: "Login" },
 ];
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function NavBar() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user, logout, authFetch } = useAuth();
   const [csrfToken, setCsrfToken] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/users/me/", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data))
-      .catch(() => {});
-    fetch("http://127.0.0.1:8000/api/csrf/", { credentials: "include" })
+    authFetch(`${API_URL}/api/csrf/`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setCsrfToken(data.csrfToken))
       .catch(() => {});
-  }, []);
+  }, [authFetch]);
 
   const handleLogout = async () => {
-    await fetch("http://127.0.0.1:8000/api/logout/", {
+    await authFetch(`${API_URL}/api/logout/`, {
       method: "POST",
       headers: { "X-CSRFToken": csrfToken },
       credentials: "include",
     });
+    logout(); // clear global auth state
     router.push("/login");
   };
 

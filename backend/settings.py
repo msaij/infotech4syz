@@ -133,6 +133,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',  # Add this line
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
@@ -146,10 +147,17 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:3000',
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'api.auth_backend.EmailBackend',  # Custom email backend
+    'django.contrib.auth.backends.ModelBackend',  # Default
+]
+
 # Ensure session cookies work with the frontend running on a different port
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = False  # Changed to False for local development
 CSRF_COOKIE_SECURE = False     # Changed to False for local development
+
+SESSION_COOKIE_AGE = 1209600  # 2 weeks (default)
 
 # Email backend for password reset
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -166,8 +174,3 @@ DEFAULT_FROM_EMAIL = 'sample4syz@gmail.com'
 # EMAIL_HOST_USER = 'your@email.com'
 # EMAIL_HOST_PASSWORD = 'yourpassword'
 # EMAIL_USE_TLS = True
-
-AUTHENTICATION_BACKENDS = [
-    'api.auth_backend.EmailBackend',  # Custom email backend
-    'django.contrib.auth.backends.ModelBackend',  # Default
-]

@@ -1,13 +1,23 @@
 {
   "version": "2.0.0",
   "tasks": [
+    // Task to install Python dependencies
     {
-      "label": "Run Django Backend",
+      "label": "Install Python Dependencies",
       "type": "shell",
-      "command": "source venv/Scripts/activate && python manage.py runserver",
+      "command": "pip install -r requirements.txt",
       "group": "build",
       "problemMatcher": []
     },
+    // Task to run Django backend
+    {
+      "label": "Run Django Backend",
+      "type": "shell",
+      "command": "python manage.py runserver",
+      "group": "build",
+      "problemMatcher": []
+    },
+    // Task to run Next.js frontend
     {
       "label": "Run Next.js Frontend",
       "type": "shell",

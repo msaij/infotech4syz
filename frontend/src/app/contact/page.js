@@ -1,11 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import NavBar from "@/components/NavBar";
-import Footer from "../components/Footer";
-import { useRouter } from "next/navigation";
+import Footer from "@/components/Footer";
+import { useAuth } from "@/components/(access-providers)/auth-context";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Contact() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -15,28 +16,23 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [csrfToken, setCsrfToken] = useState("");
+  const { authFetch } = useAuth();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const cookies = document.cookie.split(";").map((c) => c.trim());
-      const sessionCookie = cookies.find((c) => c.startsWith("sessionid="));
-      if (sessionCookie) {
-        router.replace("/start/dashboard");
-        return;
-      }
-    }
-    fetch("http://127.0.0.1:8000/api/csrf/", { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setCsrfToken(data.csrfToken))
-      .catch(() => {});
-  }, [router]);
+    const fetchCsrfToken = async () => {
+      const res = await authFetch(`${API_URL}/api/csrf/`, { credentials: "include" });
+      const data = await res.json();
+      setCsrfToken(data.csrfToken);
+    };
+    fetchCsrfToken();
+  }, [authFetch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSubmitted(false);
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/contact/", {
+      const res = await authFetch(`${API_URL}/api/contact/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify({ name, phone, email, city, zip, message }),
