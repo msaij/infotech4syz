@@ -148,7 +148,6 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'api.auth_backend.EmailBackend',  # Custom email backend
     'django.contrib.auth.backends.ModelBackend',  # Default
 ]
 

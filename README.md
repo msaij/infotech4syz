@@ -40,11 +40,15 @@ This project contains:
    npm run dev
    ```
 
-## API Integration
+## Authentication & API Integration
 - The frontend consumes the REST API exposed by the Django backend.
-- Update API URLs in the frontend as needed. For authenticated requests, fetch a
-  CSRF token from `/api/csrf/` and include it as the `X-CSRFToken` header.
-- User authentication uses DRF's token authentication. Login and session management are handled via `/api/api-token-auth/` and `/api/logout/` endpoints.
+- All authentication uses DRF's session authentication with secure HTTP-only cookies. No tokens are stored in localStorage.
+- For login, POST username and password to `/api/session-login/` with the CSRF token in the `X-CSRFToken` header. On success, the session cookie is set.
+- For logout, POST to `/api/session-logout/` with the CSRF token to clear the session.
+- For authenticated requests, always include `credentials: "include"` and the CSRF token for unsafe methods (POST/PUT/DELETE).
+- To check if a user is logged in, GET `/api/users/me/`.
+- If a user is logged in, they are redirected away from `/login` to `/start/dashboard`. If not logged in, any `/start/*` route redirects to `/login`.
+- The home page (`/`) redirects to dashboard if logged in.
 
 ## Customization
 - Add your Django models, serializers, and views in the `api` app.

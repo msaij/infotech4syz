@@ -3,6 +3,7 @@ import { useAuth } from "@/components/(access-providers)/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import NavBar from "@/components/NavBar";
+import LoadingPage from "@/components/LoadingPage";
 
 export default function StartLayout({ children }) {
   const { user, loading } = useAuth();
@@ -15,7 +16,7 @@ export default function StartLayout({ children }) {
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return null;
+    return <LoadingPage />;
   }
 
   return (

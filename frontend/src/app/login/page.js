@@ -1,5 +1,5 @@
 // LoginPage component for user authentication
-// Handles email verification, password entry, and forgot password flow
+// Handles username verification, password entry, and forgot password flow
 
 "use client";
 import { useState, useEffect } from "react";
@@ -14,32 +14,12 @@ function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// Utility function to get auth token from context or localStorage
-function getAuthToken() {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("authToken");
-  }
-  return null;
-}
-
-// Example: fetch user profile using token authentication (now uses authFetch)
-// (Used for auto-login if token is present)
-async function fetchUserProfile() {
-  const res = await authFetch(`${API_URL}/api/users/me/`, {
-    method: "GET",
-  });
-  if (res.ok) {
-    return await res.json();
-  }
-  return null;
-}
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function LoginPage() {
   // State variables for login steps, form fields, and errors
-  const [step, setStep] = useState(1); // 1: email, 2: password
-  const [email, setEmail] = useState("");
+  const [step, setStep] = useState(1); // 1: username, 2: password
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,70 +32,42 @@ export default function LoginPage() {
   const { login, authFetch, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  // Show loading spinner while auth state is being determined
-  if (authLoading) {
-    return <LoadingPage />;
-  }
+  // Fetch CSRF token on mount
+  useEffect(() => {
+    authFetch(`${API_URL}/api/csrf/`, { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => setCsrfToken(data.csrfToken))
+      .catch(() => {});
+  }, [authFetch]);
 
-  // If user is already logged in, redirect and render nothing
-  if (user) {
-    if (typeof window !== "undefined") {
-      router.replace("/start/dashboard");
-    }
-    return null;
-  }
-
-  // Prevent access to /login if already authenticated
+  // Redirect if user is already logged in
   useEffect(() => {
     if (!authLoading && user) {
       router.replace("/start/dashboard");
     }
   }, [user, authLoading, router]);
 
-  // On mount: if a valid token exists, auto-login and redirect to dashboard
-  useEffect(() => {
-    if (!authLoading && !user) {
-      async function checkUserProfile() {
-        const token = getAuthToken();
-        if (token) {
-          // Use authFetch from context to include the token in the request
-          const res = await authFetch(`${API_URL}/api/users/me/`, { method: "GET" });
-          if (res.ok) {
-            const user = await res.json();
-            login(token, user); // Set user in context
-            router.replace("/start/dashboard");
-          } else {
-            // Token is invalid or expired, remove it
-            localStorage.removeItem("authToken");
-          }
-        }
-      }
-      checkUserProfile();
-    }
-  }, [authLoading, user, authFetch, router, login]);
-
-  // Handle email step: verify if email exists before proceeding
-  const handleEmailNext = async (e) => {
+  // Handle username step: verify if username exists before proceeding
+  const handleUsernameNext = async (e) => {
     e.preventDefault();
     setError("");
     setEmailChecking(true);
     try {
-      // POST to backend to check if email exists (for user feedback)
-      const res = await fetch(`${API_URL}/api/check-email/`, {
+      const res = await fetch(`${API_URL}/api/check-username/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ username }),
         credentials: "include",
       });
       if (res.ok) {
         const data = await res.json();
         if (data.exists) {
-          setStep(2); // Proceed to password step
+          setStep(2);
         } else {
-          setError("This email is not registered. Please check and try again.");
+          setError("This username is not registered. Please check and try again.");
         }
       } else {
-        setError("Failed to verify email. Please try again.");
+        setError("Failed to verify username. Please try again.");
       }
     } catch {
       setError("Network error. Please try again.");
@@ -123,35 +75,23 @@ export default function LoginPage() {
     setEmailChecking(false);
   };
 
-  // Handle password step: authenticate user with email and password
+  // Handle password step: authenticate user with username and password
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      // POST to DRF's token auth endpoint
-      const res = await fetch(`${API_URL}/api/api-token-auth/`, {
+      const res = await fetch(`${API_URL}/api/session-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
-        body: JSON.stringify({ username: email, password }),
+        body: JSON.stringify({ username, password }),
         credentials: "include",
       });
       if (res.ok) {
-        const data = await res.json();
-        const token = data.token;
-        // Fetch user profile
-        const userRes = await fetch(`${API_URL}/api/users/me/`, {
-          headers: { Authorization: `Token ${token}` },
-        });
-        if (userRes.ok) {
-          const userData = await userRes.json();
-          login(token, userData);
-          router.replace("/start/dashboard");
-        } else {
-          setError("Failed to fetch user profile.");
-        }
+        await login(); // Fetch user and set in context
+        router.replace("/start/dashboard");
       } else {
-        setError("Invalid email or password.");
+        setError("Invalid username or password.");
       }
     } catch {
       setError("Network error. Please try again.");
@@ -184,7 +124,18 @@ export default function LoginPage() {
     setLoading(false);
   }
 
-  // Render login UI: email step, password step, or forgot password
+  // Show loading spinner while auth state is being determined
+  if (authLoading) {
+    return <LoadingPage />;
+  }
+  if (user) {
+    if (typeof window !== "undefined") {
+      router.replace("/start/dashboard");
+    }
+    return <LoadingPage />;
+  }
+
+  // Render login UI: username step, password step, or forgot password
   return (
     <div
       className="min-h-screen flex flex-col bg-white font-sans"
@@ -194,23 +145,23 @@ export default function LoginPage() {
       <NavBar />
       <main className="flex-1 flex items-center justify-center w-full">
         <div className="w-full max-w-md bg-gray-50 p-10 rounded-2xl shadow-xl border mx-auto">
-          {/* Step 1: Enter Email */}
+          {/* Step 1: Enter Username */}
           {step === 1 && !showForgot && (
             <>
               <h1 className="text-3xl font-extrabold text-center mb-2">
-                Enter Your Email
+                Enter Your Username
               </h1>
               <p className="text-center text-gray-600 mb-8">
                 We'll check if you have an account with us.
               </p>
-              <form onSubmit={handleEmailNext} className="space-y-6">
+              <form onSubmit={handleUsernameNext} className="space-y-6">
                 <div>
-                  <label className="block font-semibold mb-1">Email Address</label>
+                  <label className="block font-semibold mb-1">Username</label>
                   <input
-                    type="email"
-                    placeholder="e.g. john.doe@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    placeholder="e.g. johndoe"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                     className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black"
                   />
@@ -218,11 +169,11 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   className="w-full bg-black text-white py-3 rounded font-semibold text-lg hover:bg-gray-900 transition"
-                  disabled={!validateEmail(email) || loading || emailChecking}
+                  disabled={!username || loading || emailChecking}
                 >
                   {emailChecking ? "Checking..." : "Next"}
                 </button>
-                {/* Show error if email is not registered or request fails */}
+                {/* Show error if username is not registered or request fails */}
                 {error && (
                   <p className="text-red-600 text-center font-medium mt-4">
                     {error}
@@ -244,13 +195,13 @@ export default function LoginPage() {
                 <div className="flex flex-col items-center mb-2">
                   <div className="w-full flex justify-center">
                     <div className="w-full max-w-xs flex flex-col items-center gap-2">
-                      {/* User icon and email display */}
+                      {/* User icon and username display */}
                       <span className="material-symbols-outlined text-gray-500 text-4xl">
                         account_circle
                       </span>
                       <input
-                        type="email"
-                        value={email}
+                        type="text"
+                        value={username}
                         disabled
                         className="w-full p-2 border rounded bg-gray-100 text-gray-900 text-center font-semibold shadow-sm cursor-not-allowed"
                       />
@@ -271,13 +222,13 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="flex items-center justify-between mb-2">
-                  {/* Change Email and Forgot Password links */}
+                  {/* Change Username and Forgot Password links */}
                   <button
                     type="button"
                     className="flex items-center text-sm font-medium text-black hover:underline"
                     onClick={() => setStep(1)}
                   >
-                    <span className="mr-1">&#8592;</span> Change Email
+                    <span className="mr-1">&#8592;</span> Change Username
                   </button>
                   <button
                     type="button"

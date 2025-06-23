@@ -18,12 +18,12 @@ export default function LogoutPage() {
   }, []);
 
   const handleLogout = async () => {
-    await fetch(`${API_URL}/api/logout/`, {
+    await fetch(`${API_URL}/api/session-logout/`, {
       method: "POST",
       headers: { "X-CSRFToken": csrfToken },
       credentials: "include",
     });
-    logoutContext(); // Clear token and user context
+    logoutContext(); // Clear user context
     router.push("/login");
   };
 

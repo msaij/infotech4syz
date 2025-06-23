@@ -1,13 +1,14 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from rest_framework.authtoken.views import obtain_auth_token
 from .views import (
     ContactUsCreateView,
     ForgotPasswordView,
-    check_email,
+    check_username,  # changed from check_email
     logout_view,
     csrf_token,
     UserViewSet,
+    session_login,
+    session_logout,
 )
 
 app_name = "api"
@@ -15,10 +16,11 @@ app_name = "api"
 urlpatterns = [
     path('contact/', ContactUsCreateView.as_view(), name='contact-us-create'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
-    path('check-email/', check_email, name='check-email'),
+    path('check-username/', check_username, name='check-username'),  # changed
     path('logout/', logout_view, name='logout'),
     path('csrf/', csrf_token, name='csrf-token'),
-    path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
+    path('session-login/', session_login, name='session-login'),
+    path('session-logout/', session_logout, name='session-logout'),
 ]
 
 router = DefaultRouter()

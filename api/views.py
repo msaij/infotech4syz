@@ -16,7 +16,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import UserSerializer
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
-from rest_framework.authtoken.models import Token
+from django.views.decorators.csrf import csrf_protect
 
 # Create your views here.
 
@@ -73,21 +73,14 @@ class ForgotPasswordView(APIView):
         return Response({'success': True})
 
 @api_view(["POST"])
-def check_email(request):
-    email = request.data.get("email")
+def check_username(request):
+    username = request.data.get("username")
     exists = False
-    if email:
+    if username:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT 1 FROM auth_user WHERE email = %s LIMIT 1", [email])
+            cursor.execute("SELECT 1 FROM auth_user WHERE username = %s LIMIT 1", [username])
             exists = cursor.fetchone() is not None
     return Response({"exists": exists})
-
-@api_view(["POST"])
-@permission_classes([AllowAny])
-@ensure_csrf_cookie
-def login_view(request):
-    # This view is deprecated in favor of DRF's obtain_auth_token
-    return Response({"detail": "Use /api/api-token-auth/ for login."}, status=400)
 
 class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = get_user_model().objects.all()
@@ -111,9 +104,25 @@ def csrf_token(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def logout_view(request):
-    """Log out the current user and delete their token."""
-    user = request.user
-    if user.is_authenticated:
-        Token.objects.filter(user=user).delete()
-        logout(request)
+    """Log out the current user."""
+    logout(request)
+    return Response({"success": True})
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@csrf_protect
+def session_login(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        login(request, user)
+        return Response({"success": True})
+    return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@csrf_protect
+def session_logout(request):
+    logout(request)
     return Response({"success": True})

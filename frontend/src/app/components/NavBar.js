@@ -26,7 +26,7 @@ export default function NavBar() {
   }, [authFetch]);
 
   const handleLogout = async () => {
-    await authFetch(`${API_URL}/api/logout/`, {
+    await authFetch(`${API_URL}/api/session-logout/`, {
       method: "POST",
       headers: { "X-CSRFToken": csrfToken },
       credentials: "include",
