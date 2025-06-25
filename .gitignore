@@ -1,9 +1,9 @@
 # Python
-__pycache__/
-*.py[cod]
+# __pycache__/
+# *.py[cod]
 
 # Django migrations
-*/migrations/__pycache__/
+# */migrations/__pycache__/
 
 # Environment
 .env
