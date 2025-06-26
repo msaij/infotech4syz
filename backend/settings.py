@@ -75,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 
 
 # Database
@@ -147,7 +147,6 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
-    # 'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
 
@@ -162,7 +161,7 @@ CSRF_COOKIE_SECURE = False     # Changed to False for local development
 
 SESSION_COOKIE_AGE = 1209600  # 2 weeks (default)
 
-# Email backend for password reset
+# For production, use SMTP backend and configure SMTP settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -170,13 +169,6 @@ EMAIL_HOST_USER = 'sample4syz@gmail.com'
 EMAIL_HOST_PASSWORD = 'sampleapppassword1234'  # This should be a real app password in production
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'sample4syz@gmail.com'
-# For production, use SMTP backend and configure SMTP settings
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.yourprovider.com'
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = 'your@email.com'
-# EMAIL_HOST_PASSWORD = 'yourpassword'
-# EMAIL_USE_TLS = True
 
 # Cookie and CSRF security settings
 if os.environ.get("DJANGO_ENV") == "production":

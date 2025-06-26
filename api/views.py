@@ -65,13 +65,11 @@ class ForgotPasswordView(APIView):
 # API endpoint to check if a username exists (for login/registration UX)
 @api_view(["POST"])
 def check_username(request):
-    """Checks if a username exists in the database."""
+    """Checks if a username exists in the database using the User model."""
     username = request.data.get("username")
     exists = False
     if username:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1 FROM auth_user WHERE username = %s LIMIT 1", [username])
-            exists = cursor.fetchone() is not None
+        exists = User.objects.filter(username=username).exists()
     return Response({"exists": exists})
 
 # ViewSet for authenticated user info and profile endpoints

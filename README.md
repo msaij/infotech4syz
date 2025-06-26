@@ -8,7 +8,7 @@ This project contains:
 ## Getting Started
 
 ### Backend (Django)
-1. Create a `.env` file for your MySQL credentials.
+1. Set your MySQL credentials in your Django settings or environment variables.
 2. Install Python dependencies:
    ```bash
    pip install -r requirements.txt

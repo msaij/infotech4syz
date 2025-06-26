@@ -13,7 +13,7 @@
     {
       "label": "Run Django Backend",
       "type": "shell",
-      "command": "python manage.py runserver",
+      "command": "uvicorn backend.asgi:application --host 127.0.0.1 --port 8000",
       "group": "build",
       "problemMatcher": []
     },
