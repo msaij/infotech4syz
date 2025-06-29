@@ -114,7 +114,7 @@ export default function Home() {
 					<h2 className="text-2xl font-bold text-black mb-10 text-center tracking-tight">
 						Our Commitment
 					</h2>
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-10 justify-center items-center text-center">
 						{commitments.map((c) => (
 							<div
 								key={c.title}

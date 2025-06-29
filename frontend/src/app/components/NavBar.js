@@ -1,12 +1,14 @@
+'use client';
+
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/(access-providers)/auth-context";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/#services", label: "Services" },
-  { href: "/contact", label: "Contact" },
+  { href: "/contact", label: "Contact", isexternal: true },
   { href: "/login", label: "Login" },
 ];
 
@@ -32,7 +34,7 @@ export default function NavBar() {
       credentials: "include",
     });
     logout(); // clear global auth state
-    router.push("/login");
+    redirect("/login"); // Redirect to login page
   };
 
   return (

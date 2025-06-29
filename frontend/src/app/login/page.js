@@ -89,7 +89,6 @@ export default function LoginPage() {
       });
       if (res.ok) {
         await login(); // Fetch user and set in context
-        router.replace("/start/dashboard");
       } else {
         setError("Invalid username or password.");
       }
@@ -129,9 +128,10 @@ export default function LoginPage() {
     return <LoadingPage />;
   }
   if (user) {
-    if (typeof window !== "undefined") {
-      router.replace("/start/dashboard");
-    }
+    // If user is already logged in, redirect to dashboard
+    // if (typeof window !== "undefined") {
+    //   redirect("/start/dashboard");
+    // }
     return <LoadingPage />;
   }
 
