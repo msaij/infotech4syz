@@ -15,6 +15,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from config.env file
+load_dotenv(os.path.join(os.path.dirname(__file__), 'config.env'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,12 +28,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-x$157t-ol+jjd4aeh94pg*klk0%kk^h9+h6kjr516hk^#ofew*'
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable is required")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = []  # Add your production domain(s) here
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -84,13 +90,21 @@ ASGI_APPLICATION = 'backend.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '4syz',
-        'USER': 'root',
-        'PASSWORD': '123456',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
     }
 }
+
+# Validate required database settings
+if not DATABASES['default']['NAME']:
+    raise ValueError("DB_NAME environment variable is required")
+if not DATABASES['default']['USER']:
+    raise ValueError("DB_USER environment variable is required")
+if not DATABASES['default']['PASSWORD']:
+    raise ValueError("DB_PASSWORD environment variable is required")
 
 
 # Password validation
@@ -146,9 +160,7 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1:3000',
-]
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1:3000').split(',')
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default
@@ -163,15 +175,25 @@ SESSION_COOKIE_AGE = 1209600  # 2 weeks (default)
 
 # For production, use SMTP backend and configure SMTP settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'sample4syz@gmail.com'
-EMAIL_HOST_PASSWORD = 'sampleapppassword1234'  # This should be a real app password in production
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'sample4syz@gmail.com'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+# Validate required email settings
+if not EMAIL_HOST:
+    raise ValueError("EMAIL_HOST environment variable is required")
+if not EMAIL_HOST_USER:
+    raise ValueError("EMAIL_HOST_USER environment variable is required")
+if not EMAIL_HOST_PASSWORD:
+    raise ValueError("EMAIL_HOST_PASSWORD environment variable is required")
+if not DEFAULT_FROM_EMAIL:
+    raise ValueError("DEFAULT_FROM_EMAIL environment variable is required")
 
 # Cookie and CSRF security settings
-if os.environ.get("DJANGO_ENV") == "production":
+if os.getenv("DJANGO_ENV") == "production":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'Lax'  # or 'Strict' if you want stricter policy

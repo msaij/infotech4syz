@@ -3,8 +3,7 @@ Django>=5.2.3
 mysqlclient
 uvicorn
 gunicorn
-channels
 django-cors-headers
 djangorestframework
 djangorestframework-simplejwt
-websockets
+python-dotenv
