@@ -8,6 +8,7 @@ import { useAuth } from "@/components/(access-providers)/auth-context";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/#services", label: "Services" },
+  { href: "/explore", label: "Explore" }, // Added link
   { href: "/contact", label: "Contact", isexternal: true },
   { href: "/login", label: "Login" },
 ];

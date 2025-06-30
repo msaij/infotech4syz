@@ -7,7 +7,7 @@ export default function Footer() {
     setYear(new Date().getFullYear());
   }, []);
   return (
-    <footer className="py-6 text-center text-black bg-gray-100 border-t mt-auto">
+    <footer className="py-1 text-center text-xs text-black bg-white border-t mt-auto">
       &copy; {year} 4syz Infotech Solutions. All rights reserved.
     </footer>
   );
