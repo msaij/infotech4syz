@@ -111,16 +111,15 @@ This project contains:
    ```bash
    cd backend
    pip install -r requirements.txt
-   python manage.py makemigrations
    python manage.py migrate
-   python manage.py runserver
+   uvicorn backend.asgi:application --host 127.0.0.1 --port 8000
    ```
 
 5. **FastAPI Service Setup**
    ```bash
    cd fastapi-service
    pip install -r requirements.txt
-   uvicorn main:app --host 0.0.0.0 --port 8001
+   uvicorn main:app --host 0.0.0.0 --port 8001 --reload
    ```
 
 6. **Frontend Setup (Next.js)**
@@ -250,7 +249,7 @@ docker-compose up kafka zookeeper -d
 cd backend
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py runserver 0.0.0.0:8000
+uvicorn backend.asgi:application --host 127.0.0.1 --port 8000
 ```
 
 **FastAPI Service**
