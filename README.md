@@ -7,7 +7,6 @@ This project contains:
 - **Backend:** Django REST Framework (DRF) with MySQL
 - **Frontend:** Next.js (JavaScript, Tailwind CSS)
 - **API Service:** FastAPI for high-performance endpoints
-- **Message Streaming:** Kafka for real-time data processing
 
 ## 🌟 Key Features
 
@@ -37,7 +36,6 @@ This project contains:
 ### Microservices Architecture
 - **Service Separation**: Django REST Framework, FastAPI, and Next.js deployed as independent services
 - **Database Isolation**: External MySQL hosting for improved scalability and maintenance
-- **Message Queue**: Kafka for asynchronous processing and service communication
 - **Horizontal Scaling**: Each service can be scaled independently based on demand
 
 ### Performance & Reliability
@@ -58,13 +56,12 @@ This project contains:
 - **Django REST Framework**: API development and backend logic
 - **FastAPI**: High-performance API endpoints
 - **MySQL**: External hosted database
-- **Kafka**: Message streaming and real-time data processing
 
 ### Frontend Application
 - **Next.js**: React-based frontend framework with Tailwind CSS
 
 ### Data & Infrastructure
-- **Docker**: Used for Kafka and Zookeeper services
+- **Docker**: (Optional, for your own use)
 
 ## 🚀 Deployment & Operations
 
@@ -75,7 +72,6 @@ This project contains:
 ### Development Environment
 - **Node.js**: Latest LTS version recommended
 - **Python**: 3.8 or higher
-- **Docker**: For Kafka infrastructure services
 - **Database Access**: Connection to hosted MySQL instance
 
 ### Production Deployment Considerations
@@ -101,13 +97,7 @@ This project contains:
    # Configure your environment variables
    ```
 
-3. **Start Kafka Services (Docker)**
-   ```bash
-   # Start Kafka and Zookeeper services
-   docker-compose up kafka zookeeper -d
-   ```
-
-4. **Backend Setup (Django REST Framework)**
+3. **Backend Setup (Django REST Framework)**
    ```bash
    cd backend
    pip install -r requirements.txt
@@ -115,21 +105,21 @@ This project contains:
    uvicorn backend.asgi:application --host 127.0.0.1 --port 8000
    ```
 
-5. **FastAPI Service Setup**
+4. **FastAPI Service Setup**
    ```bash
    cd fastapi-service
    pip install -r requirements.txt
    uvicorn main:app --host 0.0.0.0 --port 8001 --reload
    ```
 
-6. **Frontend Setup (Next.js)**
+5. **Frontend Setup (Next.js)**
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
 
-7. **Create Superuser**
+6. **Create Superuser**
    ```bash
    # Navigate to backend directory
    cd backend
@@ -142,7 +132,6 @@ This project contains:
 ├── backend/                 # Django REST Framework
 ├── frontend/               # Next.js application
 ├── fastapi-service/        # FastAPI microservice
-├── docker-compose.yml      # Docker services configuration
 ├── requirements.txt        # Python dependencies
 ├── package.json           # Node.js dependencies
 └── README.md             # Project documentation
@@ -192,10 +181,6 @@ SECRET_KEY=your_django_secret_key
 DEBUG=False
 ALLOWED_HOSTS=your-domain.com,localhost
 
-# Message Queue
-KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-KAFKA_TOPIC_PREFIX=dc_tracker
-
 # File Storage Configuration
 STORAGE_BACKEND=local  # Options: local, s3, azure, gcp (configurable)
 # AWS S3 (if using S3)
@@ -238,12 +223,6 @@ CSRF_TRUSTED_ORIGINS=http://localhost:3000,https://your-domain.com
 
 ### Running Services
 
-**Kafka Services (Docker)**
-```bash
-# Start Kafka and Zookeeper
-docker-compose up kafka zookeeper -d
-```
-
 **Backend (Django REST Framework)**
 ```bash
 cd backend
@@ -264,38 +243,6 @@ uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 cd frontend
 npm install
 npm run dev
-```
-
-## 🐳 Docker Services
-
-Only Kafka and Zookeeper are containerized:
-
-- **kafka**: Message streaming service
-- **zookeeper**: Kafka dependency
-
-*Note: Django REST Framework, FastAPI, Next.js, and MySQL are deployed as standalone services without Docker.*
-
-### docker-compose.yml (Kafka Only)
-```yaml
-version: '3.8'
-services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 ```
 
 ## 📝 Customization
