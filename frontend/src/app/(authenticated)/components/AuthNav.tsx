@@ -8,8 +8,21 @@ import { useState } from "react";
 import { useAuth } from "@/components/(access-providers)/auth-context";
 import { usePathname } from "next/navigation";
 
+interface NavChild {
+	href: string;
+	label: string;
+	icon: string;
+}
+
+interface NavItem {
+	label: string;
+	icon: string;
+	children?: NavChild[];
+	href?: string;
+}
+
 // Navigation items for the sidebar
-const navItems = [
+const navItems: NavItem[] = [
 	{
 		label: "Office",
 		icon: "apartment",
@@ -30,8 +43,8 @@ export default function AuthNav() {
 	const { user } = useAuth();
 	const pathname = usePathname();
 	// Open folders state: initialize Office open if on a child route
-	const [openFolders, setOpenFolders] = useState(() => {
-		const initial = {};
+	const [openFolders, setOpenFolders] = useState<Record<string, boolean>>(() => {
+		const initial: Record<string, boolean> = {};
 		navItems.forEach((item) => {
 			if (item.children) {
 				if (item.children.some((child) => pathname.startsWith(child.href))) {
@@ -42,7 +55,7 @@ export default function AuthNav() {
 		return initial;
 	});
 
-	const handleFolderToggle = (label) => {
+	const handleFolderToggle = (label: string) => {
 		setOpenFolders((prev) => ({ ...prev, [label]: !prev[label] }));
 	};
 
@@ -93,31 +106,35 @@ export default function AuthNav() {
 							{openFolders[item.label] && !collapsed && (
 								<div className="ml-8 flex flex-col gap-1">
 									{item.children.map((child) => (
-										<Link
-											key={child.href}
-											href={child.href}
-											className={`flex items-center gap-3 px-2 py-2 rounded hover:bg-zinc-800 text-sm ${
-												pathname === child.href
-													? "bg-zinc-800 text-white font-semibold"
-													: "text-zinc-300"
-											}`}
-										>
-											<span className="material-symbols-outlined text-xl">{child.icon}</span>
-											<span>{child.label}</span>
-										</Link>
+										child.href && (
+											<Link
+												key={child.href}
+												href={child.href}
+												className={`flex items-center gap-3 px-2 py-2 rounded hover:bg-zinc-800 text-sm ${
+													pathname === child.href
+														? "bg-zinc-800 text-white font-semibold"
+														: "text-zinc-300"
+												}`}
+											>
+												<span className="material-symbols-outlined text-xl">{child.icon}</span>
+												<span>{child.label}</span>
+											</Link>
+										)
 									))}
 								</div>
 							)}
 						</div>
 					) : (
-						<Link
-							key={item.href}
-							href={item.href}
-							className={`flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-zinc-800 transition text-zinc-200 font-medium ${collapsed ? "justify-center" : ""}`}
-						>
-							<span className="material-symbols-outlined text-2xl">{item.icon}</span>
-							{!collapsed && <span>{item.label}</span>}
-						</Link>
+						item.href && (
+							<Link
+								key={item.href}
+								href={item.href}
+								className={`flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-zinc-800 transition text-zinc-200 font-medium ${collapsed ? "justify-center" : ""}`}
+							>
+								<span className="material-symbols-outlined text-2xl">{item.icon}</span>
+								{!collapsed && <span>{item.label}</span>}
+							</Link>
+						)
 					)
 				)}
 			</nav>

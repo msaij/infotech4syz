@@ -30,7 +30,7 @@ export default function Contact() {
   }, [authFetch]);
 
   // Handle contact form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSubmitted(false);
@@ -65,12 +65,12 @@ export default function Contact() {
           Contact Us
         </h1>
         <p className="text-lg text-gray-600 text-center mb-10">
-          We're here to assist. Reach out with your requirements or inquiries.
+          We&apos;re here to assist. Reach out with your requirements or inquiries.
         </p>
         <div className="w-full max-w-2xl bg-gray-50 p-8 rounded-2xl shadow-lg border mx-auto">
           <h2 className="text-2xl font-bold mb-1">Send Us a Message</h2>
           <p className="text-gray-600 mb-6">
-            Fill out the form below, and we'll be in touch promptly.
+            Fill out the form below, and we&apos;ll be in touch promptly.
           </p>
           {/* Contact form with controlled inputs and error/success messages */}
           <form onSubmit={handleSubmit} className="space-y-6">

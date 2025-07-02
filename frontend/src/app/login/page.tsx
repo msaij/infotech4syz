@@ -10,7 +10,7 @@ import { useAuth } from "@/components/(access-providers)/auth-context";
 import LoadingPage from "@/components/LoadingPage";
 
 // Utility function to validate email format
-function validateEmail(email) {
+function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
@@ -48,7 +48,7 @@ export default function LoginPage() {
   }, [user, authLoading, router]);
 
   // Handle username step: verify if username exists before proceeding
-  const handleUsernameNext = async (e) => {
+  const handleUsernameNext = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setEmailChecking(true);
@@ -76,7 +76,7 @@ export default function LoginPage() {
   };
 
   // Handle password step: authenticate user with username and password
-  const handlePasswordSubmit = async (e) => {
+  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -99,7 +99,7 @@ export default function LoginPage() {
   };
 
   // Handle forgot password: send reset link to email
-  async function handleForgotSubmit(e) {
+  async function handleForgotSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setForgotError("");
     setForgotSent(false);
@@ -152,7 +152,7 @@ export default function LoginPage() {
                 Enter Your Username
               </h1>
               <p className="text-center text-gray-600 mb-8">
-                We'll check if you have an account with us.
+                We&apos;ll check if you have an account with us.
               </p>
               <form onSubmit={handleUsernameNext} className="space-y-6">
                 <div>
