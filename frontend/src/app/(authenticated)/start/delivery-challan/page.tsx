@@ -1,42 +1,63 @@
-// generate html table with sample data
-import React from 'react';
+"use client";
+import React, { useEffect, useState } from "react";
 
-const fakeTableData = Array.from({ length: 10 }, (_, i) => ({
-	id: i + 1,
-	name: `Item ${i + 1}`,
-	description: `Description for Item ${i + 1}`,
-	quantity: Math.floor(Math.random() * 100),
-	price: (Math.random() * 100).toFixed(2),
-}));
+interface ChallanTableData {
+  columns: string[];
+  data: Record<string, any>[];
+}
 
 export default function DeliveryChallanPage() {
-	return (
-		<div className="flex flex-col items-center justify-center min-h-screen w-full bg-white">
-			<h1 className="text-3xl font-bold mb-6 text-zinc-900">Delivery Challan</h1>
-			<div className="flex-1 w-full flex items-center justify-center">
-				<table className="w-full max-w-6xl border border-zinc-200 bg-white text-zinc-800 rounded-lg shadow-md">
-					<thead className="bg-zinc-100">
-						<tr>
-							<th className="px-4 py-2 border-b text-left font-semibold">ID</th>
-							<th className="px-4 py-2 border-b text-left font-semibold">Name</th>
-							<th className="px-4 py-2 border-b text-left font-semibold">Description</th>
-							<th className="px-4 py-2 border-b text-left font-semibold">Quantity</th>
-							<th className="px-4 py-2 border-b text-left font-semibold">Price</th>
-						</tr>
-					</thead>
-					<tbody>
-						{fakeTableData.map((item) => (
-							<tr key={item.id} className="hover:bg-zinc-100 transition">
-								<td className="px-4 py-2 border-b">{item.id}</td>
-								<td className="px-4 py-2 border-b">{item.name}</td>
-								<td className="px-4 py-2 border-b">{item.description}</td>
-								<td className="px-4 py-2 border-b">{item.quantity}</td>
-								<td className="px-4 py-2 border-b">{item.price}</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
-		</div>
-	);
+  const [sseData, setSseData] = useState<ChallanTableData>({ columns: [], data: [] });
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const evtSource = new EventSource("http://localhost:8001/sse/delivery-challan");
+    evtSource.onmessage = (event) => {
+      try {
+        setSseData(JSON.parse(event.data));
+      } catch {}
+    };
+    return () => evtSource.close();
+  }, []);
+
+  // Filter rows based on search input (case-insensitive, matches any cell)
+  const filteredRows = sseData.data.filter((row) =>
+    sseData.columns.some((col) =>
+      String(row[col] ?? "").toLowerCase().includes(search.toLowerCase())
+    )
+  );
+
+  return (
+    <div className="min-h-screen w-full bg-white flex flex-col items-start p-8">
+      <div className="my-2 w-full max-w-6xl">
+        <input
+          type="text"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="mb-4 px-3 py-2 border border-zinc-300 rounded-md w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
+      <div className="my-8 w-full max-w-6xl">
+        <table className="w-full border border-zinc-200 bg-white text-zinc-800 rounded-lg shadow-md">
+          <thead className="bg-zinc-100">
+            <tr>
+              {sseData.columns.map((col) => (
+                <th key={col} className="px-4 py-2 border-b text-left font-semibold">{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredRows.map((row, idx) => (
+              <tr key={row.id || idx} className="hover:bg-zinc-100 transition">
+                {sseData.columns.map((col) => (
+                  <td key={col} className="px-4 py-2 border-b">{row[col]}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
