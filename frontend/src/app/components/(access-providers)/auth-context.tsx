@@ -1,15 +1,29 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { ReactNode, createContext, useContext, useState, useEffect } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// Create the AuthContext for managing authentication state and actions
-const AuthContext = createContext();
+interface User {
+  email?: string;
+  username?: string;
+  // Add other user fields as needed
+}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // Current user object
-  const [loading, setLoading] = useState(true); // Loading state for auth
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: () => Promise<void>;
+  logout: () => void;
+  authFetch: (url: string, options?: RequestInit) => Promise<Response>;
+}
+
+// Create the AuthContext for managing authentication state and actions
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null); // Current user object
+  const [loading, setLoading] = useState<boolean>(true); // Loading state for auth
 
   // On mount, check for user session ONCE
   useEffect(() => {
@@ -48,7 +62,7 @@ export function AuthProvider({ children }) {
   };
 
   // Helper for authenticated API calls (always includes credentials)
-  const authFetch = async (url, options = {}) => {
+  const authFetch = async (url: string, options: RequestInit = {}) => {
     return fetch(url, { ...options, credentials: "include" });
   };
 
@@ -60,6 +74,10 @@ export function AuthProvider({ children }) {
 }
 
 // Custom hook to use authentication context in components
-export function useAuth() {
-  return useContext(AuthContext);
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 }

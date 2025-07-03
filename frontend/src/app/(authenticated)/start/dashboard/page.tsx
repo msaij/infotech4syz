@@ -18,7 +18,9 @@ export default function Dashboard() {
       <h1 className="text-4xl font-bold mb-4">Welcome to your Dashboard!</h1>
       <div className="text-lg text-gray-700">
         Logged in as:{" "}
-        <span className="font-semibold">{user.email || user.username}</span>
+        {user && (
+          <span className="font-semibold">{user.email || user.username}</span>
+        )}
       </div>
     </div>
   );
