@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import LoadingPage from "@/components/LoadingPage";
-import AuthNav from "@/authenticated-components/AuthNav";
+import AuthNav from "@/start-components/AuthNav";
 
 export default function StartLayout({ children }) {
   const { user, loading } = useAuth();
