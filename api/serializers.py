@@ -11,13 +11,20 @@ class ContactUsSerializer(serializers.ModelSerializer):
         # Only expose relevant fields for the contact form
 
 class UserSerializer(serializers.ModelSerializer):
-    """Serializer for the User model, exposes basic user info for authentication and profile."""
+    """Serializer for User model, used for user profile endpoints."""
     class Meta:
         model = get_user_model()
-        fields = ['id', 'username', 'email']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
 class DeliveryChallanSerializer(serializers.ModelSerializer):
     """Serializer for DeliveryChallan model, used for serializing delivery challan data."""
+    acknowledgement_copy = serializers.FileField(required=False, allow_null=True)
+    
     class Meta:
         model = DeliveryChallan
-        fields = '__all__'
+        fields = [
+            'id', 'challan_number', 'date', 'customer', 'dc_summary', 
+            'delivery_executives', 'invoice_number', 'invoice_date', 
+            'invoice_submission', 'updated_at', 'acknowledgement_copy', 'created_at'
+        ]
+        read_only_fields = ['id', 'challan_number', 'created_at', 'updated_at']
