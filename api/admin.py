@@ -8,16 +8,14 @@ from .models.deliverychallan import DeliveryChallan
 class ContactUsAdmin(admin.ModelAdmin):
     list_display = ("name", "email", "phone", "created_at")
 
-# Register DeliveryChallan model
 @admin.register(DeliveryChallan)
 class DeliveryChallanAdmin(admin.ModelAdmin):
-    list_display = ("challan_number", "customer", "date", "invoice_submission")
-    list_filter = ("invoice_submission", "date")
+    list_display = ("challan_number", "customer", "date", "invoice_submission", "proof_of_delivery", "pod_upload_date")
+    list_filter = ("invoice_submission", "date", "pod_upload_date")
     search_fields = ("challan_number", "customer", "dc_summary")
     readonly_fields = ("challan_number", "id", "created_at", "updated_at")
     date_hierarchy = "date"
     ordering = ("-date", "-created_at")
-    
     fieldsets = (
         ("Basic Information", {
             "fields": ("id", "challan_number", "date", "customer")
@@ -28,8 +26,8 @@ class DeliveryChallanAdmin(admin.ModelAdmin):
         ("Invoice Information", {
             "fields": ("invoice_number", "invoice_date", "invoice_submission")
         }),
-        ("Acknowledgement", {
-            "fields": ("acknowledgement_copy",)
+        ("Proof of Delivery", {
+            "fields": ("proof_of_delivery", "pod_upload_date")
         }),
         ("Timestamps", {
             "fields": ("updated_at", "created_at"),
