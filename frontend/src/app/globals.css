@@ -10,6 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-montserrat: var(--font-montserrat);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +24,162 @@ body {
   background: var(--background);
   color: #171717;
   font-family: 'Inter', Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove default focus outlines and add custom ones */
+* {
+  outline: none;
+}
+
+/* Custom focus states - more subtle than blue outlines */
+button:focus, a:focus, input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Remove focus outline for buttons and links */
+button:focus, a:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Remove focus outline for inputs */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #000;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Improve touch targets */
+  button, a, input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better scrolling on mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  
+  /* Improve table responsiveness */
+  table {
+    font-size: 14px;
+  }
+  
+  /* Better modal handling on mobile */
+  .modal-content {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+
+  /* Improve card interactions */
+  .card-interactive {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .card-interactive:active {
+    transform: scale(0.98);
+  }
+
+  /* Better button feedback */
+  button:active {
+    transform: scale(0.95);
+  }
+
+  /* Improve dropdown positioning */
+  .dropdown-menu {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+}
+
+/* Custom animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Better hover states for touch devices */
+@media (hover: hover) {
+  button:hover, a:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+  }
+}
+
+/* Mobile-first responsive utilities */
+.mobile-first {
+  /* Base mobile styles */
+}
+
+@media (min-width: 640px) {
+  .mobile-first {
+    /* Small screen and up */
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-first {
+    /* Medium screen and up */
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-first {
+    /* Large screen and up */
+  }
+}
+
+/* Touch-friendly improvements */
+.touch-friendly {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Loading states for mobile */
+.loading-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+/* Mobile navigation improvements */
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  z-index: 50;
+  padding: 0.5rem;
+}
+
+/* Safe area for mobile devices */
+.safe-area {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
 }

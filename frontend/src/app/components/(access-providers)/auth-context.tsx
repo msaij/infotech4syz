@@ -7,6 +7,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 interface User {
   email?: string;
   username?: string;
+  first_name?: string;
+  last_name?: string;
   // Add other user fields as needed
 }
 

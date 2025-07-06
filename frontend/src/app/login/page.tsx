@@ -143,39 +143,39 @@ export default function LoginPage() {
     >
       {/* Navigation bar at the top */}
       <NavBar />
-      <main className="flex-1 flex items-center justify-center w-full">
-        <div className="w-full max-w-md bg-gray-50 p-10 rounded-2xl shadow-xl border mx-auto">
+      <main className="flex-1 flex items-center justify-center w-full px-4">
+        <div className="w-full max-w-md bg-gray-50 p-6 sm:p-10 rounded-2xl shadow-xl border mx-auto">
           {/* Step 1: Enter Username */}
           {step === 1 && !showForgot && (
             <>
-              <h1 className="text-3xl font-extrabold text-center mb-2">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2">
                 Enter Your Username
               </h1>
-              <p className="text-center text-gray-600 mb-8">
+              <p className="text-center text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base">
                 We&apos;ll check if you have an account with us.
               </p>
-              <form onSubmit={handleUsernameNext} className="space-y-6">
+              <form onSubmit={handleUsernameNext} className="space-y-4 sm:space-y-6">
                 <div>
-                  <label className="block font-semibold mb-1">Username</label>
+                  <label className="block font-semibold mb-1 text-sm sm:text-base">Username</label>
                   <input
                     type="text"
                     placeholder="e.g. johndoe"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black"
+                    className="w-full p-3 sm:p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black text-base"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-black text-white py-3 rounded font-semibold text-lg hover:bg-gray-900 transition"
+                  className="w-full bg-black text-white py-3 rounded font-semibold text-base sm:text-lg hover:bg-gray-900 transition"
                   disabled={!username || loading || emailChecking}
                 >
                   {emailChecking ? "Checking..." : "Next"}
                 </button>
                 {/* Show error if username is not registered or request fails */}
                 {error && (
-                  <p className="text-red-600 text-center font-medium mt-4">
+                  <p className="text-red-600 text-center font-medium mt-4 text-sm sm:text-base">
                     {error}
                   </p>
                 )}
@@ -185,127 +185,126 @@ export default function LoginPage() {
           {/* Step 2: Enter Password */}
           {step === 2 && !showForgot && (
             <>
-              <h1 className="text-3xl font-extrabold text-center mb-8 text-black">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-6 sm:mb-8 text-black">
                 Enter Your Password
               </h1>
               <form
                 onSubmit={handlePasswordSubmit}
-                className="flex flex-col gap-6"
+                className="flex flex-col gap-4 sm:gap-6"
               >
                 <div className="flex flex-col items-center mb-2">
                   <div className="w-full flex justify-center">
                     <div className="w-full max-w-xs flex flex-col items-center gap-2">
                       {/* User icon and username display */}
-                      <span className="material-symbols-outlined text-gray-500 text-4xl">
+                      <span className="material-symbols-outlined text-gray-500 text-3xl sm:text-4xl">
                         account_circle
                       </span>
-                      <input
-                        type="text"
-                        value={username}
-                        disabled
-                        className="w-full p-2 border rounded bg-gray-100 text-gray-900 text-center font-semibold shadow-sm cursor-not-allowed"
-                      />
+                      <p className="text-sm sm:text-base text-gray-600 text-center">
+                        Logging in as{" "}
+                        <span className="font-semibold text-black">{username}</span>
+                      </p>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <label className="block font-semibold mb-1 text-black">
-                    Password
-                  </label>
+                  <label className="block font-semibold mb-1 text-sm sm:text-base">Password</label>
                   <input
                     type="password"
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black text-black bg-white"
+                    className="w-full p-3 sm:p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black text-base"
                   />
-                </div>
-                <div className="flex items-center justify-between mb-2">
-                  {/* Change Username and Forgot Password links */}
-                  <button
-                    type="button"
-                    className="flex items-center text-sm font-medium text-black hover:underline"
-                    onClick={() => setStep(1)}
-                  >
-                    <span className="mr-1">&#8592;</span> Change Username
-                  </button>
-                  <button
-                    type="button"
-                    className="text-sm text-blue-600 underline hover:text-blue-800"
-                    onClick={() => setShowForgot(true)}
-                  >
-                    Forgot password?
-                  </button>
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-black text-white py-3 rounded font-semibold text-lg hover:bg-gray-900 transition"
-                  disabled={loading}
+                  className="w-full bg-black text-white py-3 rounded font-semibold text-base sm:text-lg hover:bg-gray-900 transition"
+                  disabled={!password || loading}
                 >
-                  {loading ? "Logging in..." : "Login"}
+                  {loading ? "Signing In..." : "Sign In"}
                 </button>
                 {/* Show error if login fails */}
                 {error && (
-                  <p className="text-red-600 text-center font-medium mt-4">
+                  <p className="text-red-600 text-center font-medium mt-4 text-sm sm:text-base">
                     {error}
                   </p>
                 )}
+                {/* Forgot password link */}
+                <button
+                  type="button"
+                  onClick={() => setShowForgot(true)}
+                  className="text-gray-600 hover:text-black transition text-sm sm:text-base"
+                >
+                  Forgot your password?
+                </button>
+                {/* Back to username step */}
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="text-gray-600 hover:text-black transition text-sm sm:text-base"
+                >
+                  ← Back to username
+                </button>
               </form>
             </>
           )}
-          {/* Forgot Password Step */}
+          {/* Forgot Password */}
           {showForgot && (
             <>
-              <h1 className="text-2xl font-bold text-center mb-2">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2">
                 Reset Password
               </h1>
-              <p className="text-center text-gray-600 mb-6">
-                Enter your email to receive a reset link.
+              <p className="text-center text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base">
+                Enter your email address and we&apos;ll send you a reset link.
               </p>
-              {forgotSent ? (
-                <div className="text-green-700 text-center font-semibold mb-4">
-                  If this email exists, a reset link has been sent.
-                </div>
-              ) : (
-                <form onSubmit={handleForgotSubmit} className="flex flex-col gap-4">
+              <form onSubmit={handleForgotSubmit} className="space-y-4 sm:space-y-6">
+                <div>
+                  <label className="block font-semibold mb-1 text-sm sm:text-base">Email Address</label>
                   <input
                     type="email"
-                    placeholder="Enter your email address"
+                    placeholder="Enter your email"
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    className="border border-gray-300 rounded px-4 py-2 bg-white text-black"
                     required
+                    className="w-full p-3 sm:p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black text-base"
                   />
-                  <button
-                    type="submit"
-                    className={`bg-black text-white px-6 py-2 rounded font-semibold transition ${
-                      !validateEmail(forgotEmail) || loading
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-gray-900"
-                    }`}
-                    disabled={!validateEmail(forgotEmail) || loading}
-                  >
-                    {loading ? "Sending..." : "Send Reset Link"}
-                  </button>
-                  {/* Show error if reset fails */}
-                  {forgotError && (
-                    <div className="text-red-600 text-center">{forgotError}</div>
-                  )}
-                </form>
-              )}
-              <button
-                type="button"
-                className="text-xs text-gray-600 underline hover:text-black mt-4"
-                onClick={() => setShowForgot(false)}
-              >
-                Back to login
-              </button>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-black text-white py-3 rounded font-semibold text-base sm:text-lg hover:bg-gray-900 transition"
+                  disabled={!forgotEmail || loading}
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </button>
+                {forgotSent && (
+                  <p className="text-green-700 text-center font-medium mt-4 text-sm sm:text-base">
+                    Reset link sent! Check your email.
+                  </p>
+                )}
+                {forgotError && (
+                  <p className="text-red-600 text-center font-medium mt-4 text-sm sm:text-base">
+                    {forgotError}
+                  </p>
+                )}
+                {/* Back to login */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgot(false);
+                    setForgotEmail("");
+                    setForgotSent(false);
+                    setForgotError("");
+                  }}
+                  className="text-gray-600 hover:text-black transition text-sm sm:text-base"
+                >
+                  ← Back to login
+                </button>
+              </form>
             </>
           )}
         </div>
       </main>
-      {/* Footer at the bottom */}
       <Footer />
     </div>
   );

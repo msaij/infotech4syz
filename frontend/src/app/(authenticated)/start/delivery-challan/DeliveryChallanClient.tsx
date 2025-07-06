@@ -71,7 +71,7 @@ export default function DeliveryChallanClient() {
 
   // Subscribe to FastAPI SSE for live delivery challan updates
   useEffect(() => {
-    const evtSource = new EventSource("http://localhost:8001/api/v1/sse/delivery-challan");
+    const evtSource = new EventSource(`${process.env.NEXT_PUBLIC_FASTAPI_URL_local}/api/v1/sse/delivery-challan`);
     evtSource.onmessage = (event) => {
       try {
         setSseData(JSON.parse(event.data));
@@ -216,44 +216,153 @@ export default function DeliveryChallanClient() {
 
   // Render the UI: search, menu, table, context menu, and edit modal
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col items-center p-8" id="delivery-challan-root">
+    <div className="min-h-screen w-full bg-white flex flex-col items-center p-4 sm:p-8" id="delivery-challan-root">
       {/* Toolbar */}
-      <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
-        <div className="flex items-center max-w-xs w-full">
+      <div className="w-full flex flex-col gap-4 mb-6">
+        {/* Search Bar */}
+        <div className="w-full">
           <input
             type="text"
             placeholder="Search challans..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="px-4 py-2 border border-zinc-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm bg-white"
+            className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm bg-white text-base"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <button className="bg-black text-white px-2 py-1 rounded font-semibold hover:bg-zinc-800 transition text-sm" onClick={() => setAddModal(true)}>
-            + Add
+        
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button 
+            className="bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-zinc-800 transition text-sm flex items-center gap-1 min-w-[80px] justify-center" 
+            onClick={() => setAddModal(true)}
+          >
+            <span className="material-symbols-outlined text-lg">add</span>
+            <span className="hidden sm:inline">Add</span>
           </button>
-          <button className="bg-white border border-zinc-300 px-2 py-1 rounded font-semibold text-zinc-800 hover:bg-zinc-100 transition disabled:opacity-50 text-sm" disabled={selected.length === 0} onClick={() => setEditModal({ open: true, row: sseData.data.find(row => row.id === selected[0]) || null })}>
-            Edit{selected.length > 1 ? ` (${selected.length})` : ""}
+          <button 
+            className="bg-white border border-zinc-300 px-4 py-2 rounded-lg font-semibold text-zinc-800 hover:bg-zinc-100 transition disabled:opacity-50 text-sm flex items-center gap-1 min-w-[80px] justify-center" 
+            disabled={selected.length === 0} 
+            onClick={() => setEditModal({ open: true, row: sseData.data.find(row => row.id === selected[0]) || null })}
+          >
+            <span className="material-symbols-outlined text-lg">edit</span>
+            <span className="hidden sm:inline">Edit</span>
+            {selected.length > 1 && <span className="sm:hidden">({selected.length})</span>}
           </button>
-          <button className="bg-white border border-zinc-300 px-2 py-1 rounded font-semibold text-zinc-800 hover:bg-zinc-100 transition disabled:opacity-50 text-sm" disabled={selected.length === 0} onClick={() => setDeleteConfirm(true)}>
-            Delete{selected.length > 1 ? ` (${selected.length})` : ""}
+          <button 
+            className="bg-white border border-zinc-300 px-4 py-2 rounded-lg font-semibold text-zinc-800 hover:bg-zinc-100 transition disabled:opacity-50 text-sm flex items-center gap-1 min-w-[80px] justify-center" 
+            disabled={selected.length === 0} 
+            onClick={() => setDeleteConfirm(true)}
+          >
+            <span className="material-symbols-outlined text-lg">delete</span>
+            <span className="hidden sm:inline">Delete</span>
+            {selected.length > 1 && <span className="sm:hidden">({selected.length})</span>}
           </button>
+          
+          {/* Download Dropdown */}
           <div className="relative">
-            <button className="bg-white border border-zinc-300 px-2 py-1 rounded font-semibold text-zinc-800 hover:bg-zinc-100 transition text-sm" onClick={() => setDownloadOpen(open => !open)}>
-              <span className="material-symbols-outlined align-middle">download</span>
+            <button 
+              className="bg-white border border-zinc-300 px-4 py-2 rounded-lg font-semibold text-zinc-800 hover:bg-zinc-100 transition text-sm flex items-center gap-1 min-w-[80px] justify-center" 
+              onClick={() => setDownloadOpen(open => !open)}
+            >
+              <span className="material-symbols-outlined text-lg">download</span>
+              <span className="hidden sm:inline">Download</span>
             </button>
             {downloadOpen && (
-              <div ref={downloadRef} className="absolute right-0 top-10 z-50 bg-white border border-zinc-300 rounded-md shadow-lg py-1 w-36 animate-fade-in">
-                <button className="w-full text-left px-2 py-1 hover:bg-blue-100 text-zinc-800 text-xs" onClick={() => handleDownload('all')}>Download All</button>
-                <button className="w-full text-left px-2 py-1 hover:bg-blue-100 text-zinc-800 text-xs" onClick={() => handleDownload('selected')} disabled={selected.length === 0}>Download Selected{selected.length > 0 ? ` (${selected.length})` : ""}</button>
-                <button className="w-full text-left px-2 py-1 hover:bg-blue-100 text-zinc-800 text-xs" onClick={() => handleDownload('filtered')}>Download Filtered</button>
+              <div ref={downloadRef} className="absolute right-0 top-12 z-50 bg-white border border-zinc-300 rounded-lg shadow-lg py-2 w-48 animate-fade-in">
+                <button className="w-full text-left px-4 py-2 hover:bg-blue-100 text-zinc-800 text-sm" onClick={() => handleDownload('all')}>
+                  Download All
+                </button>
+                <button className="w-full text-left px-4 py-2 hover:bg-blue-100 text-zinc-800 text-sm" onClick={() => handleDownload('selected')} disabled={selected.length === 0}>
+                  Download Selected{selected.length > 0 ? ` (${selected.length})` : ""}
+                </button>
+                <button className="w-full text-left px-4 py-2 hover:bg-blue-100 text-zinc-800 text-sm" onClick={() => handleDownload('filtered')}>
+                  Download Filtered
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
-      {/* Table of delivery challans */}
-      <div className="my-4 w-full overflow-x-auto rounded-xl shadow-lg" id="challan-table-wrapper">
+
+      {/* Mobile Card View */}
+      <div className="w-full md:hidden space-y-4">
+        {filteredRows.map((row, idx) => (
+          <div
+            key={row.id || idx}
+            className={`bg-white border border-zinc-200 rounded-lg p-4 shadow-sm hover:shadow-md transition ${
+              selected.includes(row.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+            }`}
+            onClick={() => toggleSelectRow(row.id)}
+          >
+            {/* Card Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <input 
+                  type="checkbox" 
+                  checked={selected.includes(row.id)} 
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    toggleSelectRow(row.id);
+                  }}
+                  className="w-4 h-4"
+                />
+                <h3 className="font-semibold text-lg text-zinc-800">
+                  {row.challan_number || 'N/A'}
+                </h3>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleContextMenu(e, row);
+                }}
+                className="p-2 hover:bg-zinc-100 rounded-full transition"
+              >
+                <span className="material-symbols-outlined text-lg">more_vert</span>
+              </button>
+            </div>
+
+            {/* Card Content */}
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-zinc-600">Customer:</span>
+                <span className="font-medium">{row.customer || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-600">Date:</span>
+                <span className="font-medium">
+                  {row.date ? (() => {
+                    try {
+                      const date = new Date(row.date);
+                      if (!isNaN(date.getTime())) {
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const year = date.getFullYear();
+                        return `${day}-${month}-${year}`;
+                      }
+                    } catch (e) {}
+                    return row.date;
+                  })() : 'N/A'}
+                </span>
+              </div>
+              {row.invoice_number && (
+                <div className="flex justify-between">
+                  <span className="text-zinc-600">Invoice:</span>
+                  <span className="font-medium">{row.invoice_number}</span>
+                </div>
+              )}
+              {row.dc_summary && (
+                <div className="pt-2 border-t border-zinc-100">
+                  <span className="text-zinc-600 block mb-1">Summary:</span>
+                  <span className="text-sm">{row.dc_summary}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block my-4 w-full overflow-x-auto rounded-xl shadow-lg" id="challan-table-wrapper">
         <table className="min-w-full border border-zinc-200 bg-white text-zinc-800 rounded-xl overflow-hidden" id="challan-table">
           <thead className="bg-zinc-100">
             <tr>
@@ -322,63 +431,90 @@ export default function DeliveryChallanClient() {
             ))}
           </tbody>
         </table>
-        {/* Context Menu for row actions */}
-        {contextMenu && (
-          <div
-            ref={contextMenuRef}
-            className="fixed z-50 bg-white border border-zinc-300 rounded-md shadow-lg py-1 w-40 animate-fade-in"
-            style={{ top: contextMenu.y, left: contextMenu.x }}
-            id="row-context-menu"
-          >
-            <button
-              className="w-full text-left px-4 py-2 hover:bg-blue-100 text-zinc-800"
-              onClick={() => handleEditRow(contextMenu.row!)}
-            >
-              Edit
-            </button>
-            <button
-              className="w-full text-left px-4 py-2 hover:bg-blue-100 text-zinc-800"
-              onClick={() => { handleCopyRows(contextMenu.row!); setContextMenu(null); }}
-            >
-              {selected.length > 1 && contextMenu.row && selected.includes(contextMenu.row.id) ? 'Copy Rows' : 'Copy Row'}
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Context Menu for row actions */}
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          className="fixed z-50 bg-white border border-zinc-300 rounded-lg shadow-lg py-2 w-48 animate-fade-in"
+          style={{ 
+            top: Math.min(contextMenu.y, window.innerHeight - 120), 
+            left: Math.min(contextMenu.x, window.innerWidth - 200) 
+          }}
+          id="row-context-menu"
+        >
+          <button
+            className="w-full text-left px-4 py-3 hover:bg-blue-100 text-zinc-800 flex items-center gap-2"
+            onClick={() => handleEditRow(contextMenu.row!)}
+          >
+            <span className="material-symbols-outlined text-lg">edit</span>
+            Edit
+          </button>
+          <button
+            className="w-full text-left px-4 py-3 hover:bg-blue-100 text-zinc-800 flex items-center gap-2"
+            onClick={() => { handleCopyRows(contextMenu.row!); setContextMenu(null); }}
+          >
+            <span className="material-symbols-outlined text-lg">content_copy</span>
+            {selected.length > 1 && contextMenu.row && selected.includes(contextMenu.row.id) ? 'Copy Rows' : 'Copy Row'}
+          </button>
+        </div>
+      )}
+
       {/* Add Modal */}
       {addModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Add Challan</h2>
             {/* TODO: Replace with actual form fields for your columns */}
             <form onSubmit={e => { e.preventDefault(); handleAdd({}); }}>
               <div className="mb-4">(Form fields go here)</div>
-              <button type="button" className="absolute top-2 right-2 text-zinc-400 hover:text-zinc-700 text-2xl font-bold" onClick={() => setAddModal(false)} aria-label="Close">×</button>
-              <button type="submit" className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+              <div className="flex gap-2 justify-end">
+                <button 
+                  type="button" 
+                  className="px-4 py-2 text-zinc-400 hover:text-zinc-700 text-2xl font-bold" 
+                  onClick={() => setAddModal(false)} 
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+              </div>
             </form>
           </div>
         </div>
       )}
+
       {/* Edit Modal */}
       {editModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Edit Challan</h2>
             {/* TODO: Replace with actual form fields for your columns, prefilled with editModal.row */}
             <form onSubmit={e => { e.preventDefault(); handleEdit(editModal.row || {}); }}>
               <div className="mb-4">(Form fields go here)</div>
-              <button type="button" className="absolute top-2 right-2 text-zinc-400 hover:text-zinc-700 text-2xl font-bold" onClick={closeEditModal} aria-label="Close">×</button>
-              <button type="submit" className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+              <div className="flex gap-2 justify-end">
+                <button 
+                  type="button" 
+                  className="px-4 py-2 text-zinc-400 hover:text-zinc-700 text-2xl font-bold" 
+                  onClick={closeEditModal} 
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+              </div>
             </form>
           </div>
         </div>
       )}
+
       {/* Delete Confirmation */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Delete Challan{selected.length > 1 ? 's' : ''}?</h2>
-            <p className="mb-4">Are you sure you want to delete {selected.length} selected challan{selected.length > 1 ? 's' : ''}?</p>
+            <p className="mb-6">Are you sure you want to delete {selected.length} selected challan{selected.length > 1 ? 's' : ''}?</p>
             <div className="flex gap-2 justify-end">
               <button className="px-4 py-2 bg-zinc-200 rounded hover:bg-zinc-300" onClick={() => setDeleteConfirm(false)}>Cancel</button>
               <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onClick={handleDelete}>Delete</button>

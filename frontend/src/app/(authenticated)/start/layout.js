@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import LoadingPage from "@/components/LoadingPage";
 import AuthNav from "@/start-components/AuthNav";
+import { PWAStatus } from "@/components/pwa";
 
 export default function StartLayout({ children }) {
   const { user, loading } = useAuth();
@@ -25,7 +26,10 @@ export default function StartLayout({ children }) {
       <AuthNav />
       <div className="flex-1 flex flex-col min-w-0">
         <NavBar />
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto relative">
+          {children}
+          <PWAStatus />
+        </main>
       </div>
     </div>
   );

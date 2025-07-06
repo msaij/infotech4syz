@@ -4,6 +4,7 @@
 
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useAuth } from "@/components/(access-providers)/auth-context";
 import { usePathname } from "next/navigation";
@@ -68,9 +69,11 @@ export default function AuthNav() {
 		>
 			{/* Sidebar header with logo and collapse button */}
 			<div className="flex items-center justify-between px-4 h-16 border-b border-zinc-800">
-				<img
+				<Image
 					src="/self/logo-4syz.gif"
 					alt="4SYZ Logo"
+					width={40}
+					height={40}
 					className={`h-10 w-auto transition-all duration-300 ${
 						collapsed ? "hidden" : "block"
 					}`}
