@@ -1,10 +1,10 @@
-from .models import ContactUs
-from .serializers import ContactUsSerializer
+from .models import ContactUs, DeliveryChallan
+from .serializers import ContactUsSerializer, UserSerializer, DeliveryChallanSerializer
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, viewsets, mixins
+from rest_framework import status, viewsets, mixins, permissions
 from rest_framework.decorators import action
 from django.conf import settings
 from django.urls import reverse
@@ -12,11 +12,20 @@ from django.contrib.auth import get_user_model
 from django.db import connection
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import UserSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated, DjangoModelPermissions
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.csrf import csrf_protect
+
+# RBAC Permission class
+class RolePermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # Use Django's built-in permission system
+        required_perms = getattr(view, 'required_perms', [])
+        for perm in required_perms:
+            if not request.user.has_perm(perm):
+                return False
+        return True
 
 # API endpoint for creating ContactUs entries from the frontend contact form
 class ContactUsCreateView(APIView):
@@ -80,9 +89,13 @@ class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
-        """Returns the current authenticated user's info."""
+        """Returns the current authenticated user's info, including permissions and groups."""
         serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
+        return Response({
+            **serializer.data,
+            "groups": list(request.user.groups.values_list("name", flat=True)),
+            "permissions": list(request.user.get_all_permissions()),
+        })
 
 # API endpoint to get a CSRF token for frontend use
 @api_view(["GET"])

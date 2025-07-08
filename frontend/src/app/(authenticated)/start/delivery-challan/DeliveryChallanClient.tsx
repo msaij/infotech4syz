@@ -68,6 +68,7 @@ export default function DeliveryChallanClient() {
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const downloadRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
 
   // Subscribe to FastAPI SSE for live delivery challan updates
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function DeliveryChallanClient() {
     evtSource.onmessage = (event) => {
       try {
         setSseData(JSON.parse(event.data));
+        setLoading(false);
       } catch {}
     };
     return () => evtSource.close();
@@ -383,7 +385,34 @@ export default function DeliveryChallanClient() {
             </tr>
           </thead>
           <tbody>
-            {filteredRows.map((row, idx) => (
+            {loading ? (
+              // Skeleton rows
+              Array.from({ length: 10 }).map((_, rowIdx) => (
+                <tr key={rowIdx}>
+                  {/* Checkbox cell */}
+                  <td className="px-2 py-2 border-b">
+                    <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  {/* Dynamic columns */}
+                  {(orderedColumns.length > 0
+                    ? orderedColumns
+                    : Array.from({ length: 6 })
+                  ).map((col, colIdx) => (
+                    <td key={colIdx} className="px-4 py-2 border-b">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                  ))}
+                  {/* POD Upload Date cell if not present */}
+                  {!orderedColumns.includes('pod_upload_date') && (
+                    <td className="px-4 py-2 border-b">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                  )}
+                </tr>
+              ))
+            ) : (
+              // Real data rows
+              filteredRows.map((row, idx) => (
               <tr
                 key={row.id || idx}
                 className={`hover:bg-blue-50 transition cursor-pointer group relative ${selected.includes(row.id) ? 'bg-blue-50' : ''}`}
@@ -428,7 +457,8 @@ export default function DeliveryChallanClient() {
                   <td className="px-4 py-2 border-b group-hover:bg-blue-50 transition-all text-sm">-</td>
                 )}
               </tr>
-            ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>

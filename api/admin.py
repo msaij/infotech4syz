@@ -1,12 +1,16 @@
 from django.contrib import admin
-
-from .models import ContactUs
-from .models.deliverychallan import DeliveryChallan
+from .models import ContactUs, DeliveryChallan, Company
 
 # Register the ContactUs model in the Django admin with custom display fields
 @admin.register(ContactUs)
 class ContactUsAdmin(admin.ModelAdmin):
     list_display = ("name", "email", "phone", "created_at")
+
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ("client_name", "group", "domain", "contact_email", "is_active")
+    search_fields = ("client_name", "domain", "contact_email")
+    list_filter = ("is_active",)
 
 @admin.register(DeliveryChallan)
 class DeliveryChallanAdmin(admin.ModelAdmin):

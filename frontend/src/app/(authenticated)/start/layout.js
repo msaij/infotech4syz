@@ -8,16 +8,21 @@ import AuthNav from "@/start-components/AuthNav";
 import { PWAStatus } from "@/components/pwa";
 
 export default function StartLayout({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, primaryGroup } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/login");
+    if (!loading) {
+      if (!user) {
+        router.replace("/login");
+      } else if (primaryGroup() !== "4syz") {
+        // Not a 4syz user, redirect to client dashboard
+        router.replace("/client/dashboard");
+      }
     }
-  }, [user, loading, router]);
+  }, [user, loading, primaryGroup, router]);
 
-  if (loading || !user) {
+  if (loading || !user || primaryGroup() !== "4syz") {
     return <LoadingPage />;
   }
 

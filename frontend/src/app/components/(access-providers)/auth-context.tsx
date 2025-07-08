@@ -9,7 +9,8 @@ interface User {
   username?: string;
   first_name?: string;
   last_name?: string;
-  // Add other user fields as needed
+  groups?: string[];
+  permissions?: string[];
 }
 
 interface AuthContextType {
@@ -18,6 +19,9 @@ interface AuthContextType {
   login: () => Promise<void>;
   logout: () => void;
   authFetch: (url: string, options?: RequestInit) => Promise<Response>;
+  inGroup: (group: string | string[]) => boolean;
+  hasPermission: (perm: string) => boolean;
+  primaryGroup: () => string | null;
 }
 
 // Create the AuthContext for managing authentication state and actions
@@ -68,8 +72,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return fetch(url, { ...options, credentials: "include" });
   };
 
+  const inGroup = (group: string | string[]) => {
+    if (!user || !user.groups) return false;
+    if (Array.isArray(group)) return group.some((g) => user.groups?.includes(g));
+    return user.groups.includes(group);
+  };
+
+  const hasPermission = (perm: string) => {
+    if (!user || !user.permissions) return false;
+    return user.permissions.includes(perm) || user.permissions.includes("*");
+  };
+
+  const primaryGroup = () => {
+    if (!user || !user.groups || user.groups.length === 0) return null;
+    return user.groups[0];
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, authFetch }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, authFetch, inGroup, hasPermission, primaryGroup }}>
       {children}
     </AuthContext.Provider>
   );

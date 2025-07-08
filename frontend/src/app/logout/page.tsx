@@ -8,7 +8,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export default function LogoutPage() {
   const router = useRouter();
   const [csrfToken, setCsrfToken] = useState("");
-  const { logout: logoutContext } = useAuth();
+  const { logout: logoutContext, user, primaryGroup } = useAuth();
 
   // Fetch CSRF token on mount for secure logout
   useEffect(() => {
@@ -26,7 +26,13 @@ export default function LogoutPage() {
       credentials: "include",
     });
     logoutContext(); // Clear user context
-    redirect("/login"); // Redirect to login page
+    if (primaryGroup() === "4syz") {
+      redirect("/start");
+    } else if (primaryGroup()) {
+      redirect("/client");
+    } else {
+      redirect("/login");
+    }
   };
 
   return (

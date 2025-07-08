@@ -43,7 +43,13 @@ export default function LoginPage() {
   // Redirect if user is already logged in
   useEffect(() => {
     if (!authLoading && user) {
+      if (!user.groups || user.groups.length === 0) {
+        setError("Your account does not have a group.");
+      } else if (user.groups[0] === "4syz") {
       router.replace("/start/dashboard");
+      } else {
+        router.replace("/clients/dashboard");
+      }
     }
   }, [user, authLoading, router]);
 
