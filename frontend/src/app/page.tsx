@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import NavBar from "@/components/NavBar";
+import NavBar from "@/components/navigation/SmartNavBar";
 import Footer from "@/components/Footer";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -63,149 +63,122 @@ const services = [
 ];
 
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const cookies = document.cookie.split(";").map((c) => c.trim());
-      const sessionCookie = cookies.find((c) => c.startsWith("sessionid="));
-      if (sessionCookie) {
-        router.replace("/start/dashboard");
-      }
-    }
-  }, [router]);
-
   return (
-		<div className="min-h-screen flex flex-col bg-gradient-to-br from-white via-gray-50 to-gray-200 text-black">
-			<NavBar />
+    <div className="min-h-screen flex flex-col bg-white text-black font-sans">
+      <NavBar />
+      {/* Hero Section */}
+      <section className="flex flex-col items-center justify-center text-center py-16 px-4 min-h-screen bg-gradient-to-br from-white via-blue-50 to-gray-100 relative overflow-hidden animate-fade-in">
+        <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight text-blue-700" style={{ fontFamily: 'Montserrat, Inter, Arial, sans-serif' }}>
+          Your Partner in Business Excellence
+        </h1>
+        <div className="w-16 h-1 bg-blue-600 rounded-full mx-auto mb-6"></div>
+        <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto font-medium" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+          4syz Infotech Solutions empowers your business with reliable, efficient, and client-focused B2B services.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-md">
+          <a
+            href="#services"
+            className="bg-blue-700 text-white px-8 py-3 rounded-full hover:bg-blue-800 transition font-semibold text-base flex items-center justify-center gap-2 shadow-md"
+          >
+            <span className="material-symbols-outlined text-xl">rocket_launch</span>
+            Explore Services
+          </a>
+          <Link
+            href="/contact"
+            className="border border-blue-700 text-blue-700 px-8 py-3 rounded-full hover:bg-blue-50 transition font-semibold text-base flex items-center justify-center gap-2 shadow-md"
+          >
+            <span className="material-symbols-outlined text-xl">mail</span>
+            Contact Us
+          </Link>
+        </div>
+      </section>
 
-			{/* Hero Section */}
-			<section className="flex-1 flex flex-col items-center justify-center text-center py-12 sm:py-20 px-4 bg-gradient-to-br from-white via-gray-50 to-gray-100 border-b border-gray-200">
-				<h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-4 text-black tracking-tight drop-shadow-lg">
-					Your Partner in Business Excellence.
-				</h1>
-				<p className="text-base sm:text-lg md:text-xl text-gray-700 mb-8 sm:mb-10 max-w-2xl mx-auto font-medium px-4">
-					4syz Infotech Solutions empowers your business with reliable, efficient,
-					and client-focused B2B services.
-				</p>
-				<div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-md sm:max-w-none">
-					<a
-						href="#services"
-						className="bg-black text-white px-6 sm:px-10 py-3 sm:py-4 rounded-full shadow-lg hover:bg-gray-900 transition font-semibold text-base sm:text-lg flex items-center justify-center gap-2"
-					>
-						<span className="material-symbols-outlined text-xl sm:text-2xl">
-							rocket_launch
-						</span>
-						Explore Services
-					</a>
-					<Link
-						href="/contact"
-						className="bg-white border border-black text-black px-6 sm:px-10 py-3 sm:py-4 rounded-full shadow-lg hover:bg-gray-100 transition font-semibold text-base sm:text-lg flex items-center justify-center gap-2"
-					>
-						<span className="material-symbols-outlined text-xl sm:text-2xl">mail</span>
-						Contact Us
-					</Link>
-				</div>
-			</section>
+      {/* Core Services Section (moved up) */}
+      <section id="services" className="py-12 animate-fade-in scroll-mt-20">
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-2xl font-bold text-blue-700 mb-2 text-center tracking-tight" style={{ fontFamily: 'Montserrat, Inter, Arial, sans-serif' }}>
+            Core Services
+          </h2>
+          <div className="w-12 h-1 bg-blue-600 rounded-full mx-auto mb-8"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((s) => (
+              <a
+                key={s.title}
+                href={s.link}
+                className="bg-white rounded-xl border p-6 flex flex-col items-center shadow-sm hover:shadow-xl hover:scale-105 transition-transform duration-200 group"
+              >
+                <span className="material-symbols-outlined text-4xl mb-3 text-blue-600 group-hover:text-blue-800 transition">
+                  {s.icon}
+                </span>
+                <h3 className="font-semibold text-black mb-1 text-lg" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+                  {s.title}
+                </h3>
+                <p className="text-gray-700 text-sm text-center" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+                  {s.desc}
+                </p>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
 
-			{/* Our Commitment Section */}
-			<section className="py-12 sm:py-20 bg-gradient-to-br from-gray-100 to-white border-b border-gray-200">
-				<div className="max-w-5xl mx-auto px-4">
-					<h2 className="text-xl sm:text-2xl font-bold text-black mb-8 sm:mb-10 text-center tracking-tight">
-						Our Commitment
-					</h2>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10 justify-center items-center text-center">
-						{commitments.map((c) => (
-							<div
-								key={c.title}
-								className="bg-white rounded-2xl shadow-xl flex flex-col items-center p-6 sm:p-10 border border-gray-200 hover:scale-105 hover:shadow-2xl transition-transform duration-300"
-							>
-								<span className="material-symbols-outlined text-4xl sm:text-6xl mb-4 text-white bg-black rounded-full p-3 sm:p-4 shadow-lg">
-									{c.icon}
-								</span>
-								<h3 className="font-semibold text-black mb-2 text-lg sm:text-xl">
-									{c.title}
-								</h3>
-								<p className="text-gray-700 text-sm sm:text-base text-center">
-									{c.desc}
-								</p>
-							</div>
-						))}
-					</div>
-				</div>
-			</section>
+      {/* Our Commitment Section (moved below services) */}
+      <section className="py-12 animate-fade-in">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-2xl font-bold text-blue-700 mb-2 text-center tracking-tight" style={{ fontFamily: 'Montserrat, Inter, Arial, sans-serif' }}>
+            Our Commitment
+          </h2>
+          <div className="w-12 h-1 bg-blue-600 rounded-full mx-auto mb-8"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+            {commitments.map((c) => (
+              <div
+                key={c.title}
+                className="bg-white rounded-xl border p-6 flex flex-col items-center shadow-sm hover:shadow-xl hover:scale-105 transition-transform duration-200 group"
+              >
+                <span className="material-symbols-outlined text-4xl mb-3 text-blue-600 group-hover:text-blue-800 transition">
+                  {c.icon}
+                </span>
+                <h3 className="font-semibold text-black mb-1 text-lg" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+                  {c.title}
+                </h3>
+                <p className="text-gray-700 text-sm" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+                  {c.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-			{/* Core Services Section */}
-			<section id="services" className="py-12 sm:py-20 bg-white border-b border-gray-200">
-				<div className="max-w-6xl mx-auto px-4">
-					<h2 className="text-xl sm:text-2xl font-bold text-black mb-8 sm:mb-10 text-center tracking-tight">
-						Core Services
-					</h2>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10">
-						{services.map((s) => (
-							<a
-								key={s.title}
-								href={s.link}
-								className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-xl flex flex-col items-center p-6 sm:p-10 border border-gray-200 hover:scale-105 hover:shadow-2xl transition-transform duration-300 group"
-							>
-								<span className="material-symbols-outlined text-4xl sm:text-6xl mb-4 text-black bg-gray-200 rounded-full p-3 sm:p-4 group-hover:bg-black group-hover:text-white transition">
-									{s.icon}
-								</span>
-								<h3 className="font-semibold text-black mb-2 text-lg sm:text-xl">
-									{s.title}
-								</h3>
-								<p className="text-gray-700 text-sm sm:text-base text-center">
-									{s.desc}
-								</p>
-							</a>
-						))}
-					</div>
-				</div>
-			</section>
+      {/* Connect With Us Section (last main section) */}
+      <section className="py-12 animate-fade-in">
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <h2 className="text-2xl font-bold text-blue-700 mb-2 tracking-tight" style={{ fontFamily: 'Montserrat, Inter, Arial, sans-serif' }}>
+            Connect With Us
+          </h2>
+          <div className="w-12 h-1 bg-blue-600 rounded-full mx-auto mb-6"></div>
+          <p className="text-gray-700 mb-6 text-sm" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>Follow Our Journey</p>
+          <div className="flex justify-center gap-6">
+            <a href="#" aria-label="Facebook" className="hover:text-blue-600 transition p-2">
+              <span className="material-symbols-outlined text-3xl">public</span>
+            </a>
+            <a href="#" aria-label="Twitter" className="hover:text-sky-500 transition p-2">
+              <span className="material-symbols-outlined text-3xl">alternate_email</span>
+            </a>
+            <a href="#" aria-label="LinkedIn" className="hover:text-blue-800 transition p-2">
+              <span className="material-symbols-outlined text-3xl">business_center</span>
+            </a>
+          </div>
+          <div className="mt-6 text-gray-600 text-sm" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+            Or email us at {" "}
+            <a href="mailto:info@4syz.com" className="underline hover:text-black transition">
+              info@4syz.com
+            </a>
+          </div>
+        </div>
+      </section>
 
-			{/* Connect With Us Section */}
-			<section className="py-12 sm:py-16 bg-gradient-to-br from-gray-100 to-white">
-				<div className="max-w-3xl mx-auto px-4 text-center">
-					<h2 className="text-xl sm:text-2xl font-bold text-black mb-4 sm:mb-6 tracking-tight">
-						Connect With Us
-					</h2>
-					<p className="text-gray-700 mb-6 sm:mb-8 text-sm sm:text-base">Follow Our Journey</p>
-					<div className="flex justify-center gap-6 sm:gap-8">
-						<a
-							href="#"
-							aria-label="Facebook"
-							className="hover:text-blue-600 transition p-2"
-						>
-							<span className="material-symbols-outlined text-3xl sm:text-4xl">public</span>
-						</a>
-						<a
-							href="#"
-							aria-label="Twitter"
-							className="hover:text-sky-500 transition p-2"
-						>
-							<span className="material-symbols-outlined text-3xl sm:text-4xl">alternate_email</span>
-						</a>
-						<a
-							href="#"
-							aria-label="LinkedIn"
-							className="hover:text-blue-800 transition p-2"
-						>
-							<span className="material-symbols-outlined text-3xl sm:text-4xl">business_center</span>
-						</a>
-					</div>
-					<div className="mt-6 sm:mt-8 text-gray-600 text-sm sm:text-base">
-						Or email us at{" "}
-						<a
-							href="mailto:info@4syz.com"
-							className="underline hover:text-black transition"
-						>
-							info@4syz.com
-						</a>
-					</div>
-				</div>
-			</section>
-
-			<Footer />
-		</div>
-	);
+      <Footer />
+    </div>
+  );
 }

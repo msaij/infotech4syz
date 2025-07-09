@@ -27,7 +27,10 @@
       "@/*": ["./*"],
       "@/styles/*": ["styles/*"],
       "@/components/*": ["app/components/*"],
-      "@/start-components/*": ["app/(authenticated)/start/components/*"]
+      "@/start/*": ["app/(authenticated)/start/*"],
+      "@/clients/*": ["app/(authenticated)/clients/*"],
+      "@/start-components/*": ["app/(authenticated)/start/components/*"],
+      "@/client-components/*": ["app/(authenticated)/clients/components/*"]
     }
   },
   "include": [

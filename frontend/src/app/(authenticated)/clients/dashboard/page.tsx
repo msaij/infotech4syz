@@ -3,33 +3,9 @@
 import { useAuth } from "@/components/(access-providers)/auth-context";
 import LoadingPage from "@/components/LoadingPage";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ClientsDashboard() {
-  const { user, loading, logout, authFetch } = useAuth();
-  const router = useRouter();
-  const [csrfToken, setCsrfToken] = useState("");
-
-  // Fetch CSRF token on mount
-  useEffect(() => {
-    authFetch(`${API_URL}/api/csrf/`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setCsrfToken(data.csrfToken))
-      .catch(() => {});
-  }, [authFetch]);
-
-  const handleLogout = async () => {
-    await authFetch(`${API_URL}/api/session-logout/`, {
-      method: "POST",
-      headers: { "X-CSRFToken": csrfToken },
-      credentials: "include",
-    });
-    logout();
-    router.replace("/login");
-  };
+  const { user, loading } = useAuth();
 
   if (loading) return <LoadingPage />;
 
@@ -52,18 +28,23 @@ export default function ClientsDashboard() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {user ? `Welcome, ${user.username || user.email}!` : "Welcome!"}
+                Welcome to your Dashboard
               </h1>
               <p className="mt-1 text-sm sm:text-base text-gray-600">
                 {user && (
-                  <span>Logged in as: <span className="font-semibold">{user.email || user.username}</span></span>
+                  <span>
+                    Logged in as: <span className="font-semibold">{user.email || user.username}</span>
+                    {user.group_name && (
+                      <span className="ml-2 text-gray-500">• {user.group_name}</span>
+                    )}
+                  </span>
                 )}
               </p>
             </div>
@@ -82,20 +63,12 @@ export default function ClientsDashboard() {
                 </span>
               </div>
             </div>
-            <div className="mt-6">
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded shadow transition"
-              >
-                Logout
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Quick Actions */}
         <div className="mb-8">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">

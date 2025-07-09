@@ -72,7 +72,7 @@ export default function DeliveryChallanClient() {
 
   // Subscribe to FastAPI SSE for live delivery challan updates
   useEffect(() => {
-    const evtSource = new EventSource(`${process.env.NEXT_PUBLIC_FASTAPI_URL_local}/api/v1/sse/delivery-challan`);
+    const evtSource = new EventSource(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/v1/sse/delivery-challan`);
     evtSource.onmessage = (event) => {
       try {
         setSseData(JSON.parse(event.data));

@@ -32,6 +32,6 @@ class ClientRoutingMiddleware(MiddlewareMixin):
             if not path.startswith("/start/"):
                 return HttpResponseForbidden("4syz users can only access /start/* routes.")
         else:
-            if not path.startswith("/client/"):
-                return HttpResponseForbidden("Client users can only access /client/* routes.")
+            if not path.startswith("/clients/"):
+                return HttpResponseForbidden("Client users can only access /clients/* routes.")
         return None 

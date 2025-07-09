@@ -11,6 +11,8 @@ interface User {
   last_name?: string;
   groups?: string[];
   permissions?: string[];
+  company_name?: string;
+  group_name?: string;
 }
 
 interface AuthContextType {

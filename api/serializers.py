@@ -12,9 +12,28 @@ class ContactUsSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model, used for user profile endpoints."""
+    company_name = serializers.SerializerMethodField()
+    group_name = serializers.SerializerMethodField()
+    
     class Meta:
         model = get_user_model()
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'company_name', 'group_name']
+    
+    def get_company_name(self, obj):
+        """Get the company name for client users."""
+        if obj.groups.exists():
+            group = obj.groups.first()
+            if group.name != "4syz":
+                try:
+                    return group.client_details.client_name
+                except:
+                    return group.name
+        return None
+
+    def get_group_name(self, obj):
+        if obj.groups.exists():
+            return obj.groups.first().name
+        return None
 
 class DeliveryChallanSerializer(serializers.ModelSerializer):
     proof_of_delivery = serializers.FileField(required=False, allow_null=True)
