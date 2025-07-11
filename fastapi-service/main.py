@@ -2,39 +2,45 @@ import os
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from dotenv import load_dotenv
 import logging
 
 from delivery_challan_sse import router as sse_router
-
-# Load Django settings environment variables
-load_dotenv(os.path.join(os.path.dirname(__file__), '../backend/config.env'))
+from config import SERVICE_CONFIG, CORS_CONFIG, SECURITY_CONFIG, validate_config
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Validate configuration on startup
+try:
+    validate_config()
+    logger.info("✅ Configuration validation passed")
+except ValueError as e:
+    logger.error(f"❌ Configuration error: {e}")
+    raise
+
 app = FastAPI(
-    title="Delivery Challan SSE Service",
-    description="Real-time delivery challan updates via Server-Sent Events",
-    version="1.0.0"
+    title=SERVICE_CONFIG['title'],
+    description=SERVICE_CONFIG['description'],
+    version=SERVICE_CONFIG['version']
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure this properly for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=CORS_CONFIG['allow_origins'],
+    allow_credentials=CORS_CONFIG['allow_credentials'],
+    allow_methods=CORS_CONFIG['allow_methods'],
+    allow_headers=CORS_CONFIG['allow_headers'],
 )
 
 @app.middleware("http")
 async def restrict_to_local(request: Request, call_next):
-    # Only allow requests from localhost/127.0.0.1
-    client_host = request.client.host
-    if client_host not in ("127.0.0.1", "::1", "localhost"):
-        return JSONResponse({"detail": "Forbidden"}, status_code=403)
+    # Only allow requests from localhost/127.0.0.1 if restriction is enabled
+    if SECURITY_CONFIG['restrict_to_localhost']:
+        client_host = request.client.host
+        if client_host not in SECURITY_CONFIG['allowed_hosts']:
+            return JSONResponse({"detail": "Forbidden"}, status_code=403)
     return await call_next(request)
 
 # Global exception handler

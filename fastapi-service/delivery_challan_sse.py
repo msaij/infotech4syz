@@ -17,18 +17,11 @@ logger = logging.getLogger(__name__)
 # Global connection pool
 pool = None
 
+from config import DB_CONFIG
+
 def get_db_creds():
-    """Get database credentials from environment variables."""
-    return {
-        'host': os.getenv('DB_HOST', 'localhost'),
-        'user': os.getenv('DB_USER'),
-        'password': os.getenv('DB_PASSWORD'),
-        'db': os.getenv('DB_NAME'),
-        'port': int(os.getenv('DB_PORT', '3306')),
-        'autocommit': True,
-        'maxsize': 10,
-        'minsize': 1
-    }
+    """Get database credentials from configuration."""
+    return DB_CONFIG
 
 async def get_pool():
     """Get or create the database connection pool."""
