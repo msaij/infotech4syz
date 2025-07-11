@@ -1,11 +1,12 @@
 import os
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 
 from delivery_challan_sse import router as sse_router
 from config import SERVICE_CONFIG, CORS_CONFIG, SECURITY_CONFIG, validate_config
+from auth import get_current_4syz_user
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -67,9 +68,20 @@ async def root():
         }
     }
 
+@app.get("/api/v1/health")
+async def health():
+    """Health check endpoint (public)."""
+    return {"status": "ok"}
+
+@app.get("/api/v1/metrics")
+async def metrics(user=Depends(get_current_4syz_user)):
+    """Metrics endpoint (requires 4syz authentication)."""
+    # ... actual metrics logic ...
+    return {"metrics": "..."}
+
 @app.get("/api/v1")
-async def api_info():
-    """API information endpoint."""
+async def api_info(user=Depends(get_current_4syz_user)):
+    """API information endpoint (requires 4syz authentication)."""
     return {
         "name": "Delivery Challan API",
         "version": "1.0.0",
@@ -80,3 +92,7 @@ async def api_info():
             "Performance metrics"
         ]
     }
+
+# Protect all /api/v1/* endpoints (except health) with the dependency
+dependencies = [Depends(get_current_4syz_user)]
+app.include_router(sse_router, prefix="/api/v1", dependencies=dependencies)
