@@ -12,12 +12,40 @@ class ClientRoutingMiddleware(MiddlewareMixin):
             "/api/session-logout/",
             "/api/csrf/",
             "/api/forgot-password/",
-            "/api/users/me/",  # Allow user info endpoint
         ]
         if any(request.path.startswith(path) for path in public_paths):
             return None
         if not request.user.is_authenticated:
             return None
+        
+        # Special handling for /api/users/me/ - allow authenticated users regardless of group
+        if request.path == "/api/users/me/":
+            return None
+        
+        # Define specific API routes with their permission requirements
+        api_routes = {
+            # DeliveryChallan routes - only for 4syz group
+            "/api/deliverychallan/": ["4syz"],
+            # Add other API routes here as needed
+            # "/api/other-endpoint/": ["4syz", "client_group_name"],
+        }
+        
+        # Check if the request path matches any specific API route
+        for api_path, allowed_groups in api_routes.items():
+            if request.path.startswith(api_path):
+                # Check if user is in one of the allowed groups
+                user_groups = list(request.user.groups.all())
+                if not user_groups:
+                    return HttpResponseForbidden("No group assigned.")
+                
+                # Check if user's group is in the allowed groups for this API route
+                user_group_names = [group.name for group in user_groups]
+                if not any(group_name in allowed_groups for group_name in user_group_names):
+                    return HttpResponseForbidden(f"Access denied. Required groups: {', '.join(allowed_groups)}")
+                
+                # Allow access to this API route
+                return None
+            
         path = request.path
         user_groups = list(request.user.groups.all())
         if not user_groups:

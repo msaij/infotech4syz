@@ -27,6 +27,14 @@ class RolePermission(permissions.BasePermission):
                 return False
         return True
 
+# Custom permission for DeliveryChallan - only allow 4syz group users
+class DeliveryChallanPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        # Check if user is in the 4syz group
+        return request.user.groups.filter(name='4syz').exists()
+
 # API endpoint for creating ContactUs entries from the frontend contact form
 class ContactUsCreateView(APIView):
     permission_classes = []  # Allow unauthenticated access
@@ -133,3 +141,8 @@ def session_logout(request):
     """Log out the current user."""
     logout(request)
     return Response({"success": True})
+
+class DeliveryChallanViewSet(viewsets.ModelViewSet):
+    queryset = DeliveryChallan.objects.all()
+    serializer_class = DeliveryChallanSerializer
+    permission_classes = [IsAuthenticated, DeliveryChallanPermission]

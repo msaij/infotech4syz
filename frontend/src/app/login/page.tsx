@@ -170,6 +170,7 @@ export default function LoginPage() {
                     onChange={(e) => setUsername(e.target.value)}
                     required
                     className="w-full p-3 sm:p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black text-base"
+                    autoComplete="username"
                   />
                 </div>
                 <button
@@ -221,6 +222,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="w-full p-3 sm:p-2 border rounded focus:outline-none focus:ring-2 focus:ring-black text-base"
+                    autoComplete="current-password"
                   />
                 </div>
                 <button
