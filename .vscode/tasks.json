@@ -5,7 +5,7 @@
     {
       "label": "Install Python Dependencies",
       "type": "shell",
-      "command": "pip install -r requirements.txt",
+      "command": "cd django-rest && pip install -r requirements.txt",
       "group": "build",
       "problemMatcher": []
     },

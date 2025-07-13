@@ -1,5 +1,7 @@
 // DeliveryChallanClient.tsx
-// Main client component for the Delivery Challan feature. Handles table display, CRUD operations, context menu, and integration with Django REST API and FastAPI SSE.
+// Main client component for the Delivery Challan feature. 
+// Handles table display, CRUD operations, context menu, and integration with Django REST API and FastAPI SSE.
+// Includes comprehensive filtering system for challan data.
 
 "use client";
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
@@ -11,6 +13,19 @@ interface ChallanTableData {
   data: Record<string, any>[];
 }
 
+// Filter state interface - defines all available filter options
+interface FilterState {
+  dateFrom: string;           // Start date for challan date range filter
+  dateTo: string;             // End date for challan date range filter
+  customer: string;           // Customer name filter (exact match)
+  invoiceSubmission: 'all' | 'submitted' | 'not-submitted';  // Invoice submission status filter
+  invoiceDateFrom: string;    // Start date for invoice date range filter
+  invoiceDateTo: string;      // End date for invoice date range filter
+  podDateFrom: string;        // Start date for POD upload date range filter
+  podDateTo: string;          // End date for POD upload date range filter
+}
+
+// CSV export function for downloading challan data
 function exportToCSV(rows: Record<string, any>[], columns: string[], filename: string) {
   // Always include pod_entry_date if not present
   const cols = (columns || []).filter(col => col !== 'acknowledgement_copy');
@@ -58,35 +73,50 @@ function exportToCSV(rows: Record<string, any>[], columns: string[], filename: s
   URL.revokeObjectURL(url);
 }
 
-// At the top, import the new components (assume they are in the same directory for now):
+// Import all delivery challan components
 import DeliveryChallanToolbar from './DeliveryChallanToolbar';
 import DeliveryChallanMobileList from './DeliveryChallanMobileList';
 import DeliveryChallanTable from './DeliveryChallanTable';
 import EditModal from './EditModal';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import ContextMenu from './ContextMenu';
+import DeliveryChallanFilterSummary from './DeliveryChallanFilterSummary';
+import DeliveryChallanFilterStatus from './DeliveryChallanFilterStatus';
 
 export default function DeliveryChallanClient() {
   // --- State Management ---
-  // State for live SSE data, search filter, context menu, edit modal, and menu dropdown
+  // Core data and UI state
   const [sseData, setSseData] = useState<ChallanTableData>({ columns: [], data: [] });
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("");  // Text search filter
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; row: Record<string, any> | null } | null>(null);
   const [editModal, setEditModal] = useState<{ open: boolean; row: Record<string, any> | null }>({ open: false, row: null });
   const [deleteConfirm, setDeleteConfirm] = useState(false);
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);  // Selected row IDs
   const [menuOpen, setMenuOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);  // Filter dropdown state
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const downloadRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Filter state - manages all filter criteria
+  const [filters, setFilters] = useState<FilterState>({
+    dateFrom: '',             // Challan date range start
+    dateTo: '',               // Challan date range end
+    customer: '',             // Customer filter
+    invoiceSubmission: 'all', // Invoice submission status (all/submitted/not-submitted)
+    invoiceDateFrom: '',      // Invoice date range start
+    invoiceDateTo: '',        // Invoice date range end
+    podDateFrom: '',          // POD upload date range start
+    podDateTo: ''             // POD upload date range end
+  });
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const [csrfToken, setCsrfToken] = useState<string>("");
 
-  // Fetch CSRF token on mount
+  // Fetch CSRF token on mount for Django REST API calls
   useEffect(() => {
     const fetchCsrfToken = async () => {
       const res = await fetch(`${API_URL}/api/csrf/`, { credentials: "include" });
@@ -110,7 +140,7 @@ export default function DeliveryChallanClient() {
   }, []);
 
   // --- Outside Click Handlers ---
-  // Close context menu, menu, and download dropdown on outside click
+  // Close context menu, menu, download dropdown, and filters on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
@@ -122,6 +152,7 @@ export default function DeliveryChallanClient() {
       if (downloadRef.current && !downloadRef.current.contains(e.target as Node)) {
         setDownloadOpen(false);
       }
+      // Filters dropdown is handled within the DeliveryChallanFilters component
     };
     if (contextMenu || menuOpen || downloadOpen) {
       document.addEventListener("mousedown", handleClick);
@@ -138,7 +169,7 @@ export default function DeliveryChallanClient() {
         e.preventDefault();
         setDeleteConfirm(true);
       }
-      // Escape key to close modals
+      // Escape key to close modals and dropdowns
       if (e.key === 'Escape') {
         if (editModal.open) {
           closeEditModal();
@@ -149,23 +180,147 @@ export default function DeliveryChallanClient() {
         if (contextMenu) {
           setContextMenu(null);
         }
+        if (filtersOpen) {
+          setFiltersOpen(false);
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selected, editModal.open, deleteConfirm, contextMenu]);
+  }, [selected, editModal.open, deleteConfirm, contextMenu, filtersOpen, setFiltersOpen]);
 
   // --- Table Data Derivation ---
   // Memoized derived data for filtered rows and column order
-  const filteredRows = useMemo(() => (
-    (sseData.data || []).filter((row) =>
-      (sseData.columns || []).some((col) =>
-        String(row[col] ?? "").toLowerCase().includes(search.toLowerCase())
-      )
-    )
-  ), [sseData.data, sseData.columns, search]);
+  // This is the core filtering logic that applies all filter criteria
+  const filteredRows = useMemo(() => {
+    let filtered = (sseData.data || []);
+    
+    // Apply text search filter across all columns
+    if (search) {
+      filtered = filtered.filter((row) =>
+        (sseData.columns || []).some((col) =>
+          String(row[col] ?? "").toLowerCase().includes(search.toLowerCase())
+        )
+      );
+    }
+    
+    // Apply challan date range filter
+    if (filters.dateFrom) {
+      filtered = filtered.filter((row) => {
+        if (!row.date) return false;
+        try {
+          const rowDate = new Date(row.date);
+          const fromDate = new Date(filters.dateFrom);
+          return !isNaN(rowDate.getTime()) && rowDate >= fromDate;
+        } catch (e) {
+          return false;
+        }
+      });
+    }
+    
+    if (filters.dateTo) {
+      filtered = filtered.filter((row) => {
+        if (!row.date) return false;
+        try {
+          const rowDate = new Date(row.date);
+          const toDate = new Date(filters.dateTo);
+          return !isNaN(rowDate.getTime()) && rowDate <= toDate;
+        } catch (e) {
+          return false;
+        }
+      });
+    }
+    
+    // Apply customer filter (exact match)
+    if (filters.customer) {
+      filtered = filtered.filter((row) => 
+        row.customer === filters.customer
+      );
+    }
+    
+    // Apply invoice submission filter
+    // This filters by the boolean invoice_submission field from the database
+    if (filters.invoiceSubmission !== 'all') {
+      filtered = filtered.filter((row) => {
+        // Handle boolean conversion properly - convert any truthy/falsy value to boolean
+        const isSubmitted = Boolean(row.invoice_submission);
+        return filters.invoiceSubmission === 'submitted' ? isSubmitted : !isSubmitted;
+      });
+    }
+    
+    // Apply invoice date range filter
+    // This filters challans that have invoice dates within the specified range
+    if (filters.invoiceDateFrom) {
+      filtered = filtered.filter((row) => {
+        if (!row.invoice_date) return false;  // Skip challans without invoice dates
+        try {
+          const rowDate = new Date(row.invoice_date);
+          const fromDate = new Date(filters.invoiceDateFrom);
+          return !isNaN(rowDate.getTime()) && rowDate >= fromDate;
+        } catch (e) {
+          return false;  // Skip invalid dates
+        }
+      });
+    }
+    
+    if (filters.invoiceDateTo) {
+      filtered = filtered.filter((row) => {
+        if (!row.invoice_date) return false;  // Skip challans without invoice dates
+        try {
+          const rowDate = new Date(row.invoice_date);
+          const toDate = new Date(filters.invoiceDateTo);
+          return !isNaN(rowDate.getTime()) && rowDate <= toDate;
+        } catch (e) {
+          return false;  // Skip invalid dates
+        }
+      });
+    }
+    
+    // Apply POD upload date range filter
+    // This filters challans that have POD upload dates within the specified range
+    if (filters.podDateFrom) {
+      filtered = filtered.filter((row) => {
+        if (!row.pod_upload_date) return false;  // Skip challans without POD upload dates
+        try {
+          const rowDate = new Date(row.pod_upload_date);
+          const fromDate = new Date(filters.podDateFrom);
+          return !isNaN(rowDate.getTime()) && rowDate >= fromDate;
+        } catch (e) {
+          return false;  // Skip invalid dates
+        }
+      });
+    }
+    
+    if (filters.podDateTo) {
+      filtered = filtered.filter((row) => {
+        if (!row.pod_upload_date) return false;  // Skip challans without POD upload dates
+        try {
+          const rowDate = new Date(row.pod_upload_date);
+          const toDate = new Date(filters.podDateTo);
+          return !isNaN(rowDate.getTime()) && rowDate <= toDate;
+        } catch (e) {
+          return false;  // Skip invalid dates
+        }
+      });
+    }
+    
+    return filtered;
+  }, [sseData.data, sseData.columns, search, filters]);
 
+  // Extract unique customers for filter dropdown
+  // This creates a sorted list of all customer names for the customer filter
+  const customers = useMemo(() => {
+    const customerSet = new Set<string>();
+    (sseData.data || []).forEach(row => {
+      if (row.customer) {
+        customerSet.add(row.customer);
+      }
+    });
+    return Array.from(customerSet).sort();
+  }, [sseData.data]);
+
+  // Column ordering and selection logic
   const baseColumns = useMemo(() => (
     (sseData.columns || []).filter(col => col !== 'id' && col !== 'acknowledgement_copy' && col !== 'created_at' && col !== 'updated_at')
   ), [sseData.columns]);
@@ -173,6 +328,8 @@ export default function DeliveryChallanClient() {
     ['created_at', 'updated_at'].filter(col => (sseData.columns || []).includes(col))
   ), [sseData.columns]);
   const orderedColumns = useMemo(() => ([...baseColumns, ...endColumns]), [baseColumns, endColumns]);
+  
+  // Selection state management
   const allIds = useMemo(() => filteredRows.map(row => row.id), [filteredRows]);
   const isAllSelected = allIds.length > 0 && allIds.every(id => selected.includes(id));
   const isIndeterminate = selected.length > 0 && !isAllSelected;
@@ -201,6 +358,8 @@ export default function DeliveryChallanClient() {
 
   // --- React Query Mutations for CRUD ---
   // Add, edit, and delete mutations using Django REST API
+  
+  // Add new challan mutation
   const addChallanMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const res = await fetch(`${API_URL}/api/deliverychallan/`, {
@@ -214,6 +373,7 @@ export default function DeliveryChallanClient() {
     },
   });
 
+  // Edit existing challan mutation
   const editChallanMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: FormData }) => {
       const res = await fetch(`${API_URL}/api/deliverychallan/${id}/`, {
@@ -227,6 +387,7 @@ export default function DeliveryChallanClient() {
     },
   });
 
+  // Delete challan mutation
   const deleteChallanMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/api/deliverychallan/${id}/`, {
@@ -249,6 +410,7 @@ export default function DeliveryChallanClient() {
 
   // --- CRUD Handlers ---
   // Add, edit, and delete handlers for modal and context menu
+  
   // Unified save handler for add/edit
   const handleSave = async (data: Record<string, any>) => {
     try {
@@ -282,7 +444,7 @@ export default function DeliveryChallanClient() {
     }
   };
 
-  // Delete handler
+  // Delete handler with batch support
   const handleDelete = async (ids?: string[]) => {
     const idsToDelete = ids ?? selected;
     if (idsToDelete.length === 0) return;
@@ -326,6 +488,7 @@ export default function DeliveryChallanClient() {
 
   // --- Context Menu Handlers ---
   // Right-click context menu logic for row actions
+  
   // Show context menu on right-click of a row
   const handleContextMenu = useCallback((e: React.MouseEvent, row: Record<string, any>) => {
     e.preventDefault();
@@ -380,6 +543,7 @@ export default function DeliveryChallanClient() {
 
   // --- Modal Handlers ---
   // Open/close edit modal
+  
   // Open edit modal for a row
   const handleEditRow = (row: Record<string, any>) => {
     setEditModal({ open: true, row });
@@ -389,12 +553,11 @@ export default function DeliveryChallanClient() {
   // Close edit modal
   const closeEditModal = () => setEditModal({ open: false, row: null });
 
-
-
   // --- Render UI ---
   // Renders toolbar, table, context menu, modals, and mobile list
   return (
     <div className="min-h-screen w-full bg-white flex flex-col items-center p-4 sm:p-8" id="delivery-challan-root">
+      {/* Main toolbar with search, filters, and action buttons */}
       <DeliveryChallanToolbar
         search={search}
         setSearch={setSearch}
@@ -407,7 +570,27 @@ export default function DeliveryChallanClient() {
         downloadOpen={downloadOpen}
         handleDownload={handleDownload}
         downloadRef={downloadRef}
+        filters={filters}
+        setFilters={setFilters}
+        customers={customers}
+        filtersOpen={filtersOpen}
+        setFiltersOpen={setFiltersOpen}
       />
+      
+      {/* Filter summary showing active filters as removable chips */}
+      <DeliveryChallanFilterSummary
+        filters={filters}
+        setFilters={setFilters}
+      />
+      
+      {/* Filter status showing result count and active filter details */}
+      <DeliveryChallanFilterStatus
+        filters={filters}
+        totalRows={sseData.data?.length || 0}
+        filteredRows={filteredRows.length}
+      />
+      
+      {/* Mobile list view for smaller screens */}
       <DeliveryChallanMobileList
         filteredRows={filteredRows}
         selected={selected}
@@ -415,6 +598,8 @@ export default function DeliveryChallanClient() {
         handleContextMenu={handleContextMenu}
         setEditModal={setEditModal}
       />
+      
+      {/* Desktop table view */}
       <div className="hidden md:block w-full">
         <DeliveryChallanTable
           filteredRows={filteredRows}
@@ -428,6 +613,8 @@ export default function DeliveryChallanClient() {
           toggleSelectAll={toggleSelectAll}
         />
       </div>
+      
+      {/* Context menu for right-click actions */}
       <ContextMenu
         contextMenu={contextMenu}
         setContextMenu={setContextMenu}
@@ -436,6 +623,8 @@ export default function DeliveryChallanClient() {
         selected={selected}
         contextMenuRef={contextMenuRef}
       />
+      
+      {/* Edit/Add modal */}
       <EditModal
         open={editModal.open}
         row={editModal.row}
@@ -443,6 +632,8 @@ export default function DeliveryChallanClient() {
         onSave={handleSave}
         isLoading={addChallanMutation.isPending || editChallanMutation.isPending}
       />
+      
+      {/* Delete confirmation modal */}
       <DeleteConfirmModal
         open={deleteConfirm}
         onCancel={() => setDeleteConfirm(false)}

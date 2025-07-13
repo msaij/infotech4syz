@@ -70,6 +70,16 @@ const DeliveryChallanMobileList: React.FC<DeliveryChallanMobileListProps> = ({ f
                 <span className="font-medium">{row.invoice_number}</span>
               </div>
             )}
+            <div className="flex justify-between">
+              <span className="text-zinc-600">Status:</span>
+              <span className={`font-medium px-2 py-1 text-xs rounded ${
+                row.invoice_submission 
+                  ? 'bg-green-100 text-green-700' 
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}>
+                {row.invoice_submission ? 'Submitted' : 'Pending'}
+              </span>
+            </div>
             {row.dc_summary && (
               <div className="pt-2 border-t border-zinc-100">
                 <span className="text-zinc-600 block mb-1">Summary:</span>

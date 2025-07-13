@@ -1,7 +1,19 @@
 // DeliveryChallanToolbar.tsx
-// Toolbar for delivery challan table. Contains search, add, and download actions.
+// Toolbar for delivery challan table. Contains search, filters, add, and download actions.
 
 import React from 'react';
+import DeliveryChallanFilters from './DeliveryChallanFilters';
+
+interface FilterState {
+  dateFrom: string;
+  dateTo: string;
+  customer: string;
+  invoiceSubmission: 'all' | 'submitted' | 'not-submitted';
+  invoiceDateFrom: string;
+  invoiceDateTo: string;
+  podDateFrom: string;
+  podDateTo: string;
+}
 
 interface DeliveryChallanToolbarProps {
   search: string;
@@ -15,11 +27,18 @@ interface DeliveryChallanToolbarProps {
   downloadOpen: boolean;
   handleDownload: (type: 'all' | 'selected' | 'filtered') => void;
   downloadRef: React.RefObject<HTMLDivElement | null>;
+  // New filter props
+  filters: FilterState;
+  setFilters: (filters: FilterState) => void;
+  customers: string[];
+  filtersOpen: boolean;
+  setFiltersOpen: (open: boolean) => void;
 }
 
 // Main toolbar component
 const DeliveryChallanToolbar: React.FC<DeliveryChallanToolbarProps> = ({
-  search, setSearch, selected, setEditModal, setDeleteConfirm, setDownloadOpen, downloadOpen, handleDownload, downloadRef
+  search, setSearch, selected, setEditModal, setDeleteConfirm, setDownloadOpen, downloadOpen, handleDownload, downloadRef,
+  filters, setFilters, customers, filtersOpen, setFiltersOpen
 }) => {
   return (
     // Toolbar container with responsive layout
@@ -33,6 +52,16 @@ const DeliveryChallanToolbar: React.FC<DeliveryChallanToolbarProps> = ({
         className="px-3 h-10 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm bg-white text-sm w-full sm:w-56"
         style={{ minWidth: 0 }}
       />
+      
+      {/* Filters component */}
+      <DeliveryChallanFilters
+        filters={filters}
+        setFilters={setFilters}
+        customers={customers}
+        isOpen={filtersOpen}
+        onToggle={() => setFiltersOpen(!filtersOpen)}
+      />
+      
       <div className="flex flex-wrap items-center gap-2">
         {/* Add Challan button */}
         <button
