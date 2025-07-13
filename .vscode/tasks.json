@@ -9,11 +9,27 @@
       "group": "build",
       "problemMatcher": []
     },
+    // Task to run FastAPI service
+    {
+      "label": "Run FastAPI Service",
+      "type": "shell",
+      "command": "cd fastapi-service && uvicorn main:app --host 0.0.0.0 --port 8001 --reload",
+      "group": "build",
+      "problemMatcher": []
+    },
+    // Task to run FastAPI service with custom config
+    {
+      "label": "Run FastAPI Service (Custom Config)",
+      "type": "shell",
+      "command": "cd fastapi-service && python -c \"from config import *; print('Config loaded successfully')\" && uvicorn main:app --host 0.0.0.0 --port 8001 --reload",
+      "group": "build",
+      "problemMatcher": []
+    },
     // Task to run Django backend
     {
       "label": "Run Django Backend",
       "type": "shell",
-      "command": "python manage.py runserver",
+      "command": "cd django-rest && uvicorn backend.asgi:application --host 127.0.0.1 --port 8000",
       "group": "build",
       "problemMatcher": []
     },

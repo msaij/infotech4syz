@@ -1,21 +1,22 @@
 "use client";
 import RouteGuard from "@/components/RouteGuard";
-import CompanyNavBar from "@/start-components/CompanyNavBar";
-import { PWAStatus } from "@/components/pwa";
+import ClientNavBar from "@/client-components/ClientNavBar";
 import { useAuth } from "@/components/(access-providers)/auth-context";
 
-export default function StartLayout({ children }) {
+export default function ClientsLayout({ children }) {
   const { user } = useAuth();
   
   return (
-    <RouteGuard requiredGroup="4syz" userType="company">
+    <RouteGuard 
+      userType="client"
+      fallback={<div>Access Denied</div>}
+    >
       <div className="flex flex-col h-screen">
-        <CompanyNavBar user={user} />
+        <ClientNavBar user={user} />
         <main className="flex-1 overflow-auto relative">
           {children}
-          <PWAStatus />
         </main>
       </div>
     </RouteGuard>
   );
-}
+} 

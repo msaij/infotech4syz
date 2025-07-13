@@ -1,0 +1,13 @@
+# Requirements for the Django rest framrwork project
+Django>=5.2.3
+mysqlclient
+uvicorn
+gunicorn
+django-cors-headers
+djangorestframework
+djangorestframework-simplejwt
+python-dotenv
+pymysql
+fastapi
+asyncio
+aiomysql

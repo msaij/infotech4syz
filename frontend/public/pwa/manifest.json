@@ -1,0 +1,82 @@
+{
+  "name": "4SYZ - B2B | CORPORATE SUPPLIES",
+  "short_name": "4SYZ - B2B",
+  "description": "Corporate Supplies",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/pwa/icons/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa/icons/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa/icons/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa/icons/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View delivery challan dashboard",
+      "url": "/start/dashboard",
+      "icons": [
+        {
+          "src": "/pwa/icons/manifest-icon-192.maskable.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Delivery Challans",
+      "short_name": "Challans",
+      "description": "Manage delivery challans",
+      "url": "/start/delivery-challan",
+      "icons": [
+        {
+          "src": "/pwa/icons/manifest-icon-192.maskable.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "description": "View user profile",
+      "url": "/start/profile",
+      "icons": [
+        {
+          "src": "/pwa/icons/manifest-icon-192.maskable.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+} 
