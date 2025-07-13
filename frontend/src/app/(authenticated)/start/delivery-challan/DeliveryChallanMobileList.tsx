@@ -5,23 +5,20 @@ interface DeliveryChallanMobileListProps {
   selected: string[];
   toggleSelectRow: (id: string) => void;
   handleContextMenu: (e: React.MouseEvent, row: Record<string, any>) => void;
-  showAddModal: boolean;
-  setShowAddModal: (show: boolean) => void;
+  setEditModal: (modal: { open: boolean; row: Record<string, any> | null }) => void;
 }
 
-const DeliveryChallanMobileList: React.FC<DeliveryChallanMobileListProps> = ({ filteredRows, selected, toggleSelectRow, handleContextMenu, showAddModal, setShowAddModal }) => {
+const DeliveryChallanMobileList: React.FC<DeliveryChallanMobileListProps> = ({ filteredRows, selected, toggleSelectRow, handleContextMenu, setEditModal }) => {
   return (
     <div className="w-full md:hidden space-y-4 relative">
       {/* Floating Add Button */}
-      {!showAddModal && (
-        <button
-          className="fixed bottom-6 right-6 z-50 bg-blue-600 text-white rounded-full shadow-lg p-4 flex items-center justify-center hover:bg-blue-700 transition"
-          onClick={() => setShowAddModal(true)}
-          aria-label="Add New Challan"
-        >
-          <span className="material-symbols-outlined text-2xl">add</span>
-        </button>
-      )}
+      <button
+        className="fixed bottom-6 right-6 z-50 bg-blue-600 text-white rounded-full shadow-lg p-4 flex items-center justify-center hover:bg-blue-700 transition"
+        onClick={() => setEditModal({ open: true, row: null })}
+        aria-label="Add New Challan"
+      >
+        <span className="material-symbols-outlined text-2xl">add</span>
+      </button>
       {/* Card List */}
       {filteredRows.map((row, idx) => (
         <div

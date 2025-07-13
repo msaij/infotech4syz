@@ -41,6 +41,16 @@ const DeliveryChallanToolbar: React.FC<DeliveryChallanToolbarProps> = ({
         >
           + Add Challan
         </button>
+        {/* Delete Selected button */}
+        {selected.length > 0 && (
+          <button
+            className="bg-red-600 text-white px-4 h-10 rounded-lg font-semibold hover:bg-red-700 transition text-sm shadow flex items-center gap-1"
+            onClick={() => setDeleteConfirm(true)}
+          >
+            <span className="material-symbols-outlined text-lg">delete</span>
+            Delete Selected ({selected.length})
+          </button>
+        )}
         {/* Download button and dropdown */}
         <div className="relative">
           <button

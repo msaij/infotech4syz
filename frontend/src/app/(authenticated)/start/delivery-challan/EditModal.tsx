@@ -9,14 +9,35 @@ interface EditModalProps {
   row: Record<string, any> | null;
   onClose: () => void;
   onSave: (data: Record<string, any>) => void;
+  isLoading?: boolean;
 }
 
-const EditModal: React.FC<EditModalProps> = ({ open, row, onClose, onSave }) => {
+const EditModal: React.FC<EditModalProps> = ({ open, row, onClose, onSave, isLoading = false }) => {
   // Form setup and reset logic
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({ defaultValues: row || {} });
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({ 
+    defaultValues: row || {
+      date: new Date().toISOString().split('T')[0], // Set today's date as default for new challans
+      invoice_submission: false
+    }
+  });
 
   React.useEffect(() => {
-    reset(row || {});
+    if (row) {
+      // Editing existing challan
+      reset(row);
+    } else {
+      // Adding new challan
+      reset({
+        date: new Date().toISOString().split('T')[0],
+        customer: '',
+        dc_summary: '',
+        delivery_executives: '',
+        invoice_number: '',
+        invoice_date: '',
+        invoice_submission: false,
+        proof_of_delivery: undefined
+      });
+    }
   }, [row, reset]);
 
   if (!open) return null;
@@ -36,14 +57,34 @@ const EditModal: React.FC<EditModalProps> = ({ open, row, onClose, onSave }) => 
           {/* Date field */}
           <div>
             <label className="block mb-1 font-medium">Date</label>
-            <input type="date" {...register('date', { required: true })} className="w-full border px-3 py-2 rounded" />
-            {errors.date && <span className="text-red-500 text-sm">Required</span>}
+            <input 
+              type="date" 
+              {...register('date', { 
+                required: 'Date is required',
+                validate: (value) => {
+                  if (!value) return 'Date is required';
+                  const selectedDate = new Date(value);
+                  const today = new Date();
+                  today.setHours(23, 59, 59, 999); // End of today
+                  if (selectedDate > today) return 'Date cannot be in the future';
+                  return true;
+                }
+              })} 
+              className="w-full border px-3 py-2 rounded" 
+            />
+            {errors.date && <span className="text-red-500 text-sm">{errors.date.message?.toString()}</span>}
           </div>
           {/* Customer field */}
           <div>
             <label className="block mb-1 font-medium">Customer</label>
-            <input {...register('customer', { required: true })} className="w-full border px-3 py-2 rounded" />
-            {errors.customer && <span className="text-red-500 text-sm">Required</span>}
+            <input 
+              {...register('customer', { 
+                required: 'Customer name is required',
+                minLength: { value: 2, message: 'Customer name must be at least 2 characters' }
+              })} 
+              className="w-full border px-3 py-2 rounded" 
+            />
+            {errors.customer && <span className="text-red-500 text-sm">{errors.customer.message?.toString()}</span>}
           </div>
           {/* Description field */}
           <div>
@@ -77,8 +118,10 @@ const EditModal: React.FC<EditModalProps> = ({ open, row, onClose, onSave }) => 
           </div>
           {/* Modal actions */}
           <div className="flex gap-2 justify-end">
-            <button type="button" className="px-4 py-2 text-zinc-400 hover:text-zinc-700 text-2xl font-bold" onClick={onClose} aria-label="Close">×</button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save changes</button>
+            <button type="button" className="px-4 py-2 text-zinc-400 hover:text-zinc-700 text-2xl font-bold" onClick={onClose} aria-label="Close" disabled={isLoading}>×</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed" disabled={isLoading}>
+              {isLoading ? 'Saving...' : 'Save changes'}
+            </button>
           </div>
         </form>
       </div>

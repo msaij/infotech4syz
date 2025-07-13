@@ -10,10 +10,9 @@ interface ContextMenuProps {
   handleCopyRows: (row: Record<string, any>) => void;
   selected: string[];
   contextMenuRef: React.RefObject<HTMLDivElement | null>;
-  onDelete: (row: Record<string, any>) => void;
 }
 
-const ContextMenu: React.FC<ContextMenuProps> = ({ contextMenu, setContextMenu, handleEditRow, handleCopyRows, selected, contextMenuRef, onDelete }) => {
+const ContextMenu: React.FC<ContextMenuProps> = ({ contextMenu, setContextMenu, handleEditRow, handleCopyRows, selected, contextMenuRef }) => {
   // State for menu position (avoids hydration errors)
   const [position, setPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
@@ -52,23 +51,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ contextMenu, setContextMenu, 
         <span className="material-symbols-outlined text-lg">content_copy</span>
         {selected.length > 1 && contextMenu.row && selected.includes(contextMenu.row.id) ? 'Copy Rows' : 'Copy Row'}
       </button>
-      {/* Delete action (single or multiple) */}
-      <button
-        className="w-full text-left px-4 py-3 hover:bg-red-100 text-red-700 flex items-center gap-2"
-        onClick={() => {
-          if (selected.length > 1 && contextMenu.row && selected.includes(contextMenu.row.id)) {
-            // Delete all selected rows
-            onDelete({ id: selected });
-          } else {
-            // Delete just this row
-            onDelete(contextMenu.row!);
-          }
-          setContextMenu(null);
-        }}
-      >
-        <span className="material-symbols-outlined text-lg">delete</span>
-        {selected.length > 1 && contextMenu.row && selected.includes(contextMenu.row.id) ? 'Delete Rows' : 'Delete Row'}
-      </button>
+
     </div>
   );
 };

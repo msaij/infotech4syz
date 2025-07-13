@@ -8,7 +8,6 @@ interface DeliveryChallanTableProps {
   selected: string[];
   toggleSelectRow: (id: string) => void;
   onEdit: (row: Record<string, any>) => void;
-  onDelete: (row: Record<string, any>) => void;
   handleContextMenu: (e: React.MouseEvent, row: Record<string, any>) => void;
   contextMenuRowId?: string;
   isAllSelected: boolean;
@@ -17,7 +16,7 @@ interface DeliveryChallanTableProps {
 }
 
 // Main table component
-const DeliveryChallanTable: React.FC<DeliveryChallanTableProps> = ({ filteredRows, selected, toggleSelectRow, onEdit, onDelete, handleContextMenu, contextMenuRowId, isAllSelected, isIndeterminate, toggleSelectAll }) => {
+const DeliveryChallanTable: React.FC<DeliveryChallanTableProps> = ({ filteredRows, selected, toggleSelectRow, onEdit, handleContextMenu, contextMenuRowId, isAllSelected, isIndeterminate, toggleSelectAll }) => {
   return (
     // Table container with responsive overflow and shadow
     <div className="my-4 w-full overflow-x-auto rounded-xl shadow-lg">
@@ -45,7 +44,7 @@ const DeliveryChallanTable: React.FC<DeliveryChallanTableProps> = ({ filteredRow
             <th className="px-4 py-2 border-b text-left font-bold uppercase tracking-wider text-xs">Invoice Date</th>
             <th className="px-4 py-2 border-b text-left font-bold uppercase tracking-wider text-xs">Invoice Submission</th>
             <th className="px-4 py-2 border-b text-left font-bold uppercase tracking-wider text-xs">Acknowledgement</th>
-            <th className="px-4 py-2 border-b"></th>
+            <th className="px-4 py-2 border-b text-left font-bold uppercase tracking-wider text-xs">Edit</th>
           </tr>
         </thead>
         <tbody>
@@ -80,7 +79,20 @@ const DeliveryChallanTable: React.FC<DeliveryChallanTableProps> = ({ filteredRow
                   <a href={row.proof_of_delivery} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ack File</a>
                 ) : 'N/A'}
               </td>
-              <td className="px-4 py-2 border-b"></td>
+              <td className="px-4 py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(row);
+                    }}
+                    className="p-1 text-blue-600 hover:bg-blue-100 rounded transition"
+                    title="Edit"
+                  >
+                    <span className="material-symbols-outlined text-lg">edit</span>
+                  </button>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>

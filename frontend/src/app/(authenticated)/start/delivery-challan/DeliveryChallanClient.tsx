@@ -81,6 +81,7 @@ export default function DeliveryChallanClient() {
   const menuRef = useRef<HTMLDivElement>(null);
   const downloadRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const [csrfToken, setCsrfToken] = useState<string>("");
@@ -128,6 +129,33 @@ export default function DeliveryChallanClient() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [contextMenu, menuOpen, downloadOpen]);
 
+  // --- Keyboard Shortcuts ---
+  // Handle keyboard shortcuts for delete and other actions
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Delete key for selected rows
+      if (e.key === 'Delete' && selected.length > 0) {
+        e.preventDefault();
+        setDeleteConfirm(true);
+      }
+      // Escape key to close modals
+      if (e.key === 'Escape') {
+        if (editModal.open) {
+          closeEditModal();
+        }
+        if (deleteConfirm) {
+          setDeleteConfirm(false);
+        }
+        if (contextMenu) {
+          setContextMenu(null);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selected, editModal.open, deleteConfirm, contextMenu]);
+
   // --- Table Data Derivation ---
   // Memoized derived data for filtered rows and column order
   const filteredRows = useMemo(() => (
@@ -174,13 +202,7 @@ export default function DeliveryChallanClient() {
   // --- React Query Mutations for CRUD ---
   // Add, edit, and delete mutations using Django REST API
   const addChallanMutation = useMutation({
-    mutationFn: async (data: Record<string, any>) => {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, value);
-        }
-      });
+    mutationFn: async (formData: FormData) => {
       const res = await fetch(`${API_URL}/api/deliverychallan/`, {
         method: 'POST',
         body: formData,
@@ -193,16 +215,10 @@ export default function DeliveryChallanClient() {
   });
 
   const editChallanMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string, data: Record<string, any> }) => {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, value);
-        }
-      });
+    mutationFn: async ({ id, data }: { id: string, data: FormData }) => {
       const res = await fetch(`${API_URL}/api/deliverychallan/${id}/`, {
         method: 'PATCH',
-        body: formData,
+        body: data,
         credentials: 'include',
         headers: { 'X-CSRFToken': csrfToken },
       });
@@ -233,47 +249,78 @@ export default function DeliveryChallanClient() {
 
   // --- CRUD Handlers ---
   // Add, edit, and delete handlers for modal and context menu
-  // Add handler
-  const handleAdd = async (data: Record<string, any>) => {
+  // Unified save handler for add/edit
+  const handleSave = async (data: Record<string, any>) => {
     try {
-      await addChallanMutation.mutateAsync(data);
-      // SSE will update the table
-    } catch (e) {
-      alert('Error adding challan.');
-    }
-  };
+      // Handle file upload properly
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          if (key === 'proof_of_delivery' && value instanceof FileList) {
+            formData.append(key, value[0]);
+          } else {
+            formData.append(key, value);
+          }
+        }
+      });
 
-  // Edit handler
-  const handleEdit = async (data: Record<string, any>) => {
-    if (!editModal.row?.id) return;
-    try {
-      await editChallanMutation.mutateAsync({ id: editModal.row.id, data });
-    setEditModal({ open: false, row: null });
+      if (editModal.row?.id) {
+        // Editing existing challan
+        await editChallanMutation.mutateAsync({ id: editModal.row.id, data: formData });
+        alert('Challan updated successfully!');
+      } else {
+        // Adding new challan
+        await addChallanMutation.mutateAsync(formData);
+        alert('Challan added successfully!');
+      }
+      setEditModal({ open: false, row: null });
       // SSE will update the table
     } catch (e) {
-      alert('Error updating challan.');
+      console.error('Error saving challan:', e);
+      const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred';
+      alert(editModal.row?.id ? `Error updating challan: ${errorMessage}` : `Error adding challan: ${errorMessage}`);
     }
   };
 
   // Delete handler
   const handleDelete = async (ids?: string[]) => {
     const idsToDelete = ids ?? selected;
+    if (idsToDelete.length === 0) return;
+    
+    setIsDeleting(true);
     try {
-      await Promise.all(idsToDelete.map(async id => {
+      const results = await Promise.allSettled(idsToDelete.map(async id => {
         try {
           await deleteChallanMutation.mutateAsync(id);
+          return { id, success: true };
         } catch (e) {
           console.error(`Error deleting challan with id ${id}:`, e);
-          alert(e instanceof Error ? e.message : 'Error deleting challan(s).');
+          return { id, success: false, error: e instanceof Error ? e.message : 'Unknown error' };
         }
       }));
-    setDeleteConfirm(false);
-    setSelected([]);
+
+      // Count successes and failures
+      const successful = results.filter(result => result.status === 'fulfilled' && result.value.success).length;
+      const failed = results.length - successful;
+
+      // Show appropriate message
+      if (successful > 0 && failed === 0) {
+        alert(`Successfully deleted ${successful} challan${successful > 1 ? 's' : ''}!`);
+      } else if (successful > 0 && failed > 0) {
+        alert(`Deleted ${successful} challan${successful > 1 ? 's' : ''}, but failed to delete ${failed} challan${failed > 1 ? 's' : ''}.`);
+      } else {
+        alert('Failed to delete any challans. Please try again.');
+      }
+
+      setDeleteConfirm(false);
+      setSelected([]);
       // SSE will update the table
     } catch (e) {
-      // This catch is for unexpected Promise.all errors
+      // This catch is for unexpected Promise.allSettled errors
       console.error('Unexpected error in handleDelete:', e);
       alert('Unexpected error deleting challan(s).');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -342,10 +389,7 @@ export default function DeliveryChallanClient() {
   // Close edit modal
   const closeEditModal = () => setEditModal({ open: false, row: null });
 
-  // Add this function:
-  const handleDeleteRow = (row: Record<string, any>) => {
-    handleDelete([row.id]);
-  };
+
 
   // --- Render UI ---
   // Renders toolbar, table, context menu, modals, and mobile list
@@ -369,9 +413,7 @@ export default function DeliveryChallanClient() {
         selected={selected}
         toggleSelectRow={toggleSelectRow}
         handleContextMenu={handleContextMenu}
-        showAddModal={false}
-        setShowAddModal={() => {}}
-        // ...other props as needed
+        setEditModal={setEditModal}
       />
       <div className="hidden md:block w-full">
         <DeliveryChallanTable
@@ -379,7 +421,6 @@ export default function DeliveryChallanClient() {
           selected={selected}
           toggleSelectRow={toggleSelectRow}
           onEdit={handleEditRow}
-          onDelete={handleDeleteRow}
           handleContextMenu={handleContextMenu}
           contextMenuRowId={contextMenu?.row?.id}
           isAllSelected={isAllSelected}
@@ -394,19 +435,26 @@ export default function DeliveryChallanClient() {
         handleCopyRows={handleCopyRows}
         selected={selected}
         contextMenuRef={contextMenuRef}
-        onDelete={handleDeleteRow}
       />
       <EditModal
         open={editModal.open}
         row={editModal.row}
         onClose={closeEditModal}
-        onSave={handleEdit}
+        onSave={handleSave}
+        isLoading={addChallanMutation.isPending || editChallanMutation.isPending}
       />
       <DeleteConfirmModal
         open={deleteConfirm}
         onCancel={() => setDeleteConfirm(false)}
-        onDelete={handleDelete}
+        onDelete={() => handleDelete()}
         selectedCount={selected.length}
+        isLoading={isDeleting}
+        itemsToDelete={sseData.data?.filter(row => selected.includes(row.id)).map(row => ({
+          id: row.id,
+          challan_number: row.challan_number,
+          customer: row.customer,
+          date: row.date
+        }))}
       />
     </div>
   );
