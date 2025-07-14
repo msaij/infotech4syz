@@ -16,7 +16,6 @@ const navLinks = [
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function NavBar() {
-  const router = useRouter();
   const { user, logout, authFetch } = useAuth();
   const [csrfToken, setCsrfToken] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);

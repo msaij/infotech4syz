@@ -9,7 +9,6 @@ from rest_framework.decorators import action
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.db import connection
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, DjangoModelPermissions

@@ -1,18 +1,11 @@
-// LoginPage component for user authentication
-// Handles username verification, password entry, and forgot password flow
-
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/components/(access-providers)/auth-context";
 import LoadingPage from "@/components/LoadingPage";
-
-// Utility function to validate email format
-function validateEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 

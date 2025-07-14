@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-// Use a relative import for AuthProvider to avoid alias issues
 import { AuthProvider } from "./components/(access-providers)/auth-context";
 import { PWAInstallPrompt, ServiceWorkerRegistration } from "./components/pwa";
 import { generateMetadata, generateViewport } from "./utils/generateMetadata";
