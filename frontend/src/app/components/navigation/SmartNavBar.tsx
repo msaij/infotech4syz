@@ -1,10 +1,10 @@
 'use client';
 
-import { useAuth } from "@/components/(access-providers)/auth-context";
-import PublicNavBar from "@/components/PublicNavBar";
-import CompanyNavBar from "@/start-components/CompanyNavBar";
+import { useAuth } from "@/components/access-providers/auth-context";
+import PublicNavBar from "@/components/navigation/PublicNavBar";
+import CompanyNavBar from "@/company-components/CompanyNavBar";
 import ClientNavBar from "@/client-components/ClientNavBar";
-import LoadingPage from "@/components/LoadingPage";
+import LoadingPage from "@/components/layout/LoadingPage";
 
 export default function SmartNavBar() {
   const { user, loading, primaryGroup } = useAuth();
