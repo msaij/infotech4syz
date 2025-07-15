@@ -25,12 +25,39 @@
     "baseUrl": "src",
     "paths": {
       "@/*": ["./*"],
-      "@/styles/*": ["styles/*"],
+      
+      // Public routes and components
+      "@/public/*": ["app/(public)/*"],
+      "@/public-components/*": ["app/(public)/components/*"],
+      
+      // Company routes and components
+      "@/company/*": ["app/(company)/*"],
+      "@/company-components/*": ["app/(company)/start/components/*"],
+      "@/company-hooks/*": ["app/(company)/start/components/hooks/*"],
+      "@/delivery-challan-components/*": ["app/(company)/start/delivery-challan/components/*"],
+      
+      // Client routes and components
+      "@/client/*": ["app/(client)/*"],
+      "@/client-components/*": ["app/(client)/clients/components/*"],
+      "@/client-hooks/*": ["app/(client)/clients/components/hooks/*"],
+      
+      // Shared components and utilities
       "@/components/*": ["app/components/*"],
-      "@/start/*": ["app/(authenticated)/start/*"],
-      "@/clients/*": ["app/(authenticated)/clients/*"],
-      "@/start-components/*": ["app/(authenticated)/start/components/*"],
-      "@/client-components/*": ["app/(authenticated)/clients/components/*"]
+      "@/components-ui/*": ["app/components/ui/*"],
+      "@/components-navigation/*": ["app/components/navigation/*"],
+      "@/components-pwa/*": ["app/components/pwa/*"],
+      "@/components-layout/*": ["app/components/layout/*"],
+      "@/components-forms/*": ["app/components/forms/*"],
+      "@/components-data/*": ["app/components/data/*"],
+      "@/components-feedback/*": ["app/components/feedback/*"],
+      
+      // Shared utilities
+      "@/lib/*": ["lib/*"],
+      "@/hooks/*": ["hooks/*"],
+      "@/types/*": ["types/*"],
+      "@/services/*": ["services/*"],
+      "@/constants/*": ["constants/*"],
+      "@/styles/*": ["styles/*"]
     }
   },
   "include": [

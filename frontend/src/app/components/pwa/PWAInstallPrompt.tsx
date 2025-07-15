@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { getManifestData, fallbackManifestData } from '../../utils/manifest';
+import { getManifestData, fallbackManifestData } from '../../../lib/manifest';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];

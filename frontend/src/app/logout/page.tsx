@@ -1,7 +1,7 @@
 "use client";
 import { redirect, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/components/(access-providers)/auth-context";
+import { useAuth } from "@/components/access-providers/auth-context";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
