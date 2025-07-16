@@ -9,7 +9,7 @@ import React, { useState, useRef, useEffect } from 'react';
 interface FilterState {
   dateFrom: string;           // Start date for challan date range filter
   dateTo: string;             // End date for challan date range filter
-  customer: string;           // Customer name filter (exact match)
+  client: string;             // Client name filter (exact match)
   invoiceSubmission: 'all' | 'submitted' | 'not-submitted';  // Invoice submission status filter
   invoiceDateFrom: string;    // Start date for invoice date range filter
   invoiceDateTo: string;      // End date for invoice date range filter
@@ -21,7 +21,7 @@ interface FilterState {
 interface DeliveryChallanFiltersProps {
   filters: FilterState;                    // Current filter state
   setFilters: (filters: FilterState) => void;  // Function to update filters
-  customers: string[];                     // List of unique customer names for dropdown
+  clients: string[];                       // List of unique client names for dropdown
   isOpen: boolean;                         // Whether filter dropdown is open
   onToggle: () => void;                    // Function to toggle filter dropdown
 }
@@ -29,7 +29,7 @@ interface DeliveryChallanFiltersProps {
 const DeliveryChallanFilters: React.FC<DeliveryChallanFiltersProps> = ({
   filters,
   setFilters,
-  customers,
+  clients,
   isOpen,
   onToggle
 }) => {
@@ -63,7 +63,7 @@ const DeliveryChallanFilters: React.FC<DeliveryChallanFiltersProps> = ({
     setFilters({
       dateFrom: '',
       dateTo: '',
-      customer: '',
+      client: '',
       invoiceSubmission: 'all',
       invoiceDateFrom: '',
       invoiceDateTo: '',
@@ -141,17 +141,17 @@ const DeliveryChallanFilters: React.FC<DeliveryChallanFiltersProps> = ({
             {/* Customer Filter */}
             <div>
               <label className="block text-sm font-medium text-zinc-700 mb-2">
-                Customer
+                Client
               </label>
               <select
-                value={filters.customer}
-                onChange={(e) => handleFilterChange('customer', e.target.value)}
+                value={filters.client}
+                onChange={(e) => handleFilterChange('client', e.target.value)}
                 className="w-full px-3 py-2 border border-zinc-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
               >
-                <option value="">All Customers</option>
-                {customers.map((customer) => (
-                  <option key={customer} value={customer}>
-                    {customer}
+                <option value="">All Clients</option>
+                {clients.map((client) => (
+                  <option key={client} value={client}>
+                    {client}
                   </option>
                 ))}
               </select>
@@ -249,11 +249,11 @@ const DeliveryChallanFilters: React.FC<DeliveryChallanFiltersProps> = ({
                 )}
                 
                 {/* Display active customer filter */}
-                {filters.customer && (
+                {filters.client && (
                   <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                    Customer: {filters.customer}
+                    Client: {filters.client}
                     <button
-                      onClick={() => handleFilterChange('customer', '')}
+                      onClick={() => handleFilterChange('client', '')}
                       className="text-blue-600 hover:text-blue-800"
                     >
                       ×

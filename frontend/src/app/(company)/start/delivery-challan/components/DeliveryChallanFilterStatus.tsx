@@ -8,7 +8,7 @@ import React from 'react';
 interface FilterState {
   dateFrom: string;           // Start date for challan date range filter
   dateTo: string;             // End date for challan date range filter
-  customer: string;           // Customer name filter (exact match)
+  client: string;             // Client name filter (exact match)
   invoiceSubmission: 'all' | 'submitted' | 'not-submitted';  // Invoice submission status filter
   invoiceDateFrom: string;    // Start date for invoice date range filter
   invoiceDateTo: string;      // End date for invoice date range filter
@@ -52,8 +52,8 @@ const DeliveryChallanFilterStatus: React.FC<DeliveryChallanFilterStatusProps> = 
         return `POD From: ${new Date(value).toLocaleDateString()}`;
       case 'podDateTo':
         return `POD To: ${new Date(value).toLocaleDateString()}`;
-      case 'customer':
-        return `Customer: ${value}`;
+      case 'client':
+        return `Client: ${value}`;
       case 'invoiceSubmission':
         return value === 'submitted' ? 'Status: Submitted' : 'Status: Pending';
       default:

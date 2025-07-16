@@ -6,7 +6,7 @@ import React from 'react';
 interface FilterState {
   dateFrom: string;
   dateTo: string;
-  customer: string;
+  client: string;
   invoiceSubmission: 'all' | 'submitted' | 'not-submitted';
   invoiceDateFrom: string;
   invoiceDateTo: string;
@@ -37,7 +37,7 @@ const DeliveryChallanFilterSummary: React.FC<DeliveryChallanFilterSummaryProps> 
     setFilters({
       dateFrom: '',
       dateTo: '',
-      customer: '',
+      client: '',
       invoiceSubmission: 'all',
       invoiceDateFrom: '',
       invoiceDateTo: '',
@@ -82,13 +82,13 @@ const DeliveryChallanFilterSummary: React.FC<DeliveryChallanFilterSummaryProps> 
             </button>
           </span>
         )}
-        {filters.customer && (
+        {filters.client && (
           <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-            Customer: {filters.customer}
+            Client: {filters.client}
             <button
-              onClick={() => handleFilterChange('customer', '')}
+              onClick={() => handleFilterChange('client', '')}
               className="text-blue-600 hover:text-blue-800 ml-1"
-              aria-label="Remove customer filter"
+              aria-label="Remove client filter"
             >
               ×
             </button>

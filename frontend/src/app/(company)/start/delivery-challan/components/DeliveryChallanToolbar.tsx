@@ -7,7 +7,7 @@ import DeliveryChallanFilters from './DeliveryChallanFilters';
 interface FilterState {
   dateFrom: string;
   dateTo: string;
-  customer: string;
+  client: string;
   invoiceSubmission: 'all' | 'submitted' | 'not-submitted';
   invoiceDateFrom: string;
   invoiceDateTo: string;
@@ -30,7 +30,7 @@ interface DeliveryChallanToolbarProps {
   // New filter props
   filters: FilterState;
   setFilters: (filters: FilterState) => void;
-  customers: string[];
+  clients: string[];
   filtersOpen: boolean;
   setFiltersOpen: (open: boolean) => void;
 }
@@ -38,7 +38,7 @@ interface DeliveryChallanToolbarProps {
 // Main toolbar component
 const DeliveryChallanToolbar: React.FC<DeliveryChallanToolbarProps> = ({
   search, setSearch, selected, setEditModal, setDeleteConfirm, setDownloadOpen, downloadOpen, handleDownload, downloadRef,
-  filters, setFilters, customers, filtersOpen, setFiltersOpen
+  filters, setFilters, clients, filtersOpen, setFiltersOpen
 }) => {
   return (
     // Toolbar container with responsive layout
@@ -57,7 +57,7 @@ const DeliveryChallanToolbar: React.FC<DeliveryChallanToolbarProps> = ({
       <DeliveryChallanFilters
         filters={filters}
         setFilters={setFilters}
-        customers={customers}
+        clients={clients}
         isOpen={filtersOpen}
         onToggle={() => setFiltersOpen(!filtersOpen)}
       />

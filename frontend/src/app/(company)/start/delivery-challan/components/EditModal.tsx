@@ -1,8 +1,10 @@
 // EditModal.tsx
 // Modal dialog for adding or editing a delivery challan. Uses react-hook-form for validation and file upload.
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useAuth } from '@/app/components/access-providers/auth-context';
+import { DjangoAPIClient, ENDPOINTS } from '@/app/utils/serviceIntegration';
 
 interface EditModalProps {
   open: boolean;
@@ -12,7 +14,17 @@ interface EditModalProps {
   isLoading?: boolean;
 }
 
+interface Client {
+  id: string;
+  name: string;
+  short_name: string;
+}
+
 const EditModal: React.FC<EditModalProps> = ({ open, row, onClose, onSave, isLoading = false }) => {
+  const { authFetch } = useAuth();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loadingClients, setLoadingClients] = useState(false);
+
   // Form setup and reset logic
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({ 
     defaultValues: row || {
@@ -20,6 +32,29 @@ const EditModal: React.FC<EditModalProps> = ({ open, row, onClose, onSave, isLoa
       invoice_submission: false
     }
   });
+
+  // Fetch clients when modal opens
+  useEffect(() => {
+    if (open) {
+      fetchClients();
+    }
+  }, [open]);
+
+  const fetchClients = async () => {
+    setLoadingClients(true);
+    try {
+      const apiClient = new DjangoAPIClient(authFetch);
+      const response = await apiClient.getClients();
+      if (response.ok) {
+        const data = await response.json();
+        setClients(data.results || data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch clients:', error);
+    } finally {
+      setLoadingClients(false);
+    }
+  };
 
   React.useEffect(() => {
     if (row) {
@@ -29,7 +64,7 @@ const EditModal: React.FC<EditModalProps> = ({ open, row, onClose, onSave, isLoa
       // Adding new challan
       reset({
         date: new Date().toISOString().split('T')[0],
-        customer: '',
+        client: '',
         dc_summary: '',
         delivery_executives: '',
         invoice_number: '',
@@ -74,17 +109,25 @@ const EditModal: React.FC<EditModalProps> = ({ open, row, onClose, onSave, isLoa
             />
             {errors.date && <span className="text-red-500 text-sm">{errors.date.message?.toString()}</span>}
           </div>
-          {/* Customer field */}
+          {/* Client selection field */}
           <div>
-            <label className="block mb-1 font-medium">Customer</label>
-            <input 
-              {...register('customer', { 
-                required: 'Customer name is required',
-                minLength: { value: 2, message: 'Customer name must be at least 2 characters' }
+            <label className="block mb-1 font-medium">Client</label>
+            <select 
+              {...register('client', { 
+                required: 'Client is required'
               })} 
-              className="w-full border px-3 py-2 rounded" 
-            />
-            {errors.customer && <span className="text-red-500 text-sm">{errors.customer.message?.toString()}</span>}
+              className="w-full border px-3 py-2 rounded"
+              disabled={loadingClients}
+            >
+              <option value="">Select a client</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name} ({client.short_name})
+                </option>
+              ))}
+            </select>
+            {errors.client && <span className="text-red-500 text-sm">{errors.client.message?.toString()}</span>}
+            {loadingClients && <span className="text-blue-500 text-sm">Loading clients...</span>}
           </div>
           {/* Description field */}
           <div>

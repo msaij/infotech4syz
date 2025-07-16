@@ -3,8 +3,8 @@ from .models import delivery_challan
 
 @admin.register(delivery_challan)
 class DeliveryChallanAdmin(admin.ModelAdmin):
-    list_display = ['challan_number', 'company', 'client', 'product_name', 'quantity', 'total_price', 'status', 'delivery_date', 'created_by']
-    list_filter = ['company', 'client', 'status', 'delivery_date', 'created_at']
-    search_fields = ['challan_number', 'company__name', 'client__name', 'product_name']
+    list_display = ['challan_number', 'client', 'date', 'status', 'invoice_number', 'created_by']
+    list_filter = ['client', 'status', 'date', 'invoice_submission', 'created_at']
+    search_fields = ['challan_number', 'client__name', 'invoice_number']
     ordering = ['-created_at']
-    readonly_fields = ['created_at', 'updated_at', 'total_price']
+    readonly_fields = ['id', 'challan_number', 'created_at', 'updated_at', 'pod_upload_date']

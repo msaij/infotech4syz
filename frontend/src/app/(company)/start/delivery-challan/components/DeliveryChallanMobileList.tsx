@@ -57,8 +57,8 @@ const DeliveryChallanMobileList: React.FC<DeliveryChallanMobileListProps> = ({ f
           {/* Card Content */}
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-zinc-600">Customer:</span>
-              <span className="font-medium">{row.customer || 'N/A'}</span>
+              <span className="text-zinc-600">Client:</span>
+              <span className="font-medium">{row.client_name || 'N/A'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-600">Date:</span>

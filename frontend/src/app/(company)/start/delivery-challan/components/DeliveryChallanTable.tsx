@@ -62,7 +62,7 @@ const DeliveryChallanTable: React.FC<DeliveryChallanTableProps> = ({ filteredRow
               {/* Challan fields */}
               <td className="px-4 py-2 border-b text-sm">{row.challan_number}</td>
               <td className="px-4 py-2 border-b text-sm">{row.date}</td>
-              <td className="px-4 py-2 border-b text-sm">{row.customer}</td>
+              <td className="px-4 py-2 border-b text-sm">{row.client_name}</td>
               <td className="px-4 py-2 border-b text-sm">{row.dc_summary}</td>
               <td className="px-4 py-2 border-b text-sm">{row.delivery_executives}</td>
               <td className="px-4 py-2 border-b text-sm">{row.invoice_number}</td>

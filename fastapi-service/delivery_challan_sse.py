@@ -97,13 +97,18 @@ async def get_challan_data():
     try:
         async with get_db_connection() as conn:
             async with conn.cursor(DictCursor) as cursor:
-                # Query with proper error handling - fixed column names to match Django model
+                # Query with proper error handling - updated to match new Django model structure
                 await cursor.execute("""
-                    SELECT id, challan_number, delivery_date, client_id, product_name, 
-                           product_sku, quantity, unit_price, total_price, delivery_address,
-                           status, created_by_id, created_at, updated_at
-                    FROM delivery_challan 
-                    ORDER BY challan_number DESC
+                    SELECT dc.id, dc.challan_number, dc.date, dc.client_id, 
+                           c.name as client_name, dc.dc_summary, dc.delivery_executives,
+                           dc.invoice_number, dc.invoice_date, dc.invoice_submission,
+                           dc.proof_of_delivery, dc.pod_upload_date, dc.status,
+                           dc.created_by_id, u.first_name, u.last_name, u.username,
+                           dc.created_at, dc.updated_at
+                    FROM delivery_challan dc
+                    LEFT JOIN details_clients c ON dc.client_id = c.id
+                    LEFT JOIN auth_user u ON dc.created_by_id = u.id
+                    ORDER BY dc.challan_number DESC
                 """)
                 
                 rows = await cursor.fetchall()

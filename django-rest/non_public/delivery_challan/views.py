@@ -14,11 +14,12 @@ class CompanyDeliveryChallanViewSet(viewsets.ModelViewSet):
     serializer_class = DeliveryChallanSerializer
     permission_classes = [IsCompanyUser, IsManagerOrAdmin]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['challan_number', 'client__name', 'product_name']
-    ordering_fields = ['created_at', 'delivery_date', 'status']
+    search_fields = ['challan_number', 'client__name', 'dc_summary']
+    ordering_fields = ['created_at', 'date', 'status']
     
     def get_queryset(self):
-        return delivery_challan.objects.filter(company=self.request.user.profile.company)
+        # Company users can see all delivery challans for their company's clients
+        return delivery_challan.objects.filter(client__company=self.request.user.profile.company)
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -26,10 +27,7 @@ class CompanyDeliveryChallanViewSet(viewsets.ModelViewSet):
         return DeliveryChallanSerializer
     
     def perform_create(self, serializer):
-        serializer.save(
-            company=self.request.user.profile.company,
-            created_by=self.request.user
-        )
+        serializer.save(created_by=self.request.user)
     
     @action(detail=True, methods=['patch'])
     def status(self, request, pk=None):
@@ -45,8 +43,8 @@ class ClientDeliveryChallanViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeliveryChallanSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['challan_number', 'product_name']
-    ordering_fields = ['created_at', 'delivery_date', 'status']
+    search_fields = ['challan_number', 'dc_summary']
+    ordering_fields = ['created_at', 'date', 'status']
     
     def get_queryset(self):
         if hasattr(self.request.user, 'profile') and self.request.user.profile.user_type == 'client':

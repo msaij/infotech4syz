@@ -18,7 +18,7 @@ interface ChallanTableData {
 interface FilterState {
   dateFrom: string;           // Start date for challan date range filter
   dateTo: string;             // End date for challan date range filter
-  customer: string;           // Customer name filter (exact match)
+  client: string;             // Client name filter (exact match)
   invoiceSubmission: 'all' | 'submitted' | 'not-submitted';  // Invoice submission status filter
   invoiceDateFrom: string;    // Start date for invoice date range filter
   invoiceDateTo: string;      // End date for invoice date range filter
@@ -109,7 +109,7 @@ export default function DeliveryChallanClient() {
   const [filters, setFilters] = useState<FilterState>({
     dateFrom: '',             // Challan date range start
     dateTo: '',               // Challan date range end
-    customer: '',             // Customer filter
+    client: '',               // Client filter
     invoiceSubmission: 'all', // Invoice submission status (all/submitted/not-submitted)
     invoiceDateFrom: '',      // Invoice date range start
     invoiceDateTo: '',        // Invoice date range end
@@ -225,10 +225,10 @@ export default function DeliveryChallanClient() {
       });
     }
     
-    // Apply customer filter (exact match)
-    if (filters.customer) {
+    // Apply client filter (exact match)
+    if (filters.client) {
       filtered = filtered.filter((row) => 
-        row.customer === filters.customer
+        row.client_name === filters.client
       );
     }
     
@@ -301,16 +301,16 @@ export default function DeliveryChallanClient() {
     return filtered;
   }, [sseData.data, sseData.columns, search, filters]);
 
-  // Extract unique customers for filter dropdown
-  // This creates a sorted list of all customer names for the customer filter
-  const customers = useMemo(() => {
-    const customerSet = new Set<string>();
+  // Extract unique clients for filter dropdown
+  // This creates a sorted list of all client names for the client filter
+  const clients = useMemo(() => {
+    const clientSet = new Set<string>();
     (sseData.data || []).forEach(row => {
-      if (row.customer) {
-        customerSet.add(row.customer);
+      if (row.client_name) {
+        clientSet.add(row.client_name);
       }
     });
-    return Array.from(customerSet).sort();
+    return Array.from(clientSet).sort();
   }, [sseData.data]);
 
   // Column ordering and selection logic
@@ -487,7 +487,7 @@ export default function DeliveryChallanClient() {
     const copyFields = [
       { key: 'challan_number', label: 'Challan Number' },
       { key: 'date', label: 'Date' },
-      { key: 'customer', label: 'Customer Name' },
+      { key: 'client_name', label: 'Client Name' },
       { key: 'dc_summary', label: 'Description' },
     ];
     let rows: Record<string, any>[] = [];
@@ -559,7 +559,7 @@ export default function DeliveryChallanClient() {
         downloadRef={downloadRef}
         filters={filters}
         setFilters={setFilters}
-        customers={customers}
+        clients={clients}
         filtersOpen={filtersOpen}
         setFiltersOpen={setFiltersOpen}
       />
@@ -630,7 +630,7 @@ export default function DeliveryChallanClient() {
         itemsToDelete={sseData.data?.filter(row => selected.includes(row.id)).map(row => ({
           id: row.id,
           challan_number: row.challan_number,
-          customer: row.customer,
+          customer: row.client_name,
           date: row.date
         }))}
       />
