@@ -48,9 +48,28 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',  # Django REST Framework for API endpoints
-    'api',             # Custom app for business logic and API
     'rest_framework.authtoken',  # Token auth (if needed)
+    'rest_framework_simplejwt',  # JWT authentication
     'corsheaders',     # CORS support for frontend-backend integration
+    'django_filters',  # Filtering support
+    
+    # Public apps
+    'public',
+    
+    # Non-public apps
+    'non_public.details_mycompany',
+    'non_public.details_clients',
+    'non_public.users_mycompany',
+    'non_public.users_clients',
+    'non_public.queries_mycompany',
+    'non_public.queries_clients',
+    'non_public.delivery_challan',
+    'non_public.products',
+    
+
+    
+    # Notifications
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -60,9 +79,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'api.middleware.ClientRoutingMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -151,12 +171,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',  # Add this line
+        'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
 }
 
 CORS_ALLOW_ALL_ORIGINS = False

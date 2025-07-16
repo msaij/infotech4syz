@@ -1,0 +1,1 @@
+# Management package for delivery_challan app 

@@ -6,6 +6,7 @@
 "use client";
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useMutation } from '@tanstack/react-query';
+import { useAuth } from '@/app/components/access-providers/auth-context';
 
 // Type definition for the delivery challan table data
 interface ChallanTableData {
@@ -84,6 +85,9 @@ import DeliveryChallanFilterSummary from './DeliveryChallanFilterSummary';
 import DeliveryChallanFilterStatus from './DeliveryChallanFilterStatus';
 
 export default function DeliveryChallanClient() {
+  // Get authFetch from auth context
+  const { authFetch } = useAuth();
+  
   // --- State Management ---
   // Core data and UI state
   const [sseData, setSseData] = useState<ChallanTableData>({ columns: [], data: [] });
@@ -113,23 +117,12 @@ export default function DeliveryChallanClient() {
     podDateTo: ''             // POD upload date range end
   });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const [csrfToken, setCsrfToken] = useState<string>("");
-
-  // Fetch CSRF token on mount for Django REST API calls
-  useEffect(() => {
-    const fetchCsrfToken = async () => {
-      const res = await fetch(`${API_URL}/api/csrf/`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    };
-    fetchCsrfToken();
-  }, []);
+  const API_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000';
 
   // --- SSE Subscription ---
   // Subscribe to FastAPI SSE for live delivery challan updates
   useEffect(() => {
-    const evtSource = new EventSource(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/v1/sse/delivery-challan`);
+    const evtSource = new EventSource(`${process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://localhost:8001'}/api/v1/sse/delivery-challan`);
     evtSource.onmessage = (event) => {
       try {
         setSseData(JSON.parse(event.data));
@@ -362,11 +355,9 @@ export default function DeliveryChallanClient() {
   // Add new challan mutation
   const addChallanMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const res = await fetch(`${API_URL}/api/deliverychallan/`, {
+      const res = await authFetch(`${API_URL}/api/v1/company/delivery-challan/`, {
         method: 'POST',
         body: formData,
-        credentials: 'include',
-        headers: { 'X-CSRFToken': csrfToken },
       });
       if (!res.ok) throw new Error('Failed to add challan');
       return res.json();
@@ -376,11 +367,9 @@ export default function DeliveryChallanClient() {
   // Edit existing challan mutation
   const editChallanMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: FormData }) => {
-      const res = await fetch(`${API_URL}/api/deliverychallan/${id}/`, {
+      const res = await authFetch(`${API_URL}/api/v1/company/delivery-challan/${id}/`, {
         method: 'PATCH',
         body: data,
-        credentials: 'include',
-        headers: { 'X-CSRFToken': csrfToken },
       });
       if (!res.ok) throw new Error('Failed to update challan');
       return res.json();
@@ -390,10 +379,8 @@ export default function DeliveryChallanClient() {
   // Delete challan mutation
   const deleteChallanMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_URL}/api/deliverychallan/${id}/`, {
+      const res = await authFetch(`${API_URL}/api/v1/company/delivery-challan/${id}/`, {
         method: 'DELETE',
-        credentials: 'include',
-        headers: { 'X-CSRFToken': csrfToken },
       });
       if (!res.ok) {
         if (res.status === 404) {

@@ -14,7 +14,8 @@ interface ClientNavBarProps {
     first_name?: string;
     last_name?: string;
     company_name?: string;
-    group_name?: string;
+    client_name?: string;
+    client_short_name?: string;
   };
 }
 
@@ -60,16 +61,8 @@ export default function ClientNavBar({ user }: ClientNavBarProps) {
     
     setIsLoggingOut(true);
     try {
-      // Get CSRF token
-      const csrfRes = await authFetch(`${API_URL}/api/csrf/`);
-      const { csrfToken } = await csrfRes.json();
-      
-      // Logout
-      await authFetch(`${API_URL}/api/session-logout/`, {
-        method: "POST",
-        headers: { "X-CSRFToken": csrfToken },
-      });
-      
+      // For JWT authentication, we just clear the local state
+      // No need to call a logout endpoint since JWT tokens are stateless
       logout();
       router.replace("/login");
     } catch (error) {
@@ -95,7 +88,7 @@ export default function ClientNavBar({ user }: ClientNavBarProps) {
         <Link href="/clients/dashboard" className="focus:outline-none">
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-xl tracking-widest text-black">
-              {user.group_name?.toUpperCase()}
+              {user.client_short_name?.toUpperCase()}
             </span>
             <span className="text-sm text-gray-500 font-medium hidden sm:block">Client Portal</span>
           </div>

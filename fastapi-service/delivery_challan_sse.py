@@ -97,11 +97,11 @@ async def get_challan_data():
     try:
         async with get_db_connection() as conn:
             async with conn.cursor(DictCursor) as cursor:
-                # Query with proper error handling
+                # Query with proper error handling - fixed column names to match Django model
                 await cursor.execute("""
-                    SELECT id, challan_number, date, customer, dc_summary, 
-                           delivery_executives, invoice_number, invoice_date, 
-                           invoice_submission, proof_of_delivery, pod_upload_date, updated_at, created_at
+                    SELECT id, challan_number, delivery_date, client_id, product_name, 
+                           product_sku, quantity, unit_price, total_price, delivery_address,
+                           status, created_by_id, created_at, updated_at
                     FROM delivery_challan 
                     ORDER BY challan_number DESC
                 """)

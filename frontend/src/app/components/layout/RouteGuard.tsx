@@ -28,22 +28,18 @@ export default function RouteGuard({
       if (!user) {
         router.replace(redirectTo);
       } else if (requiredGroup && !inGroup(requiredGroup)) {
-        // Redirect based on user's primary group
-        const primaryGroup = user.groups?.[0];
-        if (primaryGroup === "4syz") {
+        // Redirect based on user type
+        if (user.user_type === "company") {
           router.replace("/start/dashboard");
         } else {
           router.replace("/clients/dashboard");
         }
       } else if (userType) {
-        // Additional user type validation
-        const primaryGroup = user.groups?.[0];
-        if (userType === "company" && primaryGroup !== "4syz") {
+        // User type validation
+        if (userType === "company" && user.user_type !== "company") {
           router.replace("/clients/dashboard");
-        } else if (userType === "client" && primaryGroup === "4syz") {
+        } else if (userType === "client" && user.user_type !== "client") {
           router.replace("/start/dashboard");
-        } else if (userType === "company" && primaryGroup !== "4syz") {
-          router.replace("/clients/dashboard");
         }
       }
     }

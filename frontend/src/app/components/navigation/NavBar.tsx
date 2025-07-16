@@ -16,24 +16,13 @@ const navLinks = [
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function NavBar() {
-  const { user, logout, authFetch } = useAuth();
-  const [csrfToken, setCsrfToken] = useState("");
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    authFetch(`${API_URL}/api/csrf/`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setCsrfToken(data.csrfToken))
-      .catch(() => {});
-  }, [authFetch]);
-
   const handleLogout = async () => {
-    await authFetch(`${API_URL}/api/session-logout/`, {
-      method: "POST",
-      headers: { "X-CSRFToken": csrfToken },
-      credentials: "include",
-    });
+    // For JWT authentication, we just clear the local state
+    // No need to call a logout endpoint since JWT tokens are stateless
     logout(); // clear global auth state
     redirect("/login"); // Redirect to login page
   };

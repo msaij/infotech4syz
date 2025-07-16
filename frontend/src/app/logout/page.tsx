@@ -1,50 +1,33 @@
 "use client";
-import { redirect, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/components/access-providers/auth-context";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/access-providers/auth-context";
 
 export default function LogoutPage() {
   const router = useRouter();
-  const [csrfToken, setCsrfToken] = useState("");
-  const { logout: logoutContext, user, primaryGroup } = useAuth();
+  const { logout, user, primaryGroup } = useAuth();
 
-  // Fetch CSRF token on mount for secure logout
+  // Handle logout: clear user context and redirect
   useEffect(() => {
-    fetch(`${API_URL}/api/csrf/`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setCsrfToken(data.csrfToken))
-      .catch(() => {});
-  }, []);
-
-  // Handle logout: POST to backend, clear user context, redirect to login
-  const handleLogout = async () => {
-    await fetch(`${API_URL}/api/session-logout/`, {
-      method: "POST",
-      headers: { "X-CSRFToken": csrfToken },
-      credentials: "include",
-    });
-    logoutContext(); // Clear user context
-    if (primaryGroup() === "4syz") {
-      redirect("/start");
-    } else if (primaryGroup()) {
-      redirect("/client");
+    logout(); // Clear JWT tokens and user context
+    
+    // Redirect based on user type
+    const userType = primaryGroup();
+    if (userType === "company") {
+      router.replace("/login");
+    } else if (userType === "client") {
+      router.replace("/login");
     } else {
-      redirect("/login");
+      router.replace("/login");
     }
-  };
+  }, [logout, router, primaryGroup]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white text-black py-16 px-4">
       <div className="w-full max-w-md bg-gray-100 p-8 rounded-lg shadow text-center">
-        <h1 className="text-3xl font-bold mb-6">Logout</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-black text-white px-6 py-2 rounded hover:bg-gray-900 transition font-semibold"
-        >
-          Logout
-        </button>
+        <h1 className="text-3xl font-bold mb-6">Logging Out...</h1>
+        <p className="text-gray-600">Please wait while we sign you out.</p>
       </div>
     </div>
   );

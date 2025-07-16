@@ -1,7 +1,25 @@
 {
   "version": "2.0.0",
   "tasks": [
-    // Task to install Python dependencies
+    // =============================================================================
+    // SETUP TASKS
+    // =============================================================================
+    {
+      "label": "Setup Project Environment",
+      "type": "shell",
+      "command": "echo 'Setting up project environment...' && npm install && cd django-rest && pip install -r requirements.txt && cd ../fastapi-service && pip install -r requirements.txt",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    
     {
       "label": "Install Python Dependencies",
       "type": "shell",
@@ -9,35 +27,235 @@
       "group": "build",
       "problemMatcher": []
     },
-    // Task to run FastAPI service
+    
     {
-      "label": "Run FastAPI Service",
+      "label": "Install FastAPI Dependencies",
       "type": "shell",
-      "command": "cd fastapi-service && uvicorn main:app --host 0.0.0.0 --port 8001 --reload",
+      "command": "cd fastapi-service && pip install -r requirements.txt",
       "group": "build",
       "problemMatcher": []
     },
-    // Task to run FastAPI service with custom config
+    
     {
-      "label": "Run FastAPI Service (Custom Config)",
+      "label": "Install Frontend Dependencies",
       "type": "shell",
-      "command": "cd fastapi-service && python -c \"from config import *; print('Config loaded successfully')\" && uvicorn main:app --host 0.0.0.0 --port 8001 --reload",
+      "command": "cd frontend && npm install",
       "group": "build",
       "problemMatcher": []
     },
-    // Task to run Django backend
+
+    // =============================================================================
+    // DATABASE TASKS
+    // =============================================================================
+    {
+      "label": "Setup Database",
+      "type": "shell",
+      "command": "cd django-rest && python manage.py makemigrations && python manage.py migrate",
+      "group": "build",
+      "problemMatcher": []
+    },
+    
+    {
+      "label": "Create Superuser",
+      "type": "shell",
+      "command": "cd django-rest && python manage.py createsuperuser",
+      "group": "build",
+      "problemMatcher": []
+    },
+    
+    {
+      "label": "Load Test Data",
+      "type": "shell",
+      "command": "cd django-rest && python manage.py setup_test_data",
+      "group": "build",
+      "problemMatcher": []
+    },
+
+    // =============================================================================
+    // SERVICE TASKS
+    // =============================================================================
+    {
+      "label": "Start All Services",
+      "type": "shell",
+      "command": "echo 'Starting all services...' && start cmd /k \"cd django-rest && uvicorn backend.asgi:application --host 127.0.0.1 --port 8000\" && start cmd /k \"cd fastapi-service && uvicorn main:app --host 0.0.0.0 --port 8001 --reload\" && start cmd /k \"cd frontend && npm run dev\"",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    
     {
       "label": "Run Django Backend",
       "type": "shell",
       "command": "cd django-rest && uvicorn backend.asgi:application --host 127.0.0.1 --port 8000",
       "group": "build",
-      "problemMatcher": []
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
     },
-    // Task to run Next.js frontend
+    
+    {
+      "label": "Run FastAPI Service",
+      "type": "shell",
+      "command": "cd fastapi-service && uvicorn main:app --host 0.0.0.0 --port 8001 --reload",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    
     {
       "label": "Run Next.js Frontend",
       "type": "shell",
       "command": "cd frontend && npm run dev",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+
+    // =============================================================================
+    // HEALTH CHECK TASKS
+    // =============================================================================
+    {
+      "label": "Check Service Health",
+      "type": "shell",
+      "command": "echo 'Checking service health...' && curl -s http://localhost:8000/api/v1/health/ && echo '\\nDjango: OK' && curl -s http://localhost:8001/api/v1/health && echo '\\nFastAPI: OK' && echo '\\nAll services healthy!'",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    
+    {
+      "label": "Test Django API",
+      "type": "shell",
+      "command": "curl -s http://localhost:8000/api/v1/health/ | python -m json.tool",
+      "group": "test",
+      "problemMatcher": []
+    },
+    
+    {
+      "label": "Test FastAPI Service",
+      "type": "shell",
+      "command": "curl -s http://localhost:8001/api/v1/health | python -m json.tool",
+      "group": "test",
+      "problemMatcher": []
+    },
+
+    // =============================================================================
+    // DEVELOPMENT TASKS
+    // =============================================================================
+    {
+      "label": "Development Mode",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Setup Database",
+        "Run Django Backend",
+        "Run FastAPI Service",
+        "Run Next.js Frontend"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    
+    {
+      "label": "Full Development Setup",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Setup Project Environment",
+        "Setup Database",
+        "Create Superuser",
+        "Load Test Data",
+        "Start All Services"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+
+    // =============================================================================
+    // TESTING TASKS
+    // =============================================================================
+    {
+      "label": "Run Django Tests",
+      "type": "shell",
+      "command": "cd django-rest && python manage.py test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    
+    {
+      "label": "Run Frontend Tests",
+      "type": "shell",
+      "command": "cd frontend && npm test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    
+    {
+      "label": "Run All Tests",
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "Run Django Tests",
+        "Run Frontend Tests"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    },
+
+    // =============================================================================
+    // UTILITY TASKS
+    // =============================================================================
+    {
+      "label": "Show Service Status",
+      "type": "shell",
+      "command": "echo '=== Service Status ===' && echo 'Django (8000):' && curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/api/v1/health/ && echo '\\nFastAPI (8001):' && curl -s -o /dev/null -w '%{http_code}' http://localhost:8001/api/v1/health && echo '\\nNext.js (3000):' && curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 && echo '\\n=== End Status ==='",
+      "group": "test",
+      "problemMatcher": []
+    },
+    
+    {
+      "label": "Clear All Caches",
+      "type": "shell",
+      "command": "cd django-rest && python manage.py clearcache && cd ../frontend && npm run clean",
+      "group": "build",
+      "problemMatcher": []
+    },
+    
+    {
+      "label": "Reset Development Environment",
+      "type": "shell",
+      "command": "echo 'Resetting development environment...' && cd django-rest && python manage.py flush --noinput && python manage.py setup_test_data && echo 'Environment reset complete!'",
       "group": "build",
       "problemMatcher": []
     }

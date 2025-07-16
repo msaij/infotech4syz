@@ -1,6 +1,6 @@
 "use client";
 import RouteGuard from "@/components/layout/RouteGuard";
-import ClientNavBar from "@/client-components/ClientNavBar";
+import ClientNavBar from "./components/ClientNavBar";
 import { useAuth } from "@/components/access-providers/auth-context";
 
 export default function ClientsLayout({ children }) {

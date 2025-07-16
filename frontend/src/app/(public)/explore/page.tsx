@@ -21,7 +21,7 @@ export default function EventManagementPage() {
               <div className="w-full flex justify-center items-end" style={{ minHeight: 80 }}>
                 {/* Triangle hanging paper decoration SVG - larger cones */}
               <svg width="400" height="150" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 50 50 Q 200 120 350 50" stroke="#8B4513" stroke-width="3" fill="none"/>
+                <path d="M 50 50 Q 200 120 350 50" stroke="#8B4513" strokeWidth="3" fill="none"/>
                 <polygon points="70,57 90,57 80,97" fill="#4A9B8E"/>
                 <polygon points="110,70 130,70 120,110" fill="#FF6B35"/>
                 <polygon points="150,80 170,80 160,120" fill="#4A9B8E"/>

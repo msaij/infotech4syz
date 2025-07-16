@@ -13,7 +13,8 @@ interface CompanyNavBarProps {
     username?: string;
     first_name?: string;
     last_name?: string;
-    group_name?: string;
+    company_name?: string;
+    company_short_name?: string;
   };
 }
 
@@ -55,16 +56,8 @@ export default function CompanyNavBar({ user }: CompanyNavBarProps) {
     
     setIsLoggingOut(true);
     try {
-      // Get CSRF token
-      const csrfRes = await authFetch(`${API_URL}/api/csrf/`);
-      const { csrfToken } = await csrfRes.json();
-      
-      // Logout
-      await authFetch(`${API_URL}/api/session-logout/`, {
-        method: "POST",
-        headers: { "X-CSRFToken": csrfToken },
-      });
-      
+      // For JWT authentication, we just clear the local state
+      // No need to call a logout endpoint since JWT tokens are stateless
       logout();
       router.replace("/login");
     } catch (error) {
@@ -90,7 +83,7 @@ export default function CompanyNavBar({ user }: CompanyNavBarProps) {
         <Link href="/start/dashboard" className="focus:outline-none">
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-xl tracking-widest text-black">
-              {user.group_name?.toUpperCase()}
+              {user.company_short_name?.toUpperCase()}
             </span>
             <span className="text-sm text-gray-500 font-medium">Company Dashboard</span>
           </div>
@@ -163,7 +156,7 @@ export default function CompanyNavBar({ user }: CompanyNavBarProps) {
                     : user.email || user.username
                   }
                 </p>
-                <p className="text-xs text-gray-500">{user.group_name || "Company"}</p>
+                <p className="text-xs text-gray-500">{user.company_short_name?.toUpperCase() || "Company"}</p>
               </div>
               <Link
                 href="/start/profile"
@@ -201,7 +194,7 @@ export default function CompanyNavBar({ user }: CompanyNavBarProps) {
                   : user.email || user.username
                 }
               </p>
-              <p className="text-xs text-gray-500">{user.group_name || "Company"}</p>
+              <p className="text-xs text-gray-500">{user.company_short_name?.toUpperCase() || "Company"}</p>
             </div>
             <Link
               href="/start/delivery-challan"
