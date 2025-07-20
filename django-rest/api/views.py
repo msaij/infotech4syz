@@ -9,7 +9,6 @@ from rest_framework.decorators import action
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.db import connection
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, DjangoModelPermissions
@@ -26,6 +25,14 @@ class RolePermission(permissions.BasePermission):
             if not request.user.has_perm(perm):
                 return False
         return True
+
+# Custom permission for DeliveryChallan - only allow 4syz group users
+class DeliveryChallanPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        # Check if user is in the 4syz group
+        return request.user.groups.filter(name='4syz').exists()
 
 # API endpoint for creating ContactUs entries from the frontend contact form
 class ContactUsCreateView(APIView):
@@ -133,3 +140,8 @@ def session_logout(request):
     """Log out the current user."""
     logout(request)
     return Response({"success": True})
+
+class DeliveryChallanViewSet(viewsets.ModelViewSet):
+    queryset = DeliveryChallan.objects.all()
+    serializer_class = DeliveryChallanSerializer
+    permission_classes = [IsAuthenticated, DeliveryChallanPermission]

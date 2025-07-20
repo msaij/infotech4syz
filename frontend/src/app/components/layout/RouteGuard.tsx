@@ -1,0 +1,57 @@
+"use client";
+
+import { useAuth } from "@/components/access-providers/auth-context";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import LoadingPage from "@/components/layout/LoadingPage";
+
+interface RouteGuardProps {
+  children: React.ReactNode;
+  requiredGroup?: string | string[];
+  redirectTo?: string;
+  fallback?: React.ReactNode;
+  userType?: "company" | "client" | "any";
+}
+
+export default function RouteGuard({ 
+  children, 
+  requiredGroup, 
+  redirectTo = "/login",
+  fallback = <LoadingPage />,
+  userType
+}: RouteGuardProps) {
+  const { user, loading, inGroup } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.replace(redirectTo);
+      } else if (requiredGroup && !inGroup(requiredGroup)) {
+        // Redirect based on user's primary group
+        const primaryGroup = user.groups?.[0];
+        if (primaryGroup === "4syz") {
+          router.replace("/start/dashboard");
+        } else {
+          router.replace("/clients/dashboard");
+        }
+      } else if (userType) {
+        // Additional user type validation
+        const primaryGroup = user.groups?.[0];
+        if (userType === "company" && primaryGroup !== "4syz") {
+          router.replace("/clients/dashboard");
+        } else if (userType === "client" && primaryGroup === "4syz") {
+          router.replace("/start/dashboard");
+        } else if (userType === "company" && primaryGroup !== "4syz") {
+          router.replace("/clients/dashboard");
+        }
+      }
+    }
+  }, [user, loading, requiredGroup, inGroup, router, redirectTo, userType]);
+
+  if (loading || !user || (requiredGroup && !inGroup(requiredGroup))) {
+    return fallback;
+  }
+
+  return <>{children}</>;
+} 

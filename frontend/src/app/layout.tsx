@@ -1,9 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-// Use a relative import for AuthProvider to avoid alias issues
-import { AuthProvider } from "./components/(access-providers)/auth-context";
+import "../styles/globals.css";
+import { AuthProvider } from "./components/access-providers/auth-context";
 import { PWAInstallPrompt, ServiceWorkerRegistration } from "./components/pwa";
-import { generateMetadata, generateViewport } from "./utils/generateMetadata";
+import { generateMetadata, generateViewport } from "../lib/generateMetadata";
 import { ReactNode } from "react";
 
 const geistSans = Geist({

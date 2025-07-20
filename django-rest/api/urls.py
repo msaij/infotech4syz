@@ -9,6 +9,7 @@ from .views import (
     UserViewSet,
     session_login,
     session_logout,
+    DeliveryChallanViewSet,  # <-- Add this import
 )
 
 app_name = "api"
@@ -25,6 +26,7 @@ urlpatterns = [
 
 router = DefaultRouter()
 router.register('users', UserViewSet, basename='user')
+router.register('deliverychallan', DeliveryChallanViewSet, basename='deliverychallan')
 
 urlpatterns += router.urls
 
