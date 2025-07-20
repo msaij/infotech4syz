@@ -15,66 +15,74 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 def health_check(request):
-    """Health check endpoint for service monitoring."""
     return JsonResponse({
         "status": "healthy",
         "service": "Django REST API",
         "version": "2.0.0",
-        "database": "connected",
-        "endpoints": {
-            "admin": "/admin/",
-            "token": "/api/token/",
-            "token_refresh": "/api/token/refresh/",
-            "health": "/api/v1/health/"
-        }
     })
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_details(request):
-    """Get current user details"""
+    user = request.user
+    
+    # Check if user is a 4syz user
     try:
-        profile = request.user.profile
-        user_data = {
-            'id': request.user.id,
-            'username': request.user.username,
-            'email': request.user.email,
-            'first_name': request.user.first_name,
-            'last_name': request.user.last_name,
-            'user_type': profile.user_type,
-            'role': profile.role,
-            'phone': profile.phone,
-            'department': profile.department,
-            'position': profile.position,
-        }
-        
-        if profile.user_type == 'company' and profile.company:
-            user_data['company'] = {
-                'id': profile.company.id,
-                'name': profile.company.name,
-                'email_domain': profile.company.email_domain,
-            }
-        elif profile.user_type == 'client' and profile.client:
-            user_data['client'] = {
-                'id': profile.client.id,
-                'name': profile.client.name,
-            }
-        
-        return Response(user_data)
-    except Exception as e:
-        return Response({'error': str(e)}, status=400)
+        foursyz_profile = user.foursyz_profile
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'user_type': 'foursyz',
+            'role': foursyz_profile.role,
+            'company_name': foursyz_profile.foursyz.name,
+            'department': foursyz_profile.department,
+            'position': foursyz_profile.position,
+            'phone': foursyz_profile.phone,
+            'is_active': foursyz_profile.is_active,
+        })
+    except:
+        pass
+    
+    # Check if user is a client user
+    try:
+        client_profile = user.client_profile
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'user_type': 'client',
+            'role': client_profile.role,
+            'company_name': client_profile.client.name,
+            'department': client_profile.department,
+            'position': client_profile.position,
+            'phone': client_profile.phone,
+            'is_active': client_profile.is_active,
+        })
+    except:
+        pass
+    
+    # User doesn't exist in either table
+    return Response({
+        'error': 'You are not part of this system. Please contact your administrator.'
+    }, status=403)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/health/', health_check, name='health_check'),
     path('api/v1/user/me/', user_details, name='user_details'),
     path('api/v1/public/', include('public.urls')),
-    
-    # Company endpoints - only accessible by company users
-    path('api/v1/company/', include('non_public.company_urls')),
-    
-    # Client endpoints - only accessible by client users
-    path('api/v1/client/', include('non_public.client_urls')),
+    path('api/v1/foursyz/', include('non_public.foursyz.urls')),
+    path('api/v1/users-foursyz/', include('non_public.users_foursyz.urls')),
+    path('api/v1/clients/', include('non_public.clients.urls')),
+    path('api/v1/users-clients/', include('non_public.users_clients.urls')),
+    path('api/v1/queries-4syz/', include('non_public.queries_4syz.urls')),
+    path('api/v1/queries-clients/', include('non_public.queries_clients.urls')),
+    path('api/v1/rbac/', include('non_public.rbac.urls')),
 ]

@@ -1,20 +1,33 @@
-from django.shortcuts import render
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from .models import queries_clients
-from .serializers import ClientQuerySerializer
-from non_public.permissions import IsClientUser
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import QueryClient
+from .serializers import QueryClientSerializer, QueryClientCreateSerializer
 
-# Create your views here.
 
-class ClientQueryViewSet(viewsets.ModelViewSet):
-    """ViewSet for client queries"""
-    serializer_class = ClientQuerySerializer
-    permission_classes = [IsAuthenticated, IsClientUser]
-    
-    def get_queryset(self):
-        # Clients can only see their own queries
-        return queries_clients.objects.filter(user=self.request.user)
-    
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+class QueryClientViewSet(viewsets.ModelViewSet):
+    queryset = QueryClient.objects.all()
+    serializer_class = QueryClientSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return QueryClientCreateSerializer
+        return QueryClientSerializer
+
+    @action(detail=True, methods=['post'])
+    def resolve(self, request, pk=None):
+        """Resolve a client query"""
+        query = self.get_object()
+        query.status = 'resolved'
+        query.resolution_notes = request.data.get('resolution_notes', '')
+        query.save()
+        serializer = self.get_serializer(query)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def my_queries(self, request):
+        """Get queries raised by current client user"""
+        queries = QueryClient.objects.filter(raised_by__user=request.user)
+        serializer = self.get_serializer(queries, many=True)
+        return Response(serializer.data) 

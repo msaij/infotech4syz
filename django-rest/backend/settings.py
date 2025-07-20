@@ -57,19 +57,17 @@ INSTALLED_APPS = [
     'public',
     
     # Non-public apps
-    'non_public.details_mycompany',
-    'non_public.details_clients',
-    'non_public.users_mycompany',
+    'non_public.foursyz',
+    'non_public.users_foursyz',
+    'non_public.clients',
     'non_public.users_clients',
-    'non_public.queries_mycompany',
+    'non_public.queries_4syz',
     'non_public.queries_clients',
-    'non_public.delivery_challan',
-    'non_public.products',
+    'non_public.rbac',
     
 
     
     # Notifications
-    'notifications',
 ]
 
 MIDDLEWARE = [

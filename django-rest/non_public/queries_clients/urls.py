@@ -1,9 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ClientQueryViewSet
+from .views import QueryClientViewSet
 
 router = DefaultRouter()
-router.register(r'', ClientQueryViewSet, basename='clientquery')
+router.register(r'', QueryClientViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
