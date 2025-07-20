@@ -1,4 +1,4 @@
-# Requirements for the Django rest framrwork project
+# Requirements for the Django rest framework project
 Django>=5.2.3
 mysqlclient
 uvicorn
@@ -11,3 +11,5 @@ pymysql
 fastapi
 asyncio
 aiomysql
+django-filter
+Pillow

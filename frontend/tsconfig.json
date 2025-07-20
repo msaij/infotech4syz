@@ -30,11 +30,10 @@
       "@/public/*": ["app/(public)/*"],
       "@/public-components/*": ["app/(public)/components/*"],
       
-      // Company routes and components
-      "@/company/*": ["app/(company)/*"],
-      "@/company-components/*": ["app/(company)/start/components/*"],
-      "@/company-hooks/*": ["app/(company)/start/components/hooks/*"],
-      "@/delivery-challan-components/*": ["app/(company)/start/delivery-challan/components/*"],
+      // 4syz routes and components
+      "@/foursyz/*": ["app/(foursyz)/*"],
+      "@/foursyz-components/*": ["app/(foursyz)/start/components/*"],
+      "@/foursyz-hooks/*": ["app/(foursyz)/start/components/hooks/*"],
       
       // Client routes and components
       "@/client/*": ["app/(client)/*"],
@@ -42,7 +41,7 @@
       "@/client-hooks/*": ["app/(client)/clients/components/hooks/*"],
       
       // Shared components and utilities
-      "@/components/*": ["app/components/*"],
+      "@/components/*": ["components/*"],
       "@/components-ui/*": ["app/components/ui/*"],
       "@/components-navigation/*": ["app/components/navigation/*"],
       "@/components-pwa/*": ["app/components/pwa/*"],
@@ -53,6 +52,8 @@
       
       // Shared utilities
       "@/lib/*": ["lib/*"],
+      "@/api-config": ["lib/api-config.js"],
+      "@/api-service": ["lib/api-service.js"],
       "@/hooks/*": ["hooks/*"],
       "@/types/*": ["types/*"],
       "@/services/*": ["services/*"],

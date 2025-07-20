@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "tasks": [
-    // Task to install Python dependencies
+    // python dependencies
     {
       "label": "Install Python Dependencies",
       "type": "shell",
@@ -9,37 +9,47 @@
       "group": "build",
       "problemMatcher": []
     },
-    // Task to run FastAPI service
+    // frontend dependencies
     {
-      "label": "Run FastAPI Service",
+      "label": "Install Frontend Dependencies",
       "type": "shell",
-      "command": "cd fastapi-service && uvicorn main:app --host 0.0.0.0 --port 8001 --reload",
+      "command": "cd frontend && npm install",
       "group": "build",
       "problemMatcher": []
     },
-    // Task to run FastAPI service with custom config
-    {
-      "label": "Run FastAPI Service (Custom Config)",
-      "type": "shell",
-      "command": "cd fastapi-service && python -c \"from config import *; print('Config loaded successfully')\" && uvicorn main:app --host 0.0.0.0 --port 8001 --reload",
-      "group": "build",
-      "problemMatcher": []
-    },
-    // Task to run Django backend
+
+    // run backend
     {
       "label": "Run Django Backend",
       "type": "shell",
       "command": "cd django-rest && uvicorn backend.asgi:application --host 127.0.0.1 --port 8000",
       "group": "build",
-      "problemMatcher": []
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
     },
-    // Task to run Next.js frontend
+
+    // run frontend
     {
       "label": "Run Next.js Frontend",
       "type": "shell",
       "command": "cd frontend && npm run dev",
       "group": "build",
-      "problemMatcher": []
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
     }
   ]
 }
