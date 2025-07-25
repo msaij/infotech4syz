@@ -1,73 +1,27 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
-    "incremental": true,
-    "module": "esnext",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    "incremental": true,
     "plugins": [
       {
         "name": "next"
       }
     ],
-    "baseUrl": "src",
     "paths": {
-      "@/*": ["./*"],
-      
-      // Public routes and components
-      "@/public/*": ["app/(public)/*"],
-      "@/public-components/*": ["app/(public)/components/*"],
-      
-      // 4syz routes and components
-      "@/foursyz/*": ["app/(foursyz)/*"],
-      "@/foursyz-components/*": ["app/(foursyz)/start/components/*"],
-      "@/foursyz-hooks/*": ["app/(foursyz)/start/components/hooks/*"],
-      
-      // Client routes and components
-      "@/client/*": ["app/(client)/*"],
-      "@/client-components/*": ["app/(client)/clients/components/*"],
-      "@/client-hooks/*": ["app/(client)/clients/components/hooks/*"],
-      
-      // Shared components and utilities
-      "@/components/*": ["components/*"],
-      "@/components-ui/*": ["app/components/ui/*"],
-      "@/components-navigation/*": ["app/components/navigation/*"],
-      "@/components-pwa/*": ["app/components/pwa/*"],
-      "@/components-layout/*": ["app/components/layout/*"],
-      "@/components-forms/*": ["app/components/forms/*"],
-      "@/components-data/*": ["app/components/data/*"],
-      "@/components-feedback/*": ["app/components/feedback/*"],
-      
-      // Shared utilities
-      "@/lib/*": ["lib/*"],
-      "@/api-config": ["lib/api-config.js"],
-      "@/api-service": ["lib/api-service.js"],
-      "@/hooks/*": ["hooks/*"],
-      "@/types/*": ["types/*"],
-      "@/services/*": ["services/*"],
-      "@/constants/*": ["constants/*"],
-      "@/styles/*": ["styles/*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }
