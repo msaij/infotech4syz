@@ -1,100 +1,86 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { AuthService, AuthResponse } from '@/utils/auth'
+import { env } from '@/config/env'
 
 interface LoginForm {
-  email: string;
-  password: string;
-}
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  designation: string;
-  date_of_joining: string;
-  date_of_relieving?: string;
-  active: boolean;
-  notes?: string;
-}
-
-interface LoginResponse {
-  status: string;
-  message: string;
-  user: User;
-  token: string;
-  expires_in?: number;
+  email: string
+  password: string
 }
 
 export default function LoginPage() {
-  const router = useRouter();
+  const router = useRouter()
   const [formData, setFormData] = useState<LoginForm>({
     email: '',
     password: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
-    }));
-    setError(''); // Clear error when user starts typing
-  };
+    }))
+    setError('') // Clear error when user starts typing
+  }
 
   const validateEmail = (email: string): boolean => {
-    return email.endsWith('@4syz.com');
-  };
+    return email.endsWith(env.REQUIRED_EMAIL_DOMAIN)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    e.preventDefault()
+    setLoading(true)
+    setError('')
 
     // Validate email domain
     if (!validateEmail(formData.email)) {
-      setError('Email must be from @4syz.com domain');
-      setLoading(false);
-      return;
+      setError(`Email must be from ${env.REQUIRED_EMAIL_DOMAIN} domain`)
+      setLoading(false)
+      return
     }
 
     try {
-      const response = await fetch('http://localhost:8000/auth/login', {
+      const response = await fetch(`${env.API_BASE_URL}${env.AUTH_ENDPOINTS.LOGIN}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      });
+      })
 
-      const data = await response.json();
+      const data: AuthResponse = await response.json()
 
       if (response.ok && data.status === 'success') {
-        // Store user data and token in localStorage
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('isLoggedIn', 'true');
+        // Store tokens using AuthService
+        AuthService.setStoredToken(env.STORAGE_KEYS.ACCESS_TOKEN, data.access_token)
+        AuthService.setStoredToken(env.STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token)
+        
+        // Store user data
+        localStorage.setItem('user', JSON.stringify(data.user))
+        localStorage.setItem('isLoggedIn', 'true')
         
         // Store token expiration time
         if (data.expires_in) {
-          const expirationTime = Date.now() + (data.expires_in * 1000);
-          localStorage.setItem('tokenExpiration', expirationTime.toString());
+          const expirationTime = Date.now() + (data.expires_in * 1000)
+          localStorage.setItem('tokenExpiration', expirationTime.toString())
         }
         
-        // Redirect to dashboard or home page
-        router.push('/foursyz/dashboard');
+        // Redirect to dashboard
+        router.push(env.ROUTES.DASHBOARD)
       } else {
-        setError(data.detail || data.message || 'Login failed');
+        setError(data.message || 'Login failed')
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError('Network error. Please try again.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -109,7 +95,7 @@ export default function LoginPage() {
             Sign in to 4Syz
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your @4syz.com credentials
+            Enter your {env.REQUIRED_EMAIL_DOMAIN} credentials
           </p>
         </div>
         
@@ -128,7 +114,7 @@ export default function LoginPage() {
                 className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
                   error && !validateEmail(formData.email) ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
-                placeholder="Email address (@4syz.com)"
+                placeholder={`Email address (${env.REQUIRED_EMAIL_DOMAIN})`}
                 value={formData.email}
                 onChange={handleInputChange}
               />
@@ -194,5 +180,5 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
-  );
+  )
 }

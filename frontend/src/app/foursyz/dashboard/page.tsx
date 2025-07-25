@@ -2,21 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  designation: string;
-  date_of_joining: string;
-  date_of_relieving?: string;
-  active: boolean;
-  notes?: string;
-}
+import { AuthService, UserData } from '@/utils/auth';
+import { env } from '@/config/env';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [timeUntilExpiration, setTimeUntilExpiration] = useState<string>('');
@@ -28,12 +19,12 @@ export default function DashboardPage() {
   }, []);
 
   const checkAuthStatus = () => {
-    const token = localStorage.getItem('token');
+    const token = AuthService.getStoredToken(env.STORAGE_KEYS.ACCESS_TOKEN);
     const userData = localStorage.getItem('user');
     const expirationTime = localStorage.getItem('tokenExpiration');
 
     if (!token || !userData) {
-      router.push('/foursyz/login');
+      router.push(env.ROUTES.LOGIN);
       return;
     }
 
@@ -91,10 +82,10 @@ export default function DashboardPage() {
     setLogoutLoading(true);
     
     try {
-      const token = localStorage.getItem('token');
+      const token = AuthService.getStoredToken(env.STORAGE_KEYS.ACCESS_TOKEN);
       if (token) {
         // Call logout endpoint to blacklist token
-        await fetch('http://localhost:8000/auth/logout', {
+        await fetch(`${env.API_BASE_URL}${env.AUTH_ENDPOINTS.LOGOUT}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -105,9 +96,9 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Logout API call failed:', error);
     } finally {
-      // Clear localStorage regardless of API call success
+      // Clear all auth data
+      AuthService.clearAuthTokens();
       localStorage.removeItem('user');
-      localStorage.removeItem('token');
       localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('tokenExpiration');
       
@@ -115,7 +106,7 @@ export default function DashboardPage() {
         alert(message);
       }
       
-      router.push('/foursyz/login');
+      router.push(env.ROUTES.LOGIN);
     }
   };
 
@@ -236,7 +227,7 @@ export default function DashboardPage() {
                 Create New User
               </button>
               <button
-                onClick={() => router.push('/foursyz/login')}
+                onClick={() => router.push(env.ROUTES.LOGIN)}
                 className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
               >
                 Back to Login

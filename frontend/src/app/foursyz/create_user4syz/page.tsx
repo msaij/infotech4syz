@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { env } from '@/config/env';
 
 interface CreateUserForm {
   username: string;
@@ -58,7 +59,7 @@ export default function CreateUserPage() {
     if (formData.username.trim().length < 2) errors.push('Username must be at least 2 characters long');
 
     if (!formData.email.trim()) errors.push('Email is required');
-    if (!formData.email.endsWith('@4syz.com')) errors.push('Email must be from @4syz.com domain');
+    if (!formData.email.endsWith(env.REQUIRED_EMAIL_DOMAIN)) errors.push(`Email must be from ${env.REQUIRED_EMAIL_DOMAIN} domain`);
 
     if (!formData.password) errors.push('Password is required');
     if (formData.password.length < 6) errors.push('Password must be at least 6 characters long');
@@ -84,7 +85,7 @@ export default function CreateUserPage() {
     setMessage(null);
 
     try {
-      const response = await fetch('http://localhost:8000/auth/users', {
+      const response = await fetch(`${env.API_BASE_URL}/auth/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,10 +167,10 @@ export default function CreateUserPage() {
                 value={formData.email}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="user@4syz.com"
+                placeholder={`user${env.REQUIRED_EMAIL_DOMAIN}`}
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">Must be from @4syz.com domain</p>
+              <p className="text-sm text-gray-500 mt-1">Must be from {env.REQUIRED_EMAIL_DOMAIN} domain</p>
             </div>
 
             {/* Password */}
