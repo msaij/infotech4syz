@@ -11,7 +11,8 @@ from utils.delivery_challan_utils import (
     generate_delivery_challan_number, 
     get_ist_now, 
     validate_ist_date,
-    format_date_for_display
+    format_date_for_display,
+    generate_delivery_challan_number_for_date
 )
 from models.foursyz.delivery_challan_tracker import (
     DeliveryChallanTrackerCreate,
@@ -23,7 +24,8 @@ from models.foursyz.delivery_challan_tracker import (
     DeliveryChallanTrackerDeleteResponse,
     FileUploadResponse,
     ClientListResponse,
-    InvoiceLinkResponse
+    InvoiceLinkResponse,
+    InvoiceLinkRequest
 )
 
 delivery_challan_router = APIRouter(tags=["Delivery Challan Tracker"])
@@ -201,8 +203,8 @@ async def create_delivery_challan(
         
         collection = db.deliveryChallan_tracker
         
-        # Generate delivery challan number
-        challan_number = await generate_delivery_challan_number()
+        # Generate delivery challan number based on delivery challan date
+        challan_number = await generate_delivery_challan_number_for_date(challan_data.delivery_challan_date)
         
         # Create challan document
         challan_doc = challan_data.model_dump()
@@ -415,9 +417,7 @@ async def upload_file(
 
 @delivery_challan_router.post("/link-invoice", response_model=InvoiceLinkResponse)
 async def link_invoice(
-    challan_ids: List[str],
-    invoice_number: str,
-    invoice_date: date,
+    link_data: InvoiceLinkRequest,
     current_user: dict = Depends(get_delivery_challan_manager),
     x_csrf_token: str = Header(..., alias="X-CSRF-Token")
 ):
@@ -427,7 +427,7 @@ async def link_invoice(
         require_csrf_token(x_csrf_token, current_user['id'])
         
         # Validate date is not in future
-        if not validate_ist_date(invoice_date):
+        if not validate_ist_date(link_data.invoice_date):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invoice date cannot be in the future"
@@ -438,7 +438,7 @@ async def link_invoice(
         
         # Validate all challan IDs
         valid_challan_ids = []
-        for challan_id in challan_ids:
+        for challan_id in link_data.challan_ids:
             if not ObjectId.is_valid(challan_id):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -455,16 +455,16 @@ async def link_invoice(
             )
         
         # Convert invoice_date to datetime for MongoDB compatibility
-        invoice_datetime = invoice_date
-        if isinstance(invoice_date, date):
-            invoice_datetime = datetime.combine(invoice_date, datetime.min.time())
+        invoice_datetime = link_data.invoice_date
+        if isinstance(link_data.invoice_date, date):
+            invoice_datetime = datetime.combine(link_data.invoice_date, datetime.min.time())
         
         # Update all challans with invoice information
         update_result = await collection.update_many(
             {"_id": {"$in": valid_challan_ids}},
             {
                 "$set": {
-                    "invoice_number": invoice_number,
+                    "invoice_number": link_data.invoice_number,
                     "invoice_date": invoice_datetime,
                     "updated_at": get_ist_now()
                 }
@@ -473,9 +473,9 @@ async def link_invoice(
         
         return {
             "status": "success",
-            "message": f"Linked {update_result.modified_count} delivery challans to invoice {invoice_number}",
-            "linked_challans": challan_ids,
-            "invoice_number": invoice_number
+            "message": f"Linked {update_result.modified_count} delivery challans to invoice {link_data.invoice_number}",
+            "linked_challans": link_data.challan_ids,
+            "invoice_number": link_data.invoice_number
         }
     except HTTPException:
         raise

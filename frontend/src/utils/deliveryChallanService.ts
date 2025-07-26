@@ -349,8 +349,20 @@ class DeliveryChallanService {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.detail || `Failed to link invoice: ${response.statusText}`)
+        let errorMessage = `Failed to link invoice: ${response.statusText}`
+        try {
+          const errorData = await response.json()
+          if (errorData.detail) {
+            errorMessage = errorData.detail
+          } else if (errorData.message) {
+            errorMessage = errorData.message
+          } else if (typeof errorData === 'string') {
+            errorMessage = errorData
+          }
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError)
+        }
+        throw new Error(errorMessage)
       }
 
       return await response.json()

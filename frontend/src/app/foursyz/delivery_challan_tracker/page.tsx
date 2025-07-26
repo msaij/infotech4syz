@@ -313,24 +313,31 @@ export default function DeliveryChallanTrackerPage() {
         invoice_number: '',
         invoice_date: ''
       })
-                   setSelectedChallans([])
-             setShowLinkInvoiceForm(false)
-             loadDeliveryChallans()
-             showSuccessMessage('Invoice linked successfully!')
-                      } catch (error: any) {
-             console.error('Error linking invoice:', error)
-             let errorMessage = 'Failed to link invoice'
-             
-             if (error?.message) {
-               errorMessage = error.message
-             } else if (typeof error === 'string') {
-               errorMessage = error
-             } else if (error && typeof error === 'object') {
-               errorMessage = JSON.stringify(error)
-             }
-             
-             setError(`Invoice linking error: ${errorMessage}`)
-           } finally {
+      setSelectedChallans([])
+      setShowLinkInvoiceForm(false)
+      loadDeliveryChallans()
+      showSuccessMessage('Invoice linked successfully!')
+    } catch (error: any) {
+      console.error('Error linking invoice:', error)
+      let errorMessage = 'Failed to link invoice'
+      
+      if (error?.message) {
+        errorMessage = error.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      } else if (error && typeof error === 'object') {
+        // Try to extract meaningful error information
+        if (error.detail) {
+          errorMessage = error.detail
+        } else if (error.error) {
+          errorMessage = error.error
+        } else {
+          errorMessage = JSON.stringify(error)
+        }
+      }
+      
+      setError(`Invoice linking error: ${errorMessage}`)
+    } finally {
       setLoading(false)
     }
   }
@@ -374,7 +381,13 @@ export default function DeliveryChallanTrackerPage() {
                     Create Challan
                   </button>
                   <button
-                    onClick={() => setShowLinkInvoiceForm(true)}
+                    onClick={() => {
+                      setShowLinkInvoiceForm(true)
+                      setLinkInvoiceData(prev => ({
+                        ...prev,
+                        invoice_date: new Date().toISOString().split('T')[0] // Set to today
+                      }))
+                    }}
                     disabled={selectedChallans.length === 0}
                     className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >

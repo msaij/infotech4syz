@@ -12,15 +12,60 @@ def get_ist_date() -> date:
     """Get current date in Indian Standard Time"""
     return get_ist_now().date()
 
+def generate_challan_number_from_date(delivery_date: date) -> str:
+    """Generate delivery challan number prefix from delivery date in format MMYY"""
+    month = delivery_date.strftime('%m')
+    year = delivery_date.strftime('%y')
+    return f"{month}{year}"
+
 def generate_challan_number() -> str:
-    """Generate delivery challan number in format MMYY000001"""
+    """Generate delivery challan number in format MMYY000001 (using current date - deprecated)"""
     ist_now = get_ist_now()
     month = ist_now.strftime('%m')
     year = ist_now.strftime('%y')
     return f"{month}{year}"
 
+async def get_next_sequence_number_for_date(delivery_date: date) -> int:
+    """Get the next sequence number for the delivery challan date month"""
+    db = await get_async_database()
+    collection = db.deliveryChallan_tracker
+    
+    # Get month prefix from delivery date
+    month_prefix = generate_challan_number_from_date(delivery_date)
+    
+    # Find the highest sequence number for the delivery date month
+    pipeline = [
+        {
+            "$match": {
+                "delivery_challan_number": {"$regex": f"^{month_prefix}"}
+            }
+        },
+        {
+            "$addFields": {
+                "sequence": {
+                    "$toInt": {
+                        "$substr": ["$delivery_challan_number", 4, 6]
+                    }
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "max_sequence": {"$max": "$sequence"}
+            }
+        }
+    ]
+    
+    result = await collection.aggregate(pipeline).to_list(1)
+    
+    if result and result[0]['max_sequence']:
+        return result[0]['max_sequence'] + 1
+    else:
+        return 1
+
 async def get_next_sequence_number() -> int:
-    """Get the next sequence number for the current month"""
+    """Get the next sequence number for the current month (deprecated)"""
     db = await get_async_database()
     collection = db.deliveryChallan_tracker
     
@@ -58,8 +103,14 @@ async def get_next_sequence_number() -> int:
     else:
         return 1
 
+async def generate_delivery_challan_number_for_date(delivery_date: date) -> str:
+    """Generate complete delivery challan number based on delivery challan date"""
+    month_prefix = generate_challan_number_from_date(delivery_date)
+    sequence = await get_next_sequence_number_for_date(delivery_date)
+    return f"{month_prefix}{sequence:06d}"
+
 async def generate_delivery_challan_number() -> str:
-    """Generate complete delivery challan number"""
+    """Generate complete delivery challan number (using current date - deprecated)"""
     month_prefix = generate_challan_number()
     sequence = await get_next_sequence_number()
     return f"{month_prefix}{sequence:06d}"

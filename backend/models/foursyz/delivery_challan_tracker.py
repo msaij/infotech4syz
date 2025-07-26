@@ -144,6 +144,20 @@ class ClientListResponse(BaseModel):
     message: str
     clients: List[str]
 
+class InvoiceLinkRequest(BaseModel):
+    challan_ids: List[str] = Field(..., description="List of delivery challan IDs to link")
+    invoice_number: str = Field(..., description="Invoice number to link the challans to")
+    invoice_date: date = Field(..., description="Date of the invoice")
+
+    @validator('invoice_date', pre=True)
+    def validate_invoice_date(cls, v):
+        if isinstance(v, str):
+            try:
+                return datetime.strptime(v, '%Y-%m-%d').date()
+            except ValueError:
+                raise ValueError('Invalid date format. Use YYYY-MM-DD')
+        return v
+
 class InvoiceLinkResponse(BaseModel):
     status: str
     message: str
