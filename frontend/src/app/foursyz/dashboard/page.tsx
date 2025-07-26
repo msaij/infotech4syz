@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService, UserData } from '@/utils/auth';
 import { ClientService } from '@/utils/clientService';
+import DeliveryChallanService from '@/utils/deliveryChallanService';
 import { env } from '@/config/env';
 
 export default function DashboardPage() {
@@ -12,6 +13,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [isCEO, setIsCEO] = useState(false);
+  const [isManager, setIsManager] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
@@ -37,6 +39,7 @@ export default function DashboardPage() {
       const user = JSON.parse(userData);
       setUser(user);
       setIsCEO(ClientService.isCEOUser(user));
+      setIsManager(DeliveryChallanService.isDeliveryChallanManager(user));
     } catch (error) {
       handleLogout('Invalid user data. Please login again.');
     } finally {
@@ -203,6 +206,15 @@ export default function DashboardPage() {
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   Manage Clients
+                </button>
+              )}
+              
+              {isManager && (
+                <button
+                  onClick={() => router.push(env.ROUTES.DELIVERY_CHALLAN_TRACKER)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  Delivery Challan Tracker
                 </button>
               )}
             </div>

@@ -1,0 +1,45 @@
+# Backend Development Guidelines
+
+## Authentication & Authorization
+- Use JWT tokens with access and refresh token pattern
+- Implement token blacklisting for logout functionality
+- Use `get_ceo_user` dependency for CEO-only endpoints
+- Validate email domain (`@4syz.com`) for user authentication
+
+## Database Operations
+- Use MongoDB with motor async driver
+- Implement proper error handling for database operations
+- Use Pydantic models for data validation and serialization
+- Follow the structure in [backend/models/foursyz/](mdc:backend/models/foursyz/)
+
+## API Design
+- Use FastAPI dependencies for authentication and authorization
+- Implement CSRF protection for state-changing operations
+- Use proper HTTP status codes and error responses
+- Follow RESTful conventions for endpoint design
+
+## Security
+- Use environment variables for sensitive configuration
+- Implement password hashing with bcrypt (with SHA-256 fallback)
+- Use CSRF tokens for modification operations
+- Validate all input data with Pydantic models
+
+## Data Processing
+- Implement text capitalization for client names using `capitalize_words()` function
+- Handle optional fields properly (e.g., `date_of_relieving`, `notes`)
+- Validate unique constraints (e.g., client tag names)
+
+## Error Handling
+- Use FastAPI HTTPException for proper error responses
+- Implement comprehensive validation for all endpoints
+- Provide meaningful error messages to clients
+- Log errors appropriately for debugging
+
+## Code Organization
+- Separate concerns: routes, models, utilities, dependencies
+- Use dependency injection for authentication and authorization
+- Follow the modular structure in [backend/auth/](mdc:backend/auth/)
+description:
+globs:
+alwaysApply: true
+---

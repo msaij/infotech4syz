@@ -17,8 +17,7 @@ class CSRFManager:
         # Store token with user ID and timestamp
         self._tokens[token] = {
             'user_id': user_id,
-            'created_at': time.time(),
-            'used': False
+            'created_at': time.time()
         }
         
         return token
@@ -34,18 +33,12 @@ class CSRFManager:
         if token_data['user_id'] != user_id:
             return False
         
-        # Check if token is already used (one-time use)
-        if token_data['used']:
-            return False
-        
         # Check if token is expired (24 hours)
         if time.time() - token_data['created_at'] > 86400:  # 24 hours
             del self._tokens[token]
             return False
         
-        # Mark token as used
-        token_data['used'] = True
-        
+        # Don't mark as used - allow reuse within session
         return True
     
     def revoke_token(self, token: str) -> bool:

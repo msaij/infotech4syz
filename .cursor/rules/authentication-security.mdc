@@ -1,0 +1,78 @@
+---
+title: Authentication and Security Patterns
+---
+
+# Authentication and Security Patterns
+
+## JWT Authentication System
+
+### Backend Implementation
+- [backend/auth/auth_utils.py](mdc:backend/auth/auth_utils.py) - JWT token generation, validation, and password hashing
+- [backend/auth/dependencies.py](mdc:backend/auth/dependencies.py) - User authentication middleware
+- [backend/auth/routes.py](mdc:backend/auth/routes.py) - Login, logout, token refresh endpoints
+
+### Frontend Implementation
+- [frontend/src/utils/auth.ts](mdc:frontend/src/utils/auth.ts) - Authentication service with token management
+- [frontend/src/app/foursyz/layout.tsx](mdc:frontend/src/app/foursyz/layout.tsx) - Protected routes with role-based access
+
+### Token Management
+- Access tokens (15-day expiration)
+- Refresh tokens for automatic renewal
+- Token blacklisting for logout
+- Automatic token refresh on expiration
+
+## CSRF Protection
+
+### Implementation
+- [backend/auth/csrf_utils.py](mdc:backend/auth/csrf_utils.py) - CSRF token generation and validation
+- User-specific tokens with 24-hour expiration
+- Reusable within session (not one-time use)
+- Required for all state-changing operations
+
+### Frontend Integration
+- [frontend/src/utils/deliveryChallanService.ts](mdc:frontend/src/utils/deliveryChallanService.ts) - Fresh token fetching
+- [frontend/src/utils/clientService.ts](mdc:frontend/src/utils/clientService.ts) - CSRF token handling
+- Automatic token refresh on each operation
+
+## Role-Based Access Control (RBAC)
+
+### User Roles
+- `admin` - Full system access
+- `ceo` - Client management and delivery challan access
+- `DC_tracker_manager` - Delivery challan management
+- Other roles - Read-only access to delivery challans
+
+### Authorization Dependencies
+- [backend/auth/ceo_auth.py](mdc:backend/auth/ceo_auth.py) - CEO-only operations
+- [backend/auth/delivery_challan_auth.py](mdc:backend/auth/delivery_challan_auth.py) - Delivery challan access control
+- Frontend role checking in layout and components
+
+## Password Security
+
+### Hashing
+- bcrypt with pepper for new passwords
+- SHA-256 to bcrypt migration for existing users
+- Automatic password upgrade on login
+
+### Validation
+- Email domain validation (@4syz.com)
+- Password strength requirements
+- Account activation status checking
+
+## Security Best Practices
+
+### Input Validation
+- Pydantic models for backend validation
+- TypeScript interfaces for frontend type safety
+- Date format validation (YYYY-MM-DD)
+- File type validation for uploads
+
+### Error Handling
+- Generic error messages (no sensitive data exposure)
+- Proper HTTP status codes
+- Comprehensive logging without sensitive data
+
+### Environment Configuration
+- [frontend/src/config/env.ts](mdc:frontend/src/config/env.ts) - Centralized configuration
+- Environment-specific settings
+- Secure token storage in localStorage

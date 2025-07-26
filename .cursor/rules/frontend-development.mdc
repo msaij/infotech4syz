@@ -1,0 +1,36 @@
+# Frontend Development Guidelines
+
+## Authentication & Authorization
+- Use [frontend/src/app/foursyz/layout.tsx](mdc:frontend/src/app/foursyz/layout.tsx) for route protection
+- Always check CEO designation using `ClientService.isCEOUser(userData)` for restricted pages
+- Use `AuthService` utilities for token management and validation
+- Implement early returns (`return null`) for unauthorized users to prevent page flashing
+
+## Form Styling
+- Always use `text-black bg-white` classes for input fields to ensure text visibility
+- Use consistent focus states: `focus:outline-none focus:ring-2 focus:ring-blue-500`
+- Apply proper validation and error handling for all forms
+
+## State Management
+- Use React hooks (`useState`, `useEffect`) for local state
+- Store user data in localStorage for persistence
+- Use environment variables from [frontend/src/config/env.ts](mdc:frontend/src/config/env.ts)
+
+## API Integration
+- Use service classes ([frontend/src/utils/auth.ts](mdc:frontend/src/utils/auth.ts), [frontend/src/utils/clientService.ts](mdc:frontend/src/utils/clientService.ts)) for API calls
+- Include CSRF tokens for modification operations
+- Handle loading states and error messages consistently
+
+## Routing
+- Use Next.js App Router with `useRouter` and `usePathname`
+- Implement proper redirects for authentication and authorization
+- Use environment variables for route paths
+
+## Security
+- Never expose sensitive data in client-side code
+- Use environment variables with `NEXT_PUBLIC_` prefix for client-side config
+- Implement proper token validation and refresh logic
+description:
+globs:
+alwaysApply: true
+---

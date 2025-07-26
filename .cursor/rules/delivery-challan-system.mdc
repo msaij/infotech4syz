@@ -1,0 +1,77 @@
+---
+title: Delivery Challan Tracker System
+---
+
+# Delivery Challan Tracker System
+
+## Overview
+A comprehensive system for managing delivery challans with MongoDB backend and Next.js frontend, featuring role-based access control and CSRF protection.
+
+## Backend Components
+
+### Models
+- [backend/models/foursyz/delivery_challan_tracker.py](mdc:backend/models/foursyz/delivery_challan_tracker.py) - Pydantic models with date validators
+- Auto-generated challan numbers (MMYY000001 format, resets monthly)
+- Date validation for IST timezone
+- MongoDB date compatibility (converts date to datetime)
+
+### Routes
+- [backend/auth/delivery_challan_routes.py](mdc:backend/auth/delivery_challan_routes.py) - CRUD operations, file uploads, invoice linking
+- CSRF protection on all state-changing operations
+- Role-based access: admin/ceo/DC_tracker_manager for write access
+- Client validation against `client_details` collection
+
+### Utilities
+- [backend/utils/delivery_challan_utils.py](mdc:backend/utils/delivery_challan_utils.py) - Challan number generation, date handling
+- [backend/auth/csrf_utils.py](mdc:backend/auth/csrf_utils.py) - CSRF token management (reusable within session)
+
+### Authentication
+- [backend/auth/delivery_challan_auth.py](mdc:backend/auth/delivery_challan_auth.py) - Role-based access control
+- [backend/auth/dependencies.py](mdc:backend/auth/dependencies.py) - User authentication and ID conversion
+
+## Frontend Components
+
+### Service Layer
+- [frontend/src/utils/deliveryChallanService.ts](mdc:frontend/src/utils/deliveryChallanService.ts) - API service with fresh CSRF token handling
+- Always fetches fresh CSRF tokens for state-changing operations
+- Comprehensive error handling with specific error messages
+- TypeScript interfaces for type safety
+
+### UI Components
+- [frontend/src/app/foursyz/delivery_challan_tracker/page.tsx](mdc:frontend/src/app/foursyz/delivery_challan_tracker/page.tsx) - Main interface with error handling
+- Role-based UI rendering (managers see create/edit buttons)
+- Form validation and error display
+- Success message handling
+
+## Key Features
+
+### Mandatory Fields
+- Delivery challan date (IST)
+- Client name (dropdown from `client_details`)
+- Summary of delivery challan
+- Tool used (Zoho/Excel)
+
+### Optional Fields
+- Signed acknowledgement copy (file upload)
+- Invoice number
+- Invoice date
+- Invoice submission status
+
+### Security
+- CSRF protection on all POST/PUT/DELETE operations
+- Role-based access control
+- JWT authentication
+- Input validation and sanitization
+
+### Error Handling
+- Comprehensive try-catch blocks
+- User-friendly error messages
+- Retry mechanisms
+- Network error detection
+
+## Database Schema
+- Collection: `deliveryChallan_tracker` (camelCase)
+- Auto-generated challan numbers
+- IST date handling
+- File path storage for uploads
+- Invoice linking capabilities

@@ -42,7 +42,7 @@ export class AuthService {
 
   static async validateUser(token: string): Promise<UserData | null> {
     try {
-      const response = await fetch(`${env.API_BASE_URL}${env.AUTH_ENDPOINTS.ME}`, {
+      const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.AUTH.ME}`, {
         headers: this.getAuthHeaders(token),
       })
 
@@ -60,7 +60,7 @@ export class AuthService {
 
   static async refreshToken(refreshToken: string): Promise<string | null> {
     try {
-      const response = await fetch(`${env.API_BASE_URL}${env.AUTH_ENDPOINTS.REFRESH}`, {
+      const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.AUTH.REFRESH}`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify({ refresh_token: refreshToken }),

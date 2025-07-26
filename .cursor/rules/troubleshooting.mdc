@@ -1,0 +1,29 @@
+---
+title: Troubleshooting Guide
+---
+
+# Common Issues and Troubleshooting Guide
+
+## CSRF Token Issues
+- **"Invalid or expired CSRF token"**: Always fetch fresh tokens, clear stale tokens
+- **Token not sent**: Use `getHeadersWithCSRF()`, call `ensureCSRFToken()` first
+
+## Authentication Issues  
+- **"Token has expired"**: Implement automatic refresh in layout.tsx
+- **Login redirect loop**: Check UTC time handling, verify user ID conversion
+
+## Database Issues
+- **MongoDB date errors**: Convert `date` to `datetime` before storage
+- **Collection name mismatch**: Use camelCase (`deliveryChallan_tracker`)
+
+## Frontend Issues
+- **TypeScript errors**: Add null checks, use type assertions for headers
+- **Form validation**: Use `YYYY-MM-DD` format, implement Pydantic validators
+
+## API Issues
+- **Double prefix**: Remove `prefix` from router if included in main.py
+- **Environment variables**: Check env.ts configuration, verify CORS settings
+
+## Error Handling
+- **"[object Object]"**: Implement proper error parsing, extract API response details
+- **Network errors**: Check for `TypeError` with `fetch`, add retry mechanisms

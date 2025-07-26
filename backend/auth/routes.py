@@ -16,7 +16,7 @@ from .auth_utils import (
 from .dependencies import get_db, get_current_user, security
 
 # Create router
-auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
+auth_router = APIRouter(tags=["Authentication"])
 
 # User login endpoint
 @auth_router.post("/login", response_model=Users4syzLoginResponse)

@@ -37,6 +37,8 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
+
+
     // Validate email domain
     if (!validateEmail(formData.email)) {
       setError(`Email must be from ${env.REQUIRED_EMAIL_DOMAIN} domain`)
@@ -45,7 +47,7 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await fetch(`${env.API_BASE_URL}${env.AUTH_ENDPOINTS.LOGIN}`, {
+      const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.AUTH.LOGIN}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

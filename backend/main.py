@@ -2,38 +2,32 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from auth.routes import auth_router
 from auth.client_routes import client_router
-from config import ALLOWED_ORIGINS, HOST, PORT, DEBUG
+from auth.delivery_challan_routes import delivery_challan_router
+import os
+from dotenv import load_dotenv
 
-# FastAPI app instance
-app = FastAPI(
-    title="Infotech4Syz API",
-    description="FastAPI backend for Infotech4Syz user login and client management",
-    version="1.0.0"
-)
+load_dotenv()
 
-# CORS middleware
+app = FastAPI(title="4Syz API", version="1.0.0")
+
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(auth_router)
-app.include_router(client_router)
+app.include_router(auth_router, prefix="/auth")
+app.include_router(client_router, prefix="/clients")
+app.include_router(delivery_challan_router, prefix="/delivery-challan")
 
-# Health check endpoint
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "service": "Infotech4Syz API",
-        "version": "1.0.0"
-    }
+@app.get("/")
+async def root():
+    return {"message": "4Syz API is running"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host=HOST, port=PORT) 
+    uvicorn.run(app, host="0.0.0.0", port=8000) 

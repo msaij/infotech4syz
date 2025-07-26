@@ -1,0 +1,42 @@
+# Database Guidelines
+
+## MongoDB Collections
+- **users_4syz**: User authentication and profile data
+- **client_details**: Client management data (CEO access only)
+- **token_blacklist**: Blacklisted JWT tokens for logout functionality
+
+## Data Models
+- Use Pydantic models for data validation and serialization
+- Follow the structure in [backend/models/foursyz/](mdc:backend/models/foursyz/)
+- Implement proper field validation and constraints
+
+## Database Operations
+- Use motor async driver for MongoDB operations
+- Implement proper error handling for database queries
+- Use ObjectId for document identification
+- Convert ObjectId to string when returning to frontend
+
+## Data Processing
+- **Text Capitalization**: Use `capitalize_words()` function for client names
+- **Unique Constraints**: Validate unique fields (e.g., client tag names)
+- **Optional Fields**: Handle nullable fields properly (e.g., `date_of_relieving`)
+
+## Connection Management
+- Use connection pooling for efficient database connections
+- Implement proper connection cleanup
+- Handle connection errors gracefully
+
+## Data Validation
+- Validate all input data before database operations
+- Use Pydantic models for automatic validation
+- Implement custom validation for business logic
+
+## Security Considerations
+- Never expose database credentials in code
+- Use environment variables for database configuration
+- Implement proper access control for sensitive operations
+- Validate user permissions before database operations
+description:
+globs:
+alwaysApply: true
+---
