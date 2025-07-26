@@ -38,6 +38,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     
     # Verify token and get user email
     email = get_user_email_from_token(token)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
     # Get user from database
     user = await db.users_4syz.find_one({"email": email})
@@ -56,4 +62,9 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    return user 
+    # Convert MongoDB document to dictionary and add id field
+    user_dict = dict(user)
+    user_dict['id'] = str(user['_id'])
+    del user_dict['_id']
+    
+    return user_dict 

@@ -109,8 +109,20 @@ def verify_token(token: str, token_type: str = "access"):
 
 def get_user_email_from_token(token: str) -> str:
     """Extract user email from JWT token"""
-    payload = verify_token(token)
-    return payload.get("sub")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        token_type_check: str = payload.get("type")
+        
+        if email is None:
+            return None
+        
+        if token_type_check != "access":
+            return None
+        
+        return email
+    except JWTError:
+        return None
 
 def is_token_expired(token: str) -> bool:
     """Check if token is expired"""
@@ -119,7 +131,7 @@ def is_token_expired(token: str) -> bool:
         exp = payload.get("exp")
         if exp is None:
             return True
-        return datetime.utcnow() > datetime.fromtimestamp(exp)
+        return datetime.utcnow() > datetime.utcfromtimestamp(exp)
     except JWTError:
         return True
 

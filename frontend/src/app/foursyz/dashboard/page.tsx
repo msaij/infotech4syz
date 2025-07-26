@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService, UserData } from '@/utils/auth';
+import { ClientService } from '@/utils/clientService';
 import { env } from '@/config/env';
 
 export default function DashboardPage() {
@@ -10,12 +11,10 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const [timeUntilExpiration, setTimeUntilExpiration] = useState<string>('');
+  const [isCEO, setIsCEO] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
-    const interval = setInterval(checkTokenExpiration, 60000); // Check every minute
-    return () => clearInterval(interval);
   }, []);
 
   const checkAuthStatus = () => {
@@ -37,7 +36,7 @@ export default function DashboardPage() {
     try {
       const user = JSON.parse(userData);
       setUser(user);
-      updateTimeUntilExpiration(expirationTime);
+      setIsCEO(ClientService.isCEOUser(user));
     } catch (error) {
       handleLogout('Invalid user data. Please login again.');
     } finally {
@@ -45,38 +44,7 @@ export default function DashboardPage() {
     }
   };
 
-  const checkTokenExpiration = () => {
-    const expirationTime = localStorage.getItem('tokenExpiration');
-    if (expirationTime) {
-      updateTimeUntilExpiration(expirationTime);
-      
-      if (Date.now() > parseInt(expirationTime)) {
-        handleLogout('Token has expired. Please login again.');
-      }
-    }
-  };
 
-  const updateTimeUntilExpiration = (expirationTime: string | null) => {
-    if (!expirationTime) return;
-
-    const timeLeft = parseInt(expirationTime) - Date.now();
-    if (timeLeft <= 0) {
-      setTimeUntilExpiration('Expired');
-      return;
-    }
-
-    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (days > 0) {
-      setTimeUntilExpiration(`${days}d ${hours}h ${minutes}m`);
-    } else if (hours > 0) {
-      setTimeUntilExpiration(`${hours}h ${minutes}m`);
-    } else {
-      setTimeUntilExpiration(`${minutes}m`);
-    }
-  };
 
   const handleLogout = async (message?: string) => {
     setLogoutLoading(true);
@@ -141,11 +109,13 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">FourSyz Dashboard</h1>
+              {isCEO && (
+                <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                  CEO
+                </span>
+              )}
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
-                Token expires in: <span className="font-medium text-orange-600">{timeUntilExpiration}</span>
-              </div>
               <button
                 onClick={() => handleLogout()}
                 disabled={logoutLoading}
@@ -219,19 +189,22 @@ export default function DashboardPage() {
           {/* Quick Actions */}
           <div className="mt-6 bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap gap-4">
               <button
                 onClick={() => router.push('/foursyz/create_user4syz')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 Create New User
               </button>
-              <button
-                onClick={() => router.push(env.ROUTES.LOGIN)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              >
-                Back to Login
-              </button>
+              
+              {isCEO && (
+                <button
+                  onClick={() => router.push(env.ROUTES.CLIENT_DETAILS)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  Manage Clients
+                </button>
+              )}
             </div>
           </div>
         </div>

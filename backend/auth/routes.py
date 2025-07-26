@@ -97,7 +97,7 @@ async def get_current_user_info(current_user = Depends(get_current_user)):
     """Get current authenticated user information"""
     try:
         user_response = Users4syzResponse(
-            id=str(current_user["_id"]),
+            id=current_user["id"],
             username=current_user["username"],
             email=current_user["email"],
             designation=current_user["designation"],

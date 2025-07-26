@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { AuthService, UserData } from '@/utils/auth'
+import { ClientService } from '@/utils/clientService'
 import { env } from '@/config/env'
 
 export default function FourSyzLayout({
@@ -48,6 +49,16 @@ export default function FourSyzLayout({
       setIsValidUser(true)
       setUserData(userData)
       
+      // Check role-based access for specific routes
+      if (pathname === env.ROUTES.CLIENT_DETAILS) {
+        if (!ClientService.isCEOUser(userData)) {
+          // Non-CEO users trying to access client_details should be redirected
+          router.push(env.ROUTES.DASHBOARD)
+          setIsLoading(false)
+          return
+        }
+      }
+      
       // If on login page and valid user, redirect to dashboard
       if (pathname === env.ROUTES.LOGIN) {
         router.push(env.ROUTES.DASHBOARD)
@@ -65,7 +76,7 @@ export default function FourSyzLayout({
 
   useEffect(() => {
     validateUser()
-  }, [pathname, router])
+  }, [pathname]) // Removed router from dependencies to prevent unnecessary re-runs
 
   // Show loading while validating
   if (isLoading) {
@@ -77,6 +88,11 @@ export default function FourSyzLayout({
         </div>
       </div>
     )
+  }
+
+  // For non-CEO users trying to access client_details, don't render anything
+  if (pathname === env.ROUTES.CLIENT_DETAILS && userData && !ClientService.isCEOUser(userData)) {
+    return null
   }
 
   // Show children if user is valid or on login page

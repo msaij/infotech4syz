@@ -149,7 +149,7 @@ export default function CreateUserPage() {
                 name="username"
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                 placeholder="Enter username"
                 required
               />
@@ -166,7 +166,7 @@ export default function CreateUserPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                 placeholder={`user${env.REQUIRED_EMAIL_DOMAIN}`}
                 required
               />
@@ -184,7 +184,7 @@ export default function CreateUserPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                 placeholder="Enter password"
                 required
               />
@@ -202,7 +202,7 @@ export default function CreateUserPage() {
                 name="designation"
                 value={formData.designation}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                 placeholder="e.g., Software Engineer"
                 required
               />
@@ -219,7 +219,7 @@ export default function CreateUserPage() {
                 name="date_of_joining"
                 value={formData.date_of_joining}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                 required
               />
             </div>
@@ -235,7 +235,7 @@ export default function CreateUserPage() {
                 name="date_of_relieving"
                 value={formData.date_of_relieving}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
               />
               <p className="text-sm text-gray-500 mt-1">Optional - leave blank if still employed</p>
             </div>
@@ -266,7 +266,7 @@ export default function CreateUserPage() {
                 value={formData.notes}
                 onChange={handleInputChange}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                 placeholder="Additional notes about the user..."
               />
             </div>
