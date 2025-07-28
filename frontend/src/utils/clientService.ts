@@ -204,7 +204,7 @@ export class ClientService {
     }
   }
 
-  static isCEOUser(userData: any): boolean {
+  static isCEOUser(userData: { designation?: string }): boolean {
     return userData?.designation?.toLowerCase() === env.USER_ROLES.CEO.toLowerCase()
   }
 } 

@@ -25,7 +25,7 @@ export default function PolicyManagementPage() {
   const [policies, setPolicies] = useState<Policy[]>([])
   const [users, setUsers] = useState<UserData[]>([])
   const [assignments, setAssignments] = useState<PolicyAssignment[]>([])
-  const [evaluationResult, setEvaluationResult] = useState<PermissionEvaluation | null>(null)
+  const [evaluationResult, setEvaluationResult] = useState<PermissionEvaluation | undefined>(undefined)
 
   // Form states
   const [showCreatePolicy, setShowCreatePolicy] = useState(false)
@@ -92,8 +92,9 @@ export default function PolicyManagementPage() {
       ])
       setPolicies(policiesData)
       setUsers(usersData)
-    } catch (error: any) {
-      setError(error.message || 'Failed to load data')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load data'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -107,8 +108,9 @@ export default function PolicyManagementPage() {
       setPolicies(prev => [...prev, newPolicy])
       setShowCreatePolicy(false)
       setSuccess('Policy created successfully')
-    } catch (error: any) {
-      setError(error.message || 'Failed to create policy')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create policy'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -121,8 +123,9 @@ export default function PolicyManagementPage() {
       setPolicies(prev => prev.map(p => p.id === policyId ? updatedPolicy : p))
       setEditingPolicy(null)
       setSuccess('Policy updated successfully')
-    } catch (error: any) {
-      setError(error.message || 'Failed to update policy')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update policy'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -206,6 +209,17 @@ export default function PolicyManagementPage() {
       setError(error.message || 'Failed to migrate user roles')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Wrapper function to handle both CreatePolicyData and UpdatePolicyData
+  const handlePolicySubmit = async (policyData: CreatePolicyData | UpdatePolicyData) => {
+    if ('id' in policyData) {
+      // This is UpdatePolicyData
+      await handleUpdatePolicy(policyData.id as string, policyData)
+    } else {
+      // This is CreatePolicyData
+      await handleCreatePolicy(policyData as CreatePolicyData)
     }
   }
 
@@ -321,7 +335,7 @@ export default function PolicyManagementPage() {
               
               {showCreatePolicy && (
                 <PolicyForm
-                  onSubmit={handleCreatePolicy}
+                  onSubmit={handlePolicySubmit}
                   onCancel={() => setShowCreatePolicy(false)}
                   loading={loading}
                 />
@@ -330,7 +344,7 @@ export default function PolicyManagementPage() {
               {editingPolicy && (
                 <PolicyForm
                   policy={editingPolicy}
-                  onSubmit={(data) => handleUpdatePolicy(editingPolicy.id, data)}
+                  onSubmit={handlePolicySubmit}
                   onCancel={() => setEditingPolicy(null)}
                   loading={loading}
                 />

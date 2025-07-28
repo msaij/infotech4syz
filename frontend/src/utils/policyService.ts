@@ -6,7 +6,7 @@ export interface PermissionStatement {
   effect: 'Allow' | 'Deny'
   actions: string[]
   resources: string[]
-  conditions?: Record<string, any>
+  conditions?: Record<string, unknown>
 }
 
 export interface Policy {
@@ -35,7 +35,7 @@ export interface PermissionEvaluation {
   user_id: string
   action: string
   resource: string
-  context?: Record<string, any>
+  context?: Record<string, unknown>
   evaluation_time: string
   matched_policies: string[]
   denied_reason?: string
@@ -75,7 +75,7 @@ export interface PermissionEvaluationData {
   user_id: string
   action: string
   resource: string
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 }
 
 // Response interfaces
@@ -211,8 +211,9 @@ export class PolicyService {
       
       const data: PolicyListResponse = await this.handleResponse(response)
       return data.policies
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to fetch policies')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch policies'
+      throw new Error(errorMessage)
     }
   }
 
@@ -226,8 +227,9 @@ export class PolicyService {
       
       const data: PolicyResponse = await this.handleResponse(response)
       return data.policy
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to fetch policy')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch policy'
+      throw new Error(errorMessage)
     }
   }
 
@@ -244,8 +246,9 @@ export class PolicyService {
       
       const data: PolicyResponse = await this.handleResponse(response)
       return data.policy
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to create policy')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create policy'
+      throw new Error(errorMessage)
     }
   }
 
@@ -262,8 +265,9 @@ export class PolicyService {
       
       const data: PolicyResponse = await this.handleResponse(response)
       return data.policy
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to update policy')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update policy'
+      throw new Error(errorMessage)
     }
   }
 
@@ -278,8 +282,9 @@ export class PolicyService {
       })
       
       return await this.handleResponse(response)
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to delete policy')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete policy'
+      throw new Error(errorMessage)
     }
   }
 
@@ -297,8 +302,9 @@ export class PolicyService {
       
       const data: PolicyAssignmentResponse = await this.handleResponse(response)
       return data.assignment
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to assign policy to user')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to assign policy to user'
+      throw new Error(errorMessage)
     }
   }
 
@@ -313,8 +319,9 @@ export class PolicyService {
       })
       
       return await this.handleResponse(response)
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to unassign policy from user')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to unassign policy from user'
+      throw new Error(errorMessage)
     }
   }
 
@@ -328,8 +335,9 @@ export class PolicyService {
       
       const data: PolicyListResponse = await this.handleResponse(response)
       return data.policies
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to fetch user policies')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user policies'
+      throw new Error(errorMessage)
     }
   }
 
@@ -343,8 +351,9 @@ export class PolicyService {
       
       const data: PolicyAssignmentListResponse = await this.handleResponse(response)
       return data.assignments
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to fetch user assignments')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user assignments'
+      throw new Error(errorMessage)
     }
   }
 
@@ -360,8 +369,9 @@ export class PolicyService {
       
       const data: PermissionEvaluationResponse = await this.handleResponse(response)
       return data.evaluation
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to evaluate permission')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to evaluate permission'
+      throw new Error(errorMessage)
     }
   }
 
@@ -382,8 +392,9 @@ export class PolicyService {
         message: data.message,
         created_policies: data.created_policies
       }
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to initialize policies')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to initialize policies'
+      throw new Error(errorMessage)
     }
   }
 
@@ -403,8 +414,9 @@ export class PolicyService {
         message: data.message,
         migration_results: data.migration_results
       }
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to migrate user roles')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to migrate user roles'
+      throw new Error(errorMessage)
     }
   }
 
@@ -424,8 +436,9 @@ export class PolicyService {
         message: data.message,
         cleaned_count: data.cleaned_count
       }
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to cleanup expired assignments')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to cleanup expired assignments'
+      throw new Error(errorMessage)
     }
   }
 
@@ -439,13 +452,14 @@ export class PolicyService {
       
       const data: SystemHealthResponse = await this.handleResponse(response)
       return data.health
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to get system health')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get system health'
+      throw new Error(errorMessage)
     }
   }
 
   // Utility methods
-  static isPolicyManager(userData: any): boolean {
+  static isPolicyManager(userData: { designation?: string }): boolean {
     return userData?.designation === env.USER_ROLES.CEO || 
            userData?.designation === env.USER_ROLES.ADMIN
   }

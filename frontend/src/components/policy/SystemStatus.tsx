@@ -19,8 +19,9 @@ export default function SystemStatus() {
       const healthData = await PolicyService.getSystemHealth()
       setHealth(healthData)
       setError('')
-    } catch (error: any) {
-      setError(error.message || 'Failed to load system health')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load system health'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

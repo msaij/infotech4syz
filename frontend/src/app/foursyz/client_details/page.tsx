@@ -11,7 +11,7 @@ export default function ClientDetailsPage() {
   const router = useRouter()
   const [clients, setClients] = useState<ClientData[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<UserData | null>(null)
+  const [_user, setUser] = useState<UserData | null>(null)
   const [permissions, setPermissions] = useState({
     canCreateClient: false,
     canUpdateClient: false,
@@ -37,7 +37,7 @@ export default function ClientDetailsPage() {
 
   useEffect(() => {
     checkUserAndLoadClients()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkUserAndLoadClients = async () => {
     try {
@@ -126,8 +126,9 @@ export default function ClientDetailsPage() {
       const response = await ClientService.getClients()
       setClients(response.clients)
       setError('')
-    } catch (error: any) {
-      setError(error.message || 'Failed to load clients')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load clients'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -168,13 +169,14 @@ export default function ClientDetailsPage() {
         offboarding_date: ''
       })
       await loadClients()
-    } catch (error: any) {
-      setError(error.message || 'Failed to create client')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create client'
+      setError(errorMessage)
     }
   }
 
   const handleDelete = async (clientId: string, clientName: string) => {
-    if (!confirm(`Are you sure you want to delete client "${clientName}"?`)) {
+    if (!confirm(`Are you sure you want to delete client &quot;${clientName}&quot;?`)) {
       return
     }
 
@@ -182,8 +184,9 @@ export default function ClientDetailsPage() {
       await ClientService.deleteClient(clientId)
       setSuccess('Client deleted successfully!')
       await loadClients()
-    } catch (error: any) {
-      setError(error.message || 'Failed to delete client')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete client'
+      setError(errorMessage)
     }
   }
 
@@ -414,7 +417,7 @@ export default function ClientDetailsPage() {
             
             {clients.length === 0 ? (
               <div className="px-6 py-8 text-center text-gray-500">
-                No clients found. Click "Add New Client" to get started.
+                No clients found. Click &quot;Add New Client&quot; to get started.
               </div>
             ) : (
               <div className="overflow-x-auto">

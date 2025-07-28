@@ -7,7 +7,7 @@ import DeliveryChallanService, {
   DeliveryChallanFilters,
   DeliveryChallanCreate 
 } from '@/utils/deliveryChallanService'
-import { AuthService } from '@/utils/auth'
+import { AuthService, UserData } from '@/utils/auth'
 import { PolicyService } from '@/utils/policyService'
 import { env } from '@/config/env'
 
@@ -17,7 +17,7 @@ export default function DeliveryChallanTrackerPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [userData, setUserData] = useState<any>(null)
+  const [userData, setUserData] = useState<UserData | null>(null)
   const [permissions, setPermissions] = useState({
     canCreateChallan: false,
     canUpdateChallan: false,
@@ -81,11 +81,11 @@ export default function DeliveryChallanTrackerPage() {
 
   useEffect(() => {
     checkUserAndLoadData()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     loadDeliveryChallans()
-  }, [filters])
+  }, [filters]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkUserAndLoadData = async () => {
     try {
@@ -107,11 +107,11 @@ export default function DeliveryChallanTrackerPage() {
         const deliveryChallanService = new DeliveryChallanService()
         const clientsList = await deliveryChallanService.getClients()
         setClients(clientsList)
-      } catch (clientError: any) {
+      } catch (clientError: unknown) {
         console.error('Failed to load clients:', clientError)
         // Don't fail the entire page load for client loading error
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error checking user:', error)
       setError('Failed to validate user')
     } finally {
@@ -119,7 +119,7 @@ export default function DeliveryChallanTrackerPage() {
     }
   }
 
-  const checkDeliveryChallanPermissions = async (userData: any) => {
+  const checkDeliveryChallanPermissions = async (userData: UserData) => {
     try {
       // Check all delivery challan-related permissions
       const createPermission = await PolicyService.evaluatePermission({
@@ -188,19 +188,19 @@ export default function DeliveryChallanTrackerPage() {
       setDeliveryChallans(response.delivery_challans)
       setTotal(response.total)
       setError(null)
-               } catch (error: any) {
-             console.error('Error loading delivery challans:', error)
-             let errorMessage = 'Failed to load delivery challans'
-             
-             if (error?.message) {
-               errorMessage = error.message
-             } else if (typeof error === 'string') {
-               errorMessage = error
-             } else if (error && typeof error === 'object') {
-               errorMessage = JSON.stringify(error)
-             }
-             
-             setError(`Data loading error: ${errorMessage}`)
+                   } catch (error: unknown) {
+      console.error('Error loading delivery challans:', error)
+      let errorMessage = 'Failed to load delivery challans'
+      
+      if (error instanceof Error && error.message) {
+        errorMessage = error.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      } else if (error && typeof error === 'object') {
+        errorMessage = JSON.stringify(error)
+      }
+      
+      setError(`Data loading error: ${errorMessage}`)
            } finally {
       setLoading(false)
     }
@@ -244,20 +244,20 @@ export default function DeliveryChallanTrackerPage() {
           const deliveryChallanService = new DeliveryChallanService()
           const uploadResponse = await deliveryChallanService.uploadFile(uploadedFile)
           filePath = uploadResponse.file_path
-                   } catch (uploadError: any) {
-             console.error('Error uploading file:', uploadError)
-             let uploadErrorMessage = 'Failed to upload file'
-             
-             if (uploadError?.message) {
-               uploadErrorMessage = uploadError.message
-             } else if (typeof uploadError === 'string') {
-               uploadErrorMessage = uploadError
-             } else if (uploadError && typeof uploadError === 'object') {
-               uploadErrorMessage = JSON.stringify(uploadError)
-             }
-             
-             setError(`File upload error: ${uploadErrorMessage}`)
-             return
+                           } catch (uploadError: unknown) {
+          console.error('Error uploading file:', uploadError)
+          let uploadErrorMessage = 'Failed to upload file'
+          
+          if (uploadError instanceof Error && uploadError.message) {
+            uploadErrorMessage = uploadError.message
+          } else if (typeof uploadError === 'string') {
+            uploadErrorMessage = uploadError
+          } else if (uploadError && typeof uploadError === 'object') {
+            uploadErrorMessage = JSON.stringify(uploadError)
+          }
+          
+          setError(`File upload error: ${uploadErrorMessage}`)
+          return
            }
       }
 
@@ -283,19 +283,19 @@ export default function DeliveryChallanTrackerPage() {
              setShowCreateForm(false)
              loadDeliveryChallans()
              showSuccessMessage('Delivery challan created successfully!')
-                      } catch (error: any) {
-             console.error('Error creating delivery challan:', error)
-             let errorMessage = 'Failed to create delivery challan'
-             
-             if (error?.message) {
-               errorMessage = error.message
-             } else if (typeof error === 'string') {
-               errorMessage = error
-             } else if (error && typeof error === 'object') {
-               errorMessage = JSON.stringify(error)
-             }
-             
-             setError(`Creation error: ${errorMessage}`)
+                          } catch (error: unknown) {
+      console.error('Error creating delivery challan:', error)
+      let errorMessage = 'Failed to create delivery challan'
+      
+      if (error instanceof Error && error.message) {
+        errorMessage = error.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      } else if (error && typeof error === 'object') {
+        errorMessage = JSON.stringify(error)
+      }
+      
+      setError(`Creation error: ${errorMessage}`)
            } finally {
       setLoading(false)
     }
@@ -313,19 +313,19 @@ export default function DeliveryChallanTrackerPage() {
                    await deliveryChallanService.deleteDeliveryChallan(id)
              loadDeliveryChallans()
              showSuccessMessage('Delivery challan deleted successfully!')
-                      } catch (error: any) {
-             console.error('Error deleting delivery challan:', error)
-             let errorMessage = 'Failed to delete delivery challan'
-             
-             if (error?.message) {
-               errorMessage = error.message
-             } else if (typeof error === 'string') {
-               errorMessage = error
-             } else if (error && typeof error === 'object') {
-               errorMessage = JSON.stringify(error)
-             }
-             
-             setError(`Deletion error: ${errorMessage}`)
+                          } catch (error: unknown) {
+      console.error('Error deleting delivery challan:', error)
+      let errorMessage = 'Failed to delete delivery challan'
+      
+      if (error instanceof Error && error.message) {
+        errorMessage = error.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      } else if (error && typeof error === 'object') {
+        errorMessage = JSON.stringify(error)
+      }
+      
+      setError(`Deletion error: ${errorMessage}`)
            } finally {
       setLoading(false)
     }
@@ -365,20 +365,21 @@ export default function DeliveryChallanTrackerPage() {
       setShowLinkInvoiceForm(false)
       loadDeliveryChallans()
       showSuccessMessage('Invoice linked successfully!')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error linking invoice:', error)
       let errorMessage = 'Failed to link invoice'
       
-      if (error?.message) {
+      if (error instanceof Error && error.message) {
         errorMessage = error.message
       } else if (typeof error === 'string') {
         errorMessage = error
       } else if (error && typeof error === 'object') {
         // Try to extract meaningful error information
-        if (error.detail) {
-          errorMessage = error.detail
-        } else if (error.error) {
-          errorMessage = error.error
+        const errorObj = error as Record<string, unknown>
+        if (errorObj.detail) {
+          errorMessage = String(errorObj.detail)
+        } else if (errorObj.error) {
+          errorMessage = String(errorObj.error)
         } else {
           errorMessage = JSON.stringify(error)
         }

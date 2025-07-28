@@ -115,7 +115,7 @@ export default function PermissionEvaluator({
                 <option value="">Select a user</option>
                 {users.map(user => (
                   <option key={user.id} value={user.id}>
-                    {user.full_name} ({user.email})
+                    {user.username} ({user.email})
                   </option>
                 ))}
               </select>
@@ -294,72 +294,7 @@ export default function PermissionEvaluator({
         </div>
       )}
 
-      {/* Quick Test Examples */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Test Examples</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            {
-              title: 'User Management',
-              action: env.PERMISSIONS.ACTIONS.USER_CREATE,
-              resource: env.PERMISSIONS.RESOURCES.USER_ALL,
-              description: 'Test user creation permission'
-            },
-            {
-              title: 'Client Access',
-              action: env.PERMISSIONS.ACTIONS.CLIENT_READ,
-              resource: env.PERMISSIONS.RESOURCES.CLIENT_ALL,
-              description: 'Test client read permission'
-            },
-            {
-              title: 'Delivery Challan',
-              action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_CREATE,
-              resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL,
-              description: 'Test delivery challan creation'
-            },
-            {
-              title: 'Policy Management',
-              action: env.PERMISSIONS.ACTIONS.PERMISSIONS_READ,
-              resource: env.PERMISSIONS.RESOURCES.PERMISSIONS_ALL,
-              description: 'Test policy read permission'
-            },
-            {
-              title: 'Authentication',
-              action: env.PERMISSIONS.ACTIONS.AUTH_ME,
-              resource: env.PERMISSIONS.RESOURCES.AUTH_ALL,
-              description: 'Test auth me permission'
-            },
-            {
-              title: 'File Upload',
-              action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_UPLOAD,
-              resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_FILE,
-              description: 'Test file upload permission'
-            }
-          ].map((example, index) => (
-            <div key={index} className="border border-gray-200 rounded p-3">
-              <h4 className="font-medium text-gray-900 mb-1">{example.title}</h4>
-              <p className="text-sm text-gray-600 mb-2">{example.description}</p>
-              <div className="text-xs text-gray-500 mb-2">
-                <div><strong>Action:</strong> {example.action}</div>
-                <div><strong>Resource:</strong> {example.resource}</div>
-              </div>
-              <button
-                onClick={() => {
-                  setEvaluationData(prev => ({
-                    ...prev,
-                    action: example.action,
-                    resource: example.resource
-                  }))
-                }}
-                className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
-              >
-                Use This
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
+      
     </div>
   )
 } 

@@ -99,7 +99,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout }) => {
           </div>
           
           {userMenuItems.map(item => {
-            if (!item.hasAccess) return null;
+            // Check if item has access or is always accessible (like logout)
+            if (!item.hasAccess && !item.alwaysAccessible) return null;
             
             const Icon = item.icon;
             return (

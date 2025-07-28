@@ -11,12 +11,12 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [_logoutLoading, setLogoutLoading] = useState(false);
 
 
   useEffect(() => {
     checkAuthStatus();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkAuthStatus = () => {
     const token = AuthService.getStoredToken(env.STORAGE_KEYS.ACCESS_TOKEN);
@@ -37,7 +37,7 @@ export default function DashboardPage() {
     try {
       const user = JSON.parse(userData);
       setUser(user);
-    } catch (error) {
+    } catch (_error) {
       handleLogout('Invalid user data. Please login again.');
     } finally {
       setLoading(false);
@@ -59,8 +59,8 @@ export default function DashboardPage() {
           },
         });
       }
-    } catch (error) {
-      console.error('Logout API call failed:', error);
+    } catch (_error) {
+      console.error('Logout API call failed:', _error);
     } finally {
       // Clear all auth data
       AuthService.clearAuthTokens();

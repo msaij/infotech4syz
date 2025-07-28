@@ -95,7 +95,7 @@ export default function FourSyzLayout({
 
   useEffect(() => {
     validateUser()
-  }, [pathname]) // Removed router from dependencies to prevent unnecessary re-runs
+  }, [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Show loading while validating
   if (isLoading) {

@@ -34,9 +34,9 @@ interface CreateUserResponse {
 
 export default function CreateUserPage() {
   const router = useRouter();
-  const [user, setUser] = useState<UserData | null>(null);
-  const [canCreateUser, setCanCreateUser] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [_user, setUser] = useState<UserData | null>(null);
+  const [_canCreateUser, setCanCreateUser] = useState(false);
+  const [_loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<CreateUserForm>({
     username: '',
     email: '',
@@ -53,7 +53,7 @@ export default function CreateUserPage() {
 
   useEffect(() => {
     checkUserPermissions();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkUserPermissions = async () => {
     try {
@@ -165,7 +165,7 @@ export default function CreateUserPage() {
       } else {
         setMessage({ type: 'error', text: data.message || 'Failed to create user' });
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
       setSubmitLoading(false);

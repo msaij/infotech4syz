@@ -18,9 +18,9 @@ interface NavigationContextType {
   breadcrumbs: BreadcrumbItem[];
   
   // Permission state
-  navigationItems: NavigationItem[];
-  quickActions: NavigationItem[];
-  userMenuItems: NavigationItem[];
+  navigationItems: (NavigationItem & { hasAccess: boolean; loading: boolean; error?: string })[];
+  quickActions: (NavigationItem & { hasAccess: boolean; loading: boolean; error?: string })[];
+  userMenuItems: (NavigationItem & { hasAccess: boolean; loading: boolean; error?: string })[];
   accessibleItems: NavigationItem[];
   accessibleQuickActions: NavigationItem[];
   accessibleUserMenuItems: NavigationItem[];

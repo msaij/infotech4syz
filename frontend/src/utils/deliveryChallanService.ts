@@ -132,7 +132,7 @@ class DeliveryChallanService {
   private getHeadersWithCSRF(): HeadersInit {
     const headers = this.getHeaders()
     if (this.csrfToken) {
-      (headers as any)['X-CSRF-Token'] = this.csrfToken
+      (headers as Record<string, string>)['X-CSRF-Token'] = this.csrfToken
     }
     return headers
   }
@@ -171,8 +171,8 @@ class DeliveryChallanService {
       }
 
       return await response.json()
-    } catch (error: any) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server')
       }
       throw error
@@ -192,8 +192,8 @@ class DeliveryChallanService {
       }
 
       return await response.json()
-    } catch (error: any) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server')
       }
       throw error
@@ -230,8 +230,8 @@ class DeliveryChallanService {
 
       const result = await response.json()
       return result.delivery_challan
-    } catch (error: any) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server')
       }
       throw error
@@ -255,8 +255,8 @@ class DeliveryChallanService {
 
       const result = await response.json()
       return result.delivery_challan
-    } catch (error: any) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server')
       }
       throw error
@@ -276,8 +276,8 @@ class DeliveryChallanService {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.detail || `Failed to delete delivery challan: ${response.statusText}`)
       }
-    } catch (error: any) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server')
       }
       throw error
@@ -298,8 +298,8 @@ class DeliveryChallanService {
 
       const result: ClientListResponse = await response.json()
       return result.clients
-    } catch (error: any) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server')
       }
       throw error
@@ -330,8 +330,8 @@ class DeliveryChallanService {
       }
 
       return await response.json()
-    } catch (error: any) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server')
       }
       throw error
@@ -366,8 +366,8 @@ class DeliveryChallanService {
       }
 
       return await response.json()
-    } catch (error: any) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server')
       }
       throw error
@@ -375,7 +375,7 @@ class DeliveryChallanService {
   }
 
   // Helper method to check if user has write access
-  static isDeliveryChallanManager(userData: any): boolean {
+  static isDeliveryChallanManager(userData: { designation?: string }): boolean {
     const allowedRoles = ['admin', 'ceo', 'DC_tracker_manager']
     return allowedRoles.includes(userData.designation?.toLowerCase())
   }
