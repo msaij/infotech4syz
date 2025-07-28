@@ -5,7 +5,16 @@ from datetime import datetime, date
 import os
 import uuid
 from database import get_async_database
-from .delivery_challan_auth import get_delivery_challan_user, get_delivery_challan_manager, is_delivery_challan_manager
+from .permission_dependencies import (
+    require_delivery_challan_create,
+    require_delivery_challan_read,
+    require_delivery_challan_update,
+    require_delivery_challan_delete,
+    require_delivery_challan_list,
+    require_delivery_challan_upload,
+    require_delivery_challan_link_invoice,
+    require_client_read
+)
 from .csrf_utils import generate_csrf_token, require_csrf_token
 from utils.delivery_challan_utils import (
     generate_delivery_challan_number, 
@@ -35,7 +44,7 @@ UPLOAD_DIR = "uploads/delivery_challan"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @delivery_challan_router.get("/csrf-token")
-async def get_csrf_token(current_user: dict = Depends(get_delivery_challan_manager)):
+async def get_csrf_token(current_user: dict = Depends(require_delivery_challan_read())):
     """Get CSRF token for delivery challan operations"""
     csrf_token = generate_csrf_token(current_user['id'])
     
@@ -46,7 +55,7 @@ async def get_csrf_token(current_user: dict = Depends(get_delivery_challan_manag
     }
 
 @delivery_challan_router.get("/clients", response_model=ClientListResponse)
-async def get_clients(current_user: dict = Depends(get_delivery_challan_user)):
+async def get_clients(current_user: dict = Depends(require_client_read())):
     """Get list of available clients from client_details collection"""
     try:
         db = await get_async_database()
@@ -82,7 +91,7 @@ async def get_delivery_challans(
     end_date: Optional[str] = Query(None, description="End date in DD/MM/YYYY format"),
     client_name: Optional[str] = Query(None, description="Filter by client name"),
     invoice_submission_status: Optional[str] = Query(None, description="Filter by invoice submission status"),
-    current_user: dict = Depends(get_delivery_challan_user)
+    current_user: dict = Depends(require_delivery_challan_list())
 ):
     """Get all delivery challans with optional filters"""
     try:
@@ -149,7 +158,7 @@ async def get_delivery_challans(
 @delivery_challan_router.get("/{challan_id}", response_model=DeliveryChallanTrackerResponse)
 async def get_delivery_challan(
     challan_id: str,
-    current_user: dict = Depends(get_delivery_challan_user)
+    current_user: dict = Depends(require_delivery_challan_read())
 ):
     """Get a specific delivery challan by ID"""
     if not ObjectId.is_valid(challan_id):
@@ -176,7 +185,7 @@ async def get_delivery_challan(
 @delivery_challan_router.post("/", response_model=DeliveryChallanTrackerCreateResponse)
 async def create_delivery_challan(
     challan_data: DeliveryChallanTrackerCreate,
-    current_user: dict = Depends(get_delivery_challan_manager),
+    current_user: dict = Depends(require_delivery_challan_create()),
     x_csrf_token: str = Header(..., alias="X-CSRF-Token")
 ):
     """Create a new delivery challan (Manager only with CSRF protection)"""
@@ -248,7 +257,7 @@ async def create_delivery_challan(
 async def update_delivery_challan(
     challan_id: str,
     challan_data: DeliveryChallanTrackerUpdate,
-    current_user: dict = Depends(get_delivery_challan_manager),
+    current_user: dict = Depends(require_delivery_challan_update()),
     x_csrf_token: str = Header(..., alias="X-CSRF-Token")
 ):
     """Update a delivery challan (Manager only with CSRF protection)"""
@@ -325,7 +334,7 @@ async def update_delivery_challan(
 @delivery_challan_router.delete("/{challan_id}", response_model=DeliveryChallanTrackerDeleteResponse)
 async def delete_delivery_challan(
     challan_id: str,
-    current_user: dict = Depends(get_delivery_challan_manager),
+    current_user: dict = Depends(require_delivery_challan_delete()),
     x_csrf_token: str = Header(..., alias="X-CSRF-Token")
 ):
     """Delete a delivery challan (Manager only with CSRF protection)"""
@@ -368,7 +377,7 @@ async def delete_delivery_challan(
 @delivery_challan_router.post("/upload-file", response_model=FileUploadResponse)
 async def upload_file(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_delivery_challan_manager),
+    current_user: dict = Depends(require_delivery_challan_upload()),
     x_csrf_token: str = Header(..., alias="X-CSRF-Token")
 ):
     """Upload signed acknowledgement copy file (Manager only with CSRF protection)"""
@@ -418,7 +427,7 @@ async def upload_file(
 @delivery_challan_router.post("/link-invoice", response_model=InvoiceLinkResponse)
 async def link_invoice(
     link_data: InvoiceLinkRequest,
-    current_user: dict = Depends(get_delivery_challan_manager),
+    current_user: dict = Depends(require_delivery_challan_link_invoice()),
     x_csrf_token: str = Header(..., alias="X-CSRF-Token")
 ):
     """Link multiple delivery challans to a single invoice (Manager only with CSRF protection)"""

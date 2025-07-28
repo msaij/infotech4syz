@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from auth.routes import auth_router
 from auth.client_routes import client_router
 from auth.delivery_challan_routes import delivery_challan_router
+from auth.permission_routes import permission_router
 import os
 from dotenv import load_dotenv
 
@@ -23,6 +24,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/auth")
 app.include_router(client_router, prefix="/clients")
 app.include_router(delivery_challan_router, prefix="/delivery-challan")
+app.include_router(permission_router, prefix="/permissions", tags=["Permission Management"])
 
 @app.get("/")
 async def root():

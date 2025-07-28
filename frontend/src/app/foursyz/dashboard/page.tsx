@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService, UserData } from '@/utils/auth';
-import { ClientService } from '@/utils/clientService';
-import DeliveryChallanService from '@/utils/deliveryChallanService';
+import { PolicyService } from '@/utils/policyService';
 import { env } from '@/config/env';
 
 export default function DashboardPage() {
@@ -12,8 +11,12 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const [isCEO, setIsCEO] = useState(false);
-  const [isManager, setIsManager] = useState(false);
+  const [permissions, setPermissions] = useState({
+    canManageClients: false,
+    canManageDeliveryChallans: false,
+    canManageUsers: false,
+    canManagePolicies: false
+  });
 
   useEffect(() => {
     checkAuthStatus();
@@ -38,8 +41,9 @@ export default function DashboardPage() {
     try {
       const user = JSON.parse(userData);
       setUser(user);
-      setIsCEO(ClientService.isCEOUser(user));
-      setIsManager(DeliveryChallanService.isDeliveryChallanManager(user));
+      
+      // Check all permissions using policy-based system
+      checkAllPermissions(user);
     } catch (error) {
       handleLogout('Invalid user data. Please login again.');
     } finally {
@@ -47,7 +51,53 @@ export default function DashboardPage() {
     }
   };
 
+  const checkAllPermissions = async (userData: UserData) => {
+    try {
+      // Check client management permissions
+      const clientPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.CLIENT_CREATE,
+        resource: env.PERMISSIONS.RESOURCES.CLIENT_ALL
+      });
 
+      // Check delivery challan management permissions
+      const deliveryChallanPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_CREATE,
+        resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
+      });
+
+      // Check user management permissions
+      const userPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.USER_CREATE,
+        resource: env.PERMISSIONS.RESOURCES.USER_ALL
+      });
+
+      // Check policy management permissions
+      const policyPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.PERMISSIONS_READ,
+        resource: env.PERMISSIONS.RESOURCES.PERMISSIONS_ALL
+      });
+
+      setPermissions({
+        canManageClients: clientPermission.allowed,
+        canManageDeliveryChallans: deliveryChallanPermission.allowed,
+        canManageUsers: userPermission.allowed,
+        canManagePolicies: policyPermission.allowed
+      });
+    } catch (error) {
+      console.error('Failed to check permissions:', error);
+      // Set all permissions to false on error
+      setPermissions({
+        canManageClients: false,
+        canManageDeliveryChallans: false,
+        canManageUsers: false,
+        canManagePolicies: false
+      });
+    }
+  };
 
   const handleLogout = async (message?: string) => {
     setLogoutLoading(true);
@@ -56,7 +106,7 @@ export default function DashboardPage() {
       const token = AuthService.getStoredToken(env.STORAGE_KEYS.ACCESS_TOKEN);
       if (token) {
         // Call logout endpoint to blacklist token
-        await fetch(`${env.API_BASE_URL}${env.AUTH_ENDPOINTS.LOGOUT}`, {
+        await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.AUTH_ENDPOINTS.LOGOUT}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -112,11 +162,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">FourSyz Dashboard</h1>
-              {isCEO && (
-                <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  CEO
-                </span>
-              )}
+              {/* Removed role-based badges as they are no longer used */}
             </div>
             <div className="flex items-center space-x-4">
               <button
@@ -200,7 +246,7 @@ export default function DashboardPage() {
                 Create New User
               </button>
               
-              {isCEO && (
+              {permissions.canManageClients && (
                 <button
                   onClick={() => router.push(env.ROUTES.CLIENT_DETAILS)}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -209,12 +255,21 @@ export default function DashboardPage() {
                 </button>
               )}
               
-              {isManager && (
+              {permissions.canManageDeliveryChallans && (
                 <button
                   onClick={() => router.push(env.ROUTES.DELIVERY_CHALLAN_TRACKER)}
                   className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   Delivery Challan Tracker
+                </button>
+              )}
+
+              {permissions.canManagePolicies && (
+                <button
+                  onClick={() => router.push(env.ROUTES.POLICY_MANAGEMENT)}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  Policy Management
                 </button>
               )}
             </div>

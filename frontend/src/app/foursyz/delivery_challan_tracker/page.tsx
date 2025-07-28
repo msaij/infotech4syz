@@ -8,6 +8,7 @@ import DeliveryChallanService, {
   DeliveryChallanCreate 
 } from '@/utils/deliveryChallanService'
 import { AuthService } from '@/utils/auth'
+import { PolicyService } from '@/utils/policyService'
 import { env } from '@/config/env'
 
 export default function DeliveryChallanTrackerPage() {
@@ -17,7 +18,14 @@ export default function DeliveryChallanTrackerPage() {
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [userData, setUserData] = useState<any>(null)
-  const [isManager, setIsManager] = useState(false)
+  const [permissions, setPermissions] = useState({
+    canCreateChallan: false,
+    canUpdateChallan: false,
+    canDeleteChallan: false,
+    canReadChallan: false,
+    canUploadFile: false,
+    canLinkInvoice: false
+  })
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showLinkInvoiceForm, setShowLinkInvoiceForm] = useState(false)
   const [selectedChallans, setSelectedChallans] = useState<string[]>([])
@@ -90,47 +98,87 @@ export default function DeliveryChallanTrackerPage() {
 
       const user = JSON.parse(userDataString)
       setUserData(user)
-      setIsManager(DeliveryChallanService.isDeliveryChallanManager(user))
+      
+      // Check delivery challan permissions using policy-based system
+      await checkDeliveryChallanPermissions(user)
       
       // Load clients for dropdown
       try {
         const deliveryChallanService = new DeliveryChallanService()
         const clientsList = await deliveryChallanService.getClients()
         setClients(clientsList)
-                 } catch (clientError: any) {
-             console.error('Error loading clients:', clientError)
-             let errorMessage = 'Failed to load client list'
-             
-             if (clientError?.message) {
-               errorMessage = clientError.message
-             } else if (typeof clientError === 'string') {
-               errorMessage = clientError
-             } else if (clientError && typeof clientError === 'object') {
-               errorMessage = JSON.stringify(clientError)
-             }
-             
-             setError(`Client loading error: ${errorMessage}`)
-             // Set empty array as fallback
-             setClients([])
-           }
-      
+      } catch (clientError: any) {
+        console.error('Failed to load clients:', clientError)
+        // Don't fail the entire page load for client loading error
+      }
+    } catch (error: any) {
+      console.error('Error checking user:', error)
+      setError('Failed to validate user')
+    } finally {
       setLoading(false)
-             } catch (error: any) {
-           console.error('Error checking user:', error)
-           let errorMessage = 'Failed to validate user'
-           
-           if (error?.message) {
-             errorMessage = error.message
-           } else if (typeof error === 'string') {
-             errorMessage = error
-           } else if (error && typeof error === 'object') {
-             errorMessage = JSON.stringify(error)
-           }
-           
-           setError(`User validation error: ${errorMessage}`)
-           setLoading(false)
-         }
+    }
   }
+
+  const checkDeliveryChallanPermissions = async (userData: any) => {
+    try {
+      // Check all delivery challan-related permissions
+      const createPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_CREATE,
+        resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
+      });
+
+      const readPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_READ,
+        resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
+      });
+
+      const updatePermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_UPDATE,
+        resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
+      });
+
+      const deletePermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_DELETE,
+        resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
+      });
+
+      const uploadPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_UPLOAD,
+        resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
+      });
+
+      const linkInvoicePermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_LINK_INVOICE,
+        resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
+      });
+
+      setPermissions({
+        canCreateChallan: createPermission.allowed,
+        canReadChallan: readPermission.allowed,
+        canUpdateChallan: updatePermission.allowed,
+        canDeleteChallan: deletePermission.allowed,
+        canUploadFile: uploadPermission.allowed,
+        canLinkInvoice: linkInvoicePermission.allowed
+      });
+    } catch (error) {
+      console.error('Failed to check delivery challan permissions:', error);
+      // Set all permissions to false on error
+      setPermissions({
+        canCreateChallan: false,
+        canReadChallan: false,
+        canUpdateChallan: false,
+        canDeleteChallan: false,
+        canUploadFile: false,
+        canLinkInvoice: false
+      });
+    }
+  };
 
   const loadDeliveryChallans = async () => {
     try {
@@ -372,28 +420,28 @@ export default function DeliveryChallanTrackerPage() {
               </p>
             </div>
             <div className="flex space-x-3">
-              {isManager && (
-                <>
-                  <button
-                    onClick={() => setShowCreateForm(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    Create Challan
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowLinkInvoiceForm(true)
-                      setLinkInvoiceData(prev => ({
-                        ...prev,
-                        invoice_date: new Date().toISOString().split('T')[0] // Set to today
-                      }))
-                    }}
-                    disabled={selectedChallans.length === 0}
-                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Link to Invoice
-                  </button>
-                </>
+              {permissions.canCreateChallan && (
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Create Challan
+                </button>
+              )}
+              {permissions.canLinkInvoice && (
+                <button
+                  onClick={() => {
+                    setShowLinkInvoiceForm(true)
+                    setLinkInvoiceData(prev => ({
+                      ...prev,
+                      invoice_date: new Date().toISOString().split('T')[0] // Set to today
+                    }))
+                  }}
+                  disabled={selectedChallans.length === 0}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Link to Invoice
+                </button>
               )}
             </div>
           </div>
@@ -541,7 +589,7 @@ export default function DeliveryChallanTrackerPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  {isManager && (
+                  {permissions.canReadChallan && (
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Select
                     </th>
@@ -567,7 +615,7 @@ export default function DeliveryChallanTrackerPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Invoice Status
                   </th>
-                  {isManager && (
+                  {permissions.canReadChallan && (
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
@@ -577,7 +625,7 @@ export default function DeliveryChallanTrackerPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {deliveryChallans.map((challan) => (
                   <tr key={challan.id} className="hover:bg-gray-50">
-                    {isManager && (
+                    {permissions.canReadChallan && (
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
                           type="checkbox"
@@ -614,14 +662,16 @@ export default function DeliveryChallanTrackerPage() {
                         {challan.invoice_submission_status}
                       </span>
                     </td>
-                    {isManager && (
+                    {permissions.canReadChallan && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => handleDeleteChallan(challan.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
+                        {permissions.canDeleteChallan && (
+                          <button
+                            onClick={() => handleDeleteChallan(challan.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </td>
                     )}
                   </tr>
@@ -760,12 +810,17 @@ export default function DeliveryChallanTrackerPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Signed Acknowledgement Copy
                     </label>
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
-                    />
+                    {permissions.canUploadFile && (
+                      <input
+                        type="file"
+                        onChange={handleFileChange}
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
+                      />
+                    )}
+                    {!permissions.canUploadFile && (
+                      <p className="text-sm text-gray-500">You do not have permission to upload files.</p>
+                    )}
                   </div>
                   
                   <div>

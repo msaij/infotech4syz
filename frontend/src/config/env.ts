@@ -13,7 +13,8 @@ export const env = {
     DASHBOARD: '/foursyz/dashboard',
     CLIENT_DETAILS: '/foursyz/client_details',
     CREATE_USER: '/foursyz/create_user4syz',
-    DELIVERY_CHALLAN_TRACKER: '/foursyz/delivery_challan_tracker'
+    DELIVERY_CHALLAN_TRACKER: '/foursyz/delivery_challan_tracker',
+    POLICY_MANAGEMENT: '/foursyz/policy_management'
   },
   
   // Storage keys
@@ -54,6 +55,15 @@ export const env = {
       CLIENTS: '/delivery-challan/clients',
       UPLOAD_FILE: '/delivery-challan/upload-file',
       LINK_INVOICE: '/delivery-challan/link-invoice'
+    },
+    POLICY_ENDPOINTS: {
+      POLICIES: '/permissions/policies',
+      POLICY_ASSIGNMENTS: '/permissions/users',
+      EVALUATE: '/permissions/evaluate',
+      INITIALIZE: '/permissions/initialize',
+      MIGRATE: '/permissions/migrate',
+      CLEANUP: '/permissions/cleanup/expired',
+      HEALTH: '/permissions/health'
     }
   },
   
@@ -76,5 +86,45 @@ export const env = {
     CEO: 'ceo',
     ADMIN: 'admin',
     DC_TRACKER_MANAGER: 'DC_tracker_manager'
+  },
+
+  // Permission actions and resources
+  PERMISSIONS: {
+    ACTIONS: {
+      AUTH_LOGIN: 'auth:login',
+      AUTH_LOGOUT: 'auth:logout',
+      AUTH_REFRESH: 'auth:refresh',
+      AUTH_ME: 'auth:me',
+      USER_CREATE: 'user:create',
+      USER_READ: 'user:read',
+      USER_UPDATE: 'user:update',
+      USER_DELETE: 'user:delete',
+      USER_LIST: 'user:list',
+      CLIENT_CREATE: 'client:create',
+      CLIENT_READ: 'client:read',
+      CLIENT_UPDATE: 'client:update',
+      CLIENT_DELETE: 'client:delete',
+      CLIENT_LIST: 'client:list',
+      DELIVERY_CHALLAN_CREATE: 'delivery_challan:create',
+      DELIVERY_CHALLAN_READ: 'delivery_challan:read',
+      DELIVERY_CHALLAN_UPDATE: 'delivery_challan:update',
+      DELIVERY_CHALLAN_DELETE: 'delivery_challan:delete',
+      DELIVERY_CHALLAN_LIST: 'delivery_challan:list',
+      DELIVERY_CHALLAN_UPLOAD: 'delivery_challan:upload',
+      DELIVERY_CHALLAN_LINK_INVOICE: 'delivery_challan:link_invoice',
+      PERMISSIONS_CREATE: 'permissions:create',
+      PERMISSIONS_READ: 'permissions:read',
+      PERMISSIONS_UPDATE: 'permissions:update',
+      PERMISSIONS_DELETE: 'permissions:delete',
+      PERMISSIONS_ASSIGN: 'permissions:assign'
+    },
+    RESOURCES: {
+      AUTH_ALL: 'auth:*',
+      USER_ALL: 'user:*',
+      CLIENT_ALL: 'client:*',
+      DELIVERY_CHALLAN_ALL: 'delivery_challan:*',
+      DELIVERY_CHALLAN_FILE: 'delivery_challan:file',
+      PERMISSIONS_ALL: 'permissions:*'
+    }
   }
 } 

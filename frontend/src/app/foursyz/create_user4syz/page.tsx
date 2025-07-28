@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AuthService, UserData } from '@/utils/auth';
+import { PolicyService } from '@/utils/policyService';
 import { env } from '@/config/env';
 
 interface CreateUserForm {
@@ -30,6 +33,10 @@ interface CreateUserResponse {
 }
 
 export default function CreateUserPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<UserData | null>(null);
+  const [canCreateUser, setCanCreateUser] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<CreateUserForm>({
     username: '',
     email: '',
@@ -41,8 +48,52 @@ export default function CreateUserPage() {
     notes: ''
   });
 
-  const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  useEffect(() => {
+    checkUserPermissions();
+  }, []);
+
+  const checkUserPermissions = async () => {
+    try {
+      // Get user data from AuthService
+      const token = AuthService.getStoredToken(env.STORAGE_KEYS.ACCESS_TOKEN);
+      if (!token) {
+        router.push(env.ROUTES.LOGIN);
+        return;
+      }
+
+      const userData = await AuthService.validateUser(token);
+      if (!userData || !AuthService.isValidUser(userData)) {
+        router.push(env.ROUTES.LOGIN);
+        return;
+      }
+
+      setUser(userData);
+      
+      // Check if user has permission to create users
+      const createUserPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.USER_CREATE,
+        resource: env.PERMISSIONS.RESOURCES.USER_ALL
+      });
+
+      setCanCreateUser(createUserPermission.allowed);
+
+      if (!createUserPermission.allowed) {
+        // Redirect users without permission to dashboard
+        router.push(env.ROUTES.DASHBOARD);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking user permissions:', error);
+      setMessage({ type: 'error', text: 'Failed to verify user permissions' });
+      router.push(env.ROUTES.DASHBOARD);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -81,7 +132,7 @@ export default function CreateUserPage() {
       return;
     }
 
-    setLoading(true);
+    setSubmitLoading(true);
     setMessage(null);
 
     try {
@@ -117,7 +168,7 @@ export default function CreateUserPage() {
     } catch (error) {
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
     }
   };
 
@@ -282,10 +333,10 @@ export default function CreateUserPage() {
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={submitLoading}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Creating...' : 'Create User'}
+                {submitLoading ? 'Creating...' : 'Create User'}
               </button>
             </div>
           </form>

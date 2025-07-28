@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ClientService, ClientData, CreateClientData } from '@/utils/clientService'
 import { AuthService, UserData } from '@/utils/auth'
+import { PolicyService } from '@/utils/policyService'
 import { env } from '@/config/env'
 
 export default function ClientDetailsPage() {
@@ -11,7 +12,12 @@ export default function ClientDetailsPage() {
   const [clients, setClients] = useState<ClientData[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<UserData | null>(null)
-  const [isCEO, setIsCEO] = useState(false)
+  const [permissions, setPermissions] = useState({
+    canCreateClient: false,
+    canUpdateClient: false,
+    canDeleteClient: false,
+    canReadClient: false
+  })
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -50,14 +56,14 @@ export default function ClientDetailsPage() {
 
       setUser(userData)
       
-      // Check if user is CEO
-      const isCEOUser = ClientService.isCEOUser(userData)
-      setIsCEO(isCEOUser)
+      // Check client management permissions using policy-based system
+      await checkClientPermissions(userData)
 
-      if (isCEOUser) {
+      // Load clients if user has read permission
+      if (permissions.canReadClient) {
         await loadClients()
       } else {
-        // Redirect non-CEO users to dashboard
+        // Redirect users without read permission to dashboard
         router.push(env.ROUTES.DASHBOARD)
         return
       }
@@ -68,6 +74,51 @@ export default function ClientDetailsPage() {
       setLoading(false)
     }
   }
+
+  const checkClientPermissions = async (userData: UserData) => {
+    try {
+      // Check all client-related permissions
+      const createPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.CLIENT_CREATE,
+        resource: env.PERMISSIONS.RESOURCES.CLIENT_ALL
+      });
+
+      const readPermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.CLIENT_READ,
+        resource: env.PERMISSIONS.RESOURCES.CLIENT_ALL
+      });
+
+      const updatePermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.CLIENT_UPDATE,
+        resource: env.PERMISSIONS.RESOURCES.CLIENT_ALL
+      });
+
+      const deletePermission = await PolicyService.evaluatePermission({
+        user_id: userData.id,
+        action: env.PERMISSIONS.ACTIONS.CLIENT_DELETE,
+        resource: env.PERMISSIONS.RESOURCES.CLIENT_ALL
+      });
+
+      setPermissions({
+        canCreateClient: createPermission.allowed,
+        canReadClient: readPermission.allowed,
+        canUpdateClient: updatePermission.allowed,
+        canDeleteClient: deletePermission.allowed
+      });
+    } catch (error) {
+      console.error('Failed to check client permissions:', error);
+      // Set all permissions to false on error
+      setPermissions({
+        canCreateClient: false,
+        canReadClient: false,
+        canUpdateClient: false,
+        canDeleteClient: false
+      });
+    }
+  };
 
   const loadClients = async () => {
     try {
@@ -156,7 +207,7 @@ export default function ClientDetailsPage() {
   }
 
   // Early return for non-CEO users to prevent any content rendering
-  if (!isCEO) {
+  if (!permissions.canReadClient) {
     return null
   }
 

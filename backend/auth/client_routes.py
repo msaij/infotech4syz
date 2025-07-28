@@ -2,7 +2,13 @@ from fastapi import APIRouter, HTTPException, status, Depends, Header
 from typing import Optional
 from bson import ObjectId
 from database import get_async_database
-from .ceo_auth import get_ceo_user
+from .permission_dependencies import (
+    require_client_create,
+    require_client_read,
+    require_client_update,
+    require_client_delete,
+    require_client_list
+)
 from .csrf_utils import generate_csrf_token, require_csrf_token
 from models.foursyz.client_details import (
     ClientDetailsCreate,
@@ -24,7 +30,7 @@ def capitalize_words(text: str) -> str:
     return ' '.join(word.capitalize() for word in text.split())
 
 @client_router.get("/csrf-token", response_model=CSRFResponse)
-async def get_csrf_token(current_user: dict = Depends(get_ceo_user)):
+async def get_csrf_token(current_user: dict = Depends(require_client_read())):
     """Get CSRF token for client operations"""
     csrf_token = generate_csrf_token(current_user['id'])
     return {
@@ -37,9 +43,9 @@ async def get_csrf_token(current_user: dict = Depends(get_ceo_user)):
 async def get_clients(
     skip: int = 0,
     limit: int = 100,
-    current_user: dict = Depends(get_ceo_user)
+    current_user: dict = Depends(require_client_list())
 ):
-    """Get all clients (CEO only)"""
+    """Get all clients"""
     db = await get_async_database()
     collection = db.client_details
     
@@ -65,9 +71,9 @@ async def get_clients(
 @client_router.get("/{client_id}", response_model=ClientDetailsResponse)
 async def get_client(
     client_id: str,
-    current_user: dict = Depends(get_ceo_user)
+    current_user: dict = Depends(require_client_read())
 ):
-    """Get a specific client by ID (CEO only)"""
+    """Get a specific client by ID"""
     if not ObjectId.is_valid(client_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -92,10 +98,10 @@ async def get_client(
 @client_router.post("/", response_model=ClientDetailsCreateResponse)
 async def create_client(
     client_data: ClientDetailsCreate,
-    current_user: dict = Depends(get_ceo_user),
+    current_user: dict = Depends(require_client_create()),
     x_csrf_token: str = Header(..., alias="X-CSRF-Token")
 ):
-    """Create a new client (CEO only with CSRF protection)"""
+    """Create a new client with CSRF protection"""
     # Validate CSRF token
     require_csrf_token(x_csrf_token, current_user['id'])
     
@@ -138,10 +144,10 @@ async def create_client(
 async def update_client(
     client_id: str,
     client_data: ClientDetailsUpdate,
-    current_user: dict = Depends(get_ceo_user),
+    current_user: dict = Depends(require_client_update()),
     x_csrf_token: str = Header(..., alias="X-CSRF-Token")
 ):
-    """Update a client (CEO only with CSRF protection)"""
+    """Update a client with CSRF protection"""
     # Validate CSRF token
     require_csrf_token(x_csrf_token, current_user['id'])
     
@@ -212,10 +218,10 @@ async def update_client(
 @client_router.delete("/{client_id}", response_model=ClientDetailsDeleteResponse)
 async def delete_client(
     client_id: str,
-    current_user: dict = Depends(get_ceo_user),
+    current_user: dict = Depends(require_client_delete()),
     x_csrf_token: str = Header(..., alias="X-CSRF-Token")
 ):
-    """Delete a client (CEO only with CSRF protection)"""
+    """Delete a client with CSRF protection"""
     # Validate CSRF token
     require_csrf_token(x_csrf_token, current_user['id'])
     
