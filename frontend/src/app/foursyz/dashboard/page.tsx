@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService, UserData } from '@/utils/auth';
-import { PolicyService } from '@/utils/policyService';
+
+import { QuickActions } from '@/components/navigation/QuickActions';
 import { env } from '@/config/env';
 
 export default function DashboardPage() {
@@ -11,12 +12,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const [permissions, setPermissions] = useState({
-    canManageClients: false,
-    canManageDeliveryChallans: false,
-    canManageUsers: false,
-    canManagePolicies: false
-  });
+
 
   useEffect(() => {
     checkAuthStatus();
@@ -41,61 +37,10 @@ export default function DashboardPage() {
     try {
       const user = JSON.parse(userData);
       setUser(user);
-      
-      // Check all permissions using policy-based system
-      checkAllPermissions(user);
     } catch (error) {
       handleLogout('Invalid user data. Please login again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const checkAllPermissions = async (userData: UserData) => {
-    try {
-      // Check client management permissions
-      const clientPermission = await PolicyService.evaluatePermission({
-        user_id: userData.id,
-        action: env.PERMISSIONS.ACTIONS.CLIENT_CREATE,
-        resource: env.PERMISSIONS.RESOURCES.CLIENT_ALL
-      });
-
-      // Check delivery challan management permissions
-      const deliveryChallanPermission = await PolicyService.evaluatePermission({
-        user_id: userData.id,
-        action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_CREATE,
-        resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
-      });
-
-      // Check user management permissions
-      const userPermission = await PolicyService.evaluatePermission({
-        user_id: userData.id,
-        action: env.PERMISSIONS.ACTIONS.USER_CREATE,
-        resource: env.PERMISSIONS.RESOURCES.USER_ALL
-      });
-
-      // Check policy management permissions
-      const policyPermission = await PolicyService.evaluatePermission({
-        user_id: userData.id,
-        action: env.PERMISSIONS.ACTIONS.PERMISSIONS_READ,
-        resource: env.PERMISSIONS.RESOURCES.PERMISSIONS_ALL
-      });
-
-      setPermissions({
-        canManageClients: clientPermission.allowed,
-        canManageDeliveryChallans: deliveryChallanPermission.allowed,
-        canManageUsers: userPermission.allowed,
-        canManagePolicies: policyPermission.allowed
-      });
-    } catch (error) {
-      console.error('Failed to check permissions:', error);
-      // Set all permissions to false on error
-      setPermissions({
-        canManageClients: false,
-        canManageDeliveryChallans: false,
-        canManageUsers: false,
-        canManagePolicies: false
-      });
     }
   };
 
@@ -155,31 +100,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">FourSyz Dashboard</h1>
-              {/* Removed role-based badges as they are no longer used */}
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => handleLogout()}
-                disabled={logoutLoading}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
-              >
-                {logoutLoading ? 'Logging out...' : 'Logout'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+    <div>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">User Information</h2>
             
@@ -235,47 +157,7 @@ export default function DashboardPage() {
             )}
           </div>
           
-          {/* Quick Actions */}
-          <div className="mt-6 bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div className="flex flex-wrap gap-4">
-              <button
-                onClick={() => router.push('/foursyz/create_user4syz')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Create New User
-              </button>
-              
-              {permissions.canManageClients && (
-                <button
-                  onClick={() => router.push(env.ROUTES.CLIENT_DETAILS)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  Manage Clients
-                </button>
-              )}
-              
-              {permissions.canManageDeliveryChallans && (
-                <button
-                  onClick={() => router.push(env.ROUTES.DELIVERY_CHALLAN_TRACKER)}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  Delivery Challan Tracker
-                </button>
-              )}
-
-              {permissions.canManagePolicies && (
-                <button
-                  onClick={() => router.push(env.ROUTES.POLICY_MANAGEMENT)}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  Policy Management
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </main>
+          <QuickActions />
     </div>
   );
 }

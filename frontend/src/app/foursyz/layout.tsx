@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { AuthService, UserData } from '@/utils/auth'
-import { ClientService } from '@/utils/clientService'
-import DeliveryChallanService from '@/utils/deliveryChallanService'
+import { NavigationProvider } from '@/contexts/NavigationContext'
+import { DynamicNavigation } from '@/components/navigation/DynamicNavigation'
+import { NavigationErrorBoundary } from '@/components/navigation/NavigationErrorBoundary'
+import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { env } from '@/config/env'
 
 export default function FourSyzLayout({
@@ -20,8 +22,6 @@ export default function FourSyzLayout({
 
   const validateUser = async () => {
     const token = AuthService.getStoredToken(env.STORAGE_KEYS.ACCESS_TOKEN)
-    
-
     
     // If no token and not on login page, redirect to login
     if (!token) {
@@ -52,16 +52,6 @@ export default function FourSyzLayout({
       setIsValidUser(true)
       setUserData(userData)
       
-      // Check role-based access for specific routes
-      if (pathname === env.ROUTES.CLIENT_DETAILS) {
-        if (!ClientService.isCEOUser(userData)) {
-          // Non-CEO users trying to access client_details should be redirected
-          router.push(env.ROUTES.DASHBOARD)
-          setIsLoading(false)
-          return
-        }
-      }
-      
       // If on login page and valid user, redirect to dashboard
       if (pathname === env.ROUTES.LOGIN) {
         router.push(env.ROUTES.DASHBOARD)
@@ -75,6 +65,32 @@ export default function FourSyzLayout({
     }
     
     setIsLoading(false)
+  }
+
+  const handleLogout = async () => {
+    try {
+      const token = AuthService.getStoredToken(env.STORAGE_KEYS.ACCESS_TOKEN)
+      if (token) {
+        // Call logout endpoint to blacklist token
+        await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.AUTH_ENDPOINTS.LOGOUT}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+      }
+    } catch (error) {
+      console.error('Logout API call failed:', error)
+    } finally {
+      // Clear all auth data
+      AuthService.clearAuthTokens()
+      localStorage.removeItem('user')
+      localStorage.removeItem('isLoggedIn')
+      localStorage.removeItem('tokenExpiration')
+      
+      router.push(env.ROUTES.LOGIN)
+    }
   }
 
   useEffect(() => {
@@ -93,14 +109,30 @@ export default function FourSyzLayout({
     )
   }
 
-  // For non-CEO users trying to access client_details, don't render anything
-  if (pathname === env.ROUTES.CLIENT_DETAILS && userData && !ClientService.isCEOUser(userData)) {
-    return null
-  }
-
   // Show children if user is valid or on login page
   if (isValidUser || pathname === env.ROUTES.LOGIN) {
-    return <>{children}</>
+    return (
+      <NavigationProvider user={userData}>
+        {pathname === env.ROUTES.LOGIN ? (
+          <>{children}</>
+        ) : (
+          <NavigationErrorBoundary user={userData!} onLogout={handleLogout}>
+            <div className="min-h-screen bg-gray-50">
+              <DynamicNavigation 
+                user={userData!} 
+                onLogout={handleLogout} 
+              />
+              <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div className="px-4 py-6 sm:px-0">
+                  <Breadcrumbs />
+                  {children}
+                </div>
+              </main>
+            </div>
+          </NavigationErrorBoundary>
+        )}
+      </NavigationProvider>
+    )
   }
 
   // Fallback loading state
