@@ -287,10 +287,17 @@ async def get_user_policies(
 @permission_router.post("/evaluate", response_model=PermissionEvaluationResponse)
 async def evaluate_permission(
     evaluation_request: PermissionEvaluationRequest,
-    current_user: dict = Depends(require_permissions_evaluate())
+    current_user: dict = Depends(get_current_user)  # Changed from require_permissions_evaluate()
 ):
     """Evaluate if a user has permission for a specific action and resource"""
     try:
+        # Security: Only allow users to evaluate their own permissions
+        if evaluation_request.user_id != current_user['id']:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Users can only evaluate their own permissions"
+            )
+        
         evaluation = await permission_service.evaluate_permission(
             user_id=evaluation_request.user_id,
             action=evaluation_request.action,
@@ -301,6 +308,31 @@ async def evaluate_permission(
         return PermissionEvaluationResponse(
             status="success",
             message="Permission evaluation completed",
+            evaluation=evaluation
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to evaluate permission: {str(e)}"
+        )
+
+@permission_router.post("/evaluate/admin", response_model=PermissionEvaluationResponse)
+async def evaluate_permission_admin(
+    evaluation_request: PermissionEvaluationRequest,
+    current_user: dict = Depends(require_permissions_evaluate())
+):
+    """Admin endpoint to evaluate any user's permissions"""
+    try:
+        evaluation = await permission_service.evaluate_permission(
+            user_id=evaluation_request.user_id,
+            action=evaluation_request.action,
+            resource=evaluation_request.resource,
+            context=evaluation_request.context
+        )
+        
+        return PermissionEvaluationResponse(
+            status="success",
+            message="Admin permission evaluation completed",
             evaluation=evaluation
         )
     except Exception as e:

@@ -377,7 +377,7 @@ class DeliveryChallanService {
   // Helper method to check if user has write access
   static isDeliveryChallanManager(userData: { designation?: string }): boolean {
     const allowedRoles = ['admin', 'ceo', 'DC_tracker_manager']
-    return allowedRoles.includes(userData.designation?.toLowerCase())
+    return allowedRoles.includes(userData.designation?.toLowerCase() || '')
   }
 
   // Helper method to format date for display

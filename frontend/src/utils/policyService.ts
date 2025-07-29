@@ -32,13 +32,11 @@ export interface PolicyAssignment {
 
 export interface PermissionEvaluation {
   allowed: boolean
-  user_id: string
-  action: string
-  resource: string
-  context?: Record<string, unknown>
-  evaluation_time: string
-  matched_policies: string[]
-  denied_reason?: string
+  reason: string
+  matched_statement?: PermissionStatement
+  evaluated_policies: string[]
+  required_action?: string
+  required_resource?: string
 }
 
 export interface SystemHealth {
@@ -175,24 +173,24 @@ export class PolicyService {
       if (response.status === env.HTTP_STATUS.OK) {
         const data = await response.json()
         csrfToken = data.csrf_token
-        AuthService.setStoredToken(env.STORAGE_KEYS.CSRF_TOKEN, csrfToken)
+        AuthService.setStoredToken(env.STORAGE_KEYS.CSRF_TOKEN, csrfToken || '')
       } else {
         throw new Error('Failed to get CSRF token')
       }
     }
     
-    return csrfToken
+    return csrfToken || ''
   }
 
   private static async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       let errorMessage = 'Network error'
       try {
-        const errorData = await response.json()
+        const errorData = await response.json() as { detail?: string; message?: string }
         errorMessage = errorData.detail || errorData.message || errorMessage
       } catch {
         // If we can't parse the error response, use the status text
-        errorMessage = response.statusText || errorMessage
+        errorMessage = response.statusText || 'Unknown error'
       }
       throw new Error(errorMessage)
     }
@@ -360,6 +358,7 @@ export class PolicyService {
   // Permission evaluation
   static async evaluatePermission(evaluationData: PermissionEvaluationData): Promise<PermissionEvaluation> {
     try {
+      console.log('Evaluating permission:', evaluationData)
       const headers = await this.getAuthHeaders()
       const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.POLICY_ENDPOINTS.EVALUATE}`, {
         method: 'POST',
@@ -367,9 +366,17 @@ export class PolicyService {
         body: JSON.stringify(evaluationData),
       })
       
+      if (!response.ok) {
+        const errorText = await response.text() || 'Unknown error'
+        console.error('Permission evaluation failed:', response.status, errorText)
+        throw new Error(`Permission evaluation failed: ${response.status} - ${errorText}`)
+      }
+      
       const data: PermissionEvaluationResponse = await this.handleResponse(response)
+      console.log('Permission evaluation result:', data.evaluation)
       return data.evaluation
     } catch (error: unknown) {
+      console.error('Permission evaluation error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to evaluate permission'
       throw new Error(errorMessage)
     }

@@ -176,9 +176,11 @@ export const useNavigationPermissions = (userId?: string, items: NavigationItem[
   }, [evaluatePermissions]);
 
   // Get accessible items
-  const accessibleItems = state.items.filter(item => 
-    (item.hasAccess && !item.loading) || item.item.alwaysAccessible
-  );
+  const accessibleItems = state.items
+    .filter(item => 
+      (item.hasAccess && !item.loading) || item.item.alwaysAccessible
+    )
+    .map(item => item.item);
 
 
 

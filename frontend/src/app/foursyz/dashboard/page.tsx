@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService, UserData } from '@/utils/auth';
 
-import { QuickActions } from '@/components/navigation/QuickActions';
+
 import { env } from '@/config/env';
 
 export default function DashboardPage() {
@@ -156,8 +156,6 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-          
-          <QuickActions />
     </div>
   );
 }

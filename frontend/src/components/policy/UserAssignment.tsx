@@ -37,7 +37,7 @@ export default function UserAssignment({
     const searchLower = searchTerm.toLowerCase()
     
     return (
-      user?.full_name?.toLowerCase().includes(searchLower) ||
+      user?.username?.toLowerCase().includes(searchLower) ||
       user?.email?.toLowerCase().includes(searchLower) ||
       policy?.name?.toLowerCase().includes(searchLower)
     )
@@ -145,7 +145,7 @@ export default function UserAssignment({
                   <option value="">Select a user</option>
                   {users.map(user => (
                     <option key={user.id} value={user.id}>
-                      {user.full_name} ({user.email})
+                      {user.username} ({user.email})
                     </option>
                   ))}
                 </select>
@@ -274,7 +274,7 @@ export default function UserAssignment({
               return (
                 <tr key={assignment.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{user?.full_name}</div>
+                    <div className="text-sm font-medium text-gray-900">{user?.username}</div>
                     <div className="text-sm text-gray-500">{user?.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

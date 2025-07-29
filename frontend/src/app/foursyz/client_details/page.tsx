@@ -57,13 +57,15 @@ export default function ClientDetailsPage() {
       setUser(userData)
       
       // Check client management permissions using policy-based system
-      await checkClientPermissions(userData)
+      const permissionResults = await checkClientPermissions(userData)
 
-      // Load clients if user has read permission
-      if (permissions.canReadClient) {
+      // Check if user has read permission before redirecting
+      if (permissionResults.canReadClient) {
+        setPermissions(permissionResults)
         await loadClients()
       } else {
         // Redirect users without read permission to dashboard
+        console.log('User does not have CLIENT_READ permission, redirecting to dashboard')
         router.push(env.ROUTES.DASHBOARD)
         return
       }
@@ -77,6 +79,8 @@ export default function ClientDetailsPage() {
 
   const checkClientPermissions = async (userData: UserData) => {
     try {
+      console.log('Checking permissions for user:', userData.email)
+      
       // Check all client-related permissions
       const createPermission = await PolicyService.evaluatePermission({
         user_id: userData.id,
@@ -102,21 +106,24 @@ export default function ClientDetailsPage() {
         resource: env.PERMISSIONS.RESOURCES.CLIENT_ALL
       });
 
-      setPermissions({
+      const permissionResults = {
         canCreateClient: createPermission.allowed,
         canReadClient: readPermission.allowed,
         canUpdateClient: updatePermission.allowed,
         canDeleteClient: deletePermission.allowed
-      });
+      };
+
+      console.log('Permission results:', permissionResults)
+      return permissionResults
     } catch (error) {
       console.error('Failed to check client permissions:', error);
-      // Set all permissions to false on error
-      setPermissions({
+      // Return all permissions as false on error
+      return {
         canCreateClient: false,
         canReadClient: false,
         canUpdateClient: false,
         canDeleteClient: false
-      });
+      };
     }
   };
 

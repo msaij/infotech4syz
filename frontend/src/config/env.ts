@@ -116,7 +116,8 @@ export const env = {
       PERMISSIONS_READ: 'permissions:read',
       PERMISSIONS_UPDATE: 'permissions:update',
       PERMISSIONS_DELETE: 'permissions:delete',
-      PERMISSIONS_ASSIGN: 'permissions:assign'
+      PERMISSIONS_ASSIGN: 'permissions:assign',
+      PERMISSIONS_EVALUATE: 'permissions:evaluate'
     },
     RESOURCES: {
       AUTH_ALL: 'auth:*',
