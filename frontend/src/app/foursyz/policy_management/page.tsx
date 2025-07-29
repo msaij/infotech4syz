@@ -84,14 +84,14 @@ export default function PolicyManagementPage() {
   const loadInitialData = async () => {
     try {
       setLoading(true)
-      const [policiesData, usersData] = await Promise.all([
+      const [policiesData, usersData, assignmentsData] = await Promise.all([
         PolicyService.getPolicies(),
-        // Load users from existing user service - for now we'll use a placeholder
-        // In a real implementation, you'd have a UserService to fetch users
-        Promise.resolve([])
+        PolicyService.getUsers(),
+        PolicyService.getAllAssignments()
       ])
       setPolicies(policiesData)
       setUsers(usersData)
+      setAssignments(assignmentsData)
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load data'
       setError(errorMessage)

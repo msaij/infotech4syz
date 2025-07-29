@@ -13,6 +13,13 @@ interface UserAssignmentProps {
   loading: boolean
 }
 
+interface GroupedAssignments {
+  [userId: string]: {
+    user: UserData
+    assignments: PolicyAssignment[]
+  }
+}
+
 export default function UserAssignment({ 
   users, 
   policies, 
@@ -30,18 +37,63 @@ export default function UserAssignment({
   })
   const [showAssignmentForm, setShowAssignmentForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [collapsedUsers, setCollapsedUsers] = useState<Set<string>>(new Set())
 
-  const filteredAssignments = assignments.filter(assignment => {
+  // Group assignments by user
+  const groupedAssignments: GroupedAssignments = assignments.reduce((acc, assignment) => {
     const user = users.find(u => u.id === assignment.user_id)
-    const policy = policies.find(p => p.id === assignment.policy_id)
-    const searchLower = searchTerm.toLowerCase()
+    if (!user) return acc
     
-    return (
-      user?.username?.toLowerCase().includes(searchLower) ||
-      user?.email?.toLowerCase().includes(searchLower) ||
-      policy?.name?.toLowerCase().includes(searchLower)
-    )
+    if (!acc[user.id]) {
+      acc[user.id] = {
+        user,
+        assignments: []
+      }
+    }
+    acc[user.id].assignments.push(assignment)
+    return acc
+  }, {} as GroupedAssignments)
+
+  // Filter grouped assignments based on search term
+  const filteredGroupedAssignments = Object.entries(groupedAssignments).filter(([userId, group]) => {
+    const searchLower = searchTerm.toLowerCase()
+    const userMatches = group.user.username?.toLowerCase().includes(searchLower) ||
+                       group.user.email?.toLowerCase().includes(searchLower)
+    
+    const policyMatches = group.assignments.some(assignment => {
+      const policy = policies.find(p => p.id === assignment.policy_id)
+      return policy?.name?.toLowerCase().includes(searchLower)
+    })
+    
+    return userMatches || policyMatches
   })
+
+  // Auto-expand users when searching
+  useEffect(() => {
+    if (searchTerm) {
+      setCollapsedUsers(new Set())
+    }
+  }, [searchTerm])
+
+  const toggleUserCollapse = (userId: string) => {
+    setCollapsedUsers(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(userId)) {
+        newSet.delete(userId)
+      } else {
+        newSet.add(userId)
+      }
+      return newSet
+    })
+  }
+
+  const expandAll = () => {
+    setCollapsedUsers(new Set())
+  }
+
+  const collapseAll = () => {
+    setCollapsedUsers(new Set(filteredGroupedAssignments.map(([userId]) => userId)))
+  }
 
   const handleAssignSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,49 +131,79 @@ export default function UserAssignment({
     return true
   }
 
-  const getAssignmentStatus = (assignment: PolicyAssignment): { text: string; color: string } => {
+  const getAssignmentStatus = (assignment: PolicyAssignment): { text: string; color: string; bgColor: string } => {
     if (!assignment.active) {
-      return { text: 'Inactive', color: 'text-gray-500' }
+      return { text: 'Inactive', color: 'text-gray-600', bgColor: 'bg-gray-100' }
     }
     if (assignment.expires_at && new Date(assignment.expires_at) <= new Date()) {
-      return { text: 'Expired', color: 'text-red-600' }
+      return { text: 'Expired', color: 'text-red-700', bgColor: 'bg-red-50' }
     }
-    return { text: 'Active', color: 'text-green-600' }
+    return { text: 'Active', color: 'text-green-700', bgColor: 'bg-green-50' }
   }
 
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString()
   }
 
+  const getTotalAssignments = () => {
+    return Object.values(groupedAssignments).reduce((total, group) => total + group.assignments.length, 0)
+  }
+
+  const getFilteredAssignments = () => {
+    return filteredGroupedAssignments.reduce((total, [_, group]) => total + group.assignments.length, 0)
+  }
+
   return (
     <div>
-      {/* Search and Actions */}
-      <div className="flex justify-between items-center mb-4">
+      {/* Header with Search and Actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex-1 max-w-sm">
           <input
             type="text"
             placeholder="Search assignments..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
           />
         </div>
-        <button
-          onClick={() => setShowAssignmentForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >
-          Assign Policy
-        </button>
+        
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowAssignmentForm(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium"
+          >
+            Assign Policy
+          </button>
+        </div>
       </div>
+
+      {/* Collapse Controls */}
+      {filteredGroupedAssignments.length > 0 && (
+        <div className="flex items-center gap-2 mb-4">
+          <button
+            onClick={expandAll}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Expand All
+          </button>
+          <span className="text-gray-400">|</span>
+          <button
+            onClick={collapseAll}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Collapse All
+          </button>
+        </div>
+      )}
 
       {/* Assignment Form */}
       {showAssignmentForm && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium text-gray-900">Assign Policy to User</h3>
             <button
               onClick={() => setShowAssignmentForm(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -139,12 +221,12 @@ export default function UserAssignment({
                   id="user"
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                   required
                 >
-                  <option value="">Select a user</option>
+                  <option value="" className="text-gray-500">Select a user</option>
                   {users.map(user => (
-                    <option key={user.id} value={user.id}>
+                    <option key={user.id} value={user.id} className="text-gray-900">
                       {user.username} ({user.email})
                     </option>
                   ))}
@@ -159,12 +241,12 @@ export default function UserAssignment({
                   id="policy"
                   value={selectedPolicy}
                   onChange={(e) => setSelectedPolicy(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                   required
                 >
-                  <option value="">Select a policy</option>
+                  <option value="" className="text-gray-500">Select a policy</option>
                   {policies.map(policy => (
-                    <option key={policy.id} value={policy.id}>
+                    <option key={policy.id} value={policy.id} className="text-gray-900">
                       {policy.name} (v{policy.version})
                     </option>
                   ))}
@@ -183,7 +265,7 @@ export default function UserAssignment({
                   name="expires_at"
                   value={assignmentData.expires_at}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -194,7 +276,7 @@ export default function UserAssignment({
                   name="active"
                   checked={assignmentData.active}
                   onChange={handleInputChange}
-                  className="mr-2"
+                  className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="active" className="text-sm font-medium text-gray-700">
                   Active
@@ -212,7 +294,7 @@ export default function UserAssignment({
                 value={assignmentData.notes}
                 onChange={handleInputChange}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Add notes about this assignment"
               />
             </div>
@@ -221,14 +303,14 @@ export default function UserAssignment({
               <button
                 type="button"
                 onClick={() => setShowAssignmentForm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading || !selectedUser || !selectedPolicy}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
                 {loading ? 'Assigning...' : 'Assign Policy'}
               </button>
@@ -237,92 +319,150 @@ export default function UserAssignment({
         </div>
       )}
 
-      {/* Assignments Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                User
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Policy
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Assigned At
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Expires At
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Notes
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredAssignments.map(assignment => {
-              const user = users.find(u => u.id === assignment.user_id)
-              const policy = policies.find(p => p.id === assignment.policy_id)
-              const status = getAssignmentStatus(assignment)
-
-              return (
-                <tr key={assignment.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{user?.username}</div>
-                    <div className="text-sm text-gray-500">{user?.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{policy?.name}</div>
-                    <div className="text-sm text-gray-500">v{policy?.version}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${status.color}`}>
-                      {status.text}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatDate(assignment.assigned_at)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {assignment.expires_at ? formatDate(assignment.expires_at) : 'Never'}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 truncate max-w-xs">
-                      {assignment.notes || '-'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => onUnassign(assignment.user_id, assignment.policy_id)}
-                      className="text-red-600 hover:text-red-900"
+      {/* Assignments Table - Grouped by User */}
+      <div className="space-y-4">
+        {filteredGroupedAssignments.map(([userId, group]) => {
+          const isCollapsed = collapsedUsers.has(userId)
+          
+          return (
+            <div key={userId} className="bg-white border border-gray-200 rounded-lg shadow-sm">
+              {/* User Header - Clickable for collapse/expand */}
+              <div 
+                className="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => toggleUserCollapse(userId)}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <svg 
+                      className={`h-5 w-5 text-gray-500 transition-transform ${isCollapsed ? 'rotate-90' : ''}`}
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
                     >
-                      Unassign
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">{group.user.username}</h3>
+                      <p className="text-sm text-gray-500">{group.user.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-gray-500">
+                      {group.assignments.length} assignment{group.assignments.length !== 1 ? 's' : ''}
+                    </div>
+                    <svg 
+                      className={`h-4 w-4 text-gray-400 transition-transform ${isCollapsed ? 'rotate-90' : ''}`}
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              {/* User's Assignments Table - Collapsible */}
+              {!isCollapsed && (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Policy
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Assigned At
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Expires At
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Notes
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {group.assignments.map(assignment => {
+                        const policy = policies.find(p => p.id === assignment.policy_id)
+                        const status = getAssignmentStatus(assignment)
+
+                        return (
+                          <tr key={assignment.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{policy?.name}</div>
+                              <div className="text-sm text-gray-500">v{policy?.version}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${status.color} ${status.bgColor}`}>
+                                {status.text}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {formatDate(assignment.assigned_at)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {assignment.expires_at ? formatDate(assignment.expires_at) : 'Never'}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-gray-900 truncate max-w-xs">
+                                {assignment.notes || '-'}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => onUnassign(assignment.user_id, assignment.policy_id)}
+                                className="text-red-600 hover:text-red-900 transition-colors"
+                              >
+                                Unassign
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
-      {filteredAssignments.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          {searchTerm ? 'No assignments found matching your search.' : 'No assignments found.'}
+      {filteredGroupedAssignments.length === 0 && (
+        <div className="text-center py-12 text-gray-500">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No assignments</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {searchTerm ? 'No assignments found matching your search.' : 'Get started by assigning a policy to a user.'}
+          </p>
+          {!searchTerm && (
+            <div className="mt-6">
+              <button
+                onClick={() => setShowAssignmentForm(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
+                Assign Policy
+              </button>
+            </div>
+          )}
         </div>
       )}
 
       {/* Summary */}
-      {filteredAssignments.length > 0 && (
-        <div className="mt-4 text-sm text-gray-600">
-          Showing {filteredAssignments.length} of {assignments.length} assignments
+      {filteredGroupedAssignments.length > 0 && (
+        <div className="mt-6 text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-md">
+          Showing {getFilteredAssignments()} assignments from {filteredGroupedAssignments.length} users
           {searchTerm && ` matching "${searchTerm}"`}
+          {getTotalAssignments() !== getFilteredAssignments() && ` (of ${getTotalAssignments()} total assignments)`}
         </div>
       )}
     </div>

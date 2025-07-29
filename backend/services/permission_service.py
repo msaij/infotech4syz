@@ -192,20 +192,34 @@ class PermissionService:
         return policies
     
     async def get_user_assignments(self, user_id: str) -> List[PolicyAssignment]:
-        """Get all policy assignments for a user"""
+        """Get all policy assignments for a specific user"""
         db = await self._get_db()
         
-        assignments = []
-        cursor = db.policy_assignments.find({
-            "user_id": user_id
-        })
+        # Find all assignments for the user
+        assignment_docs = await db.policy_assignments.find({"user_id": user_id}).to_list(None)
         
-        async for assignment_doc in cursor:
-            # Check if assignment has expired
-            if assignment_doc.get("expires_at") and assignment_doc["expires_at"] < datetime.now(timezone.utc):
-                continue
-            
-            assignments.append(PolicyAssignment(**assignment_doc))
+        # Convert to PolicyAssignment objects
+        assignments = []
+        for doc in assignment_docs:
+            # Convert ObjectId to string for JSON serialization
+            doc["id"] = str(doc["_id"])
+            assignments.append(PolicyAssignment(**doc))
+        
+        return assignments
+
+    async def get_all_assignments(self) -> List[PolicyAssignment]:
+        """Get all policy assignments"""
+        db = await self._get_db()
+        
+        # Find all assignments
+        assignment_docs = await db.policy_assignments.find({}).to_list(None)
+        
+        # Convert to PolicyAssignment objects
+        assignments = []
+        for doc in assignment_docs:
+            # Convert ObjectId to string for JSON serialization
+            doc["id"] = str(doc["_id"])
+            assignments.append(PolicyAssignment(**doc))
         
         return assignments
     

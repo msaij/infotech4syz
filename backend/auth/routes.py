@@ -2,18 +2,30 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import hashlib
+from pydantic import BaseModel
+from typing import List
 
 from models.foursyz.users_4syz import (
-    Users4syzLogin, Users4syzResponse, Users4syzLoginResponse, 
+    Users4syzLogin, Users4syzResponse, Users4syzLoginResponse,
     Users4syzCreate, Users4syzCreateResponse, Users4syzLogoutResponse,
-    RefreshTokenRequest, RefreshTokenResponse
+    Users4syz
 )
 from .auth_utils import (
-    create_token_pair, blacklist_token, verify_password, 
+    create_token_pair, blacklist_token, verify_password,
     get_password_hash, refresh_access_token, is_sha256_hash,
     migrate_password_hash
 )
 from .dependencies import get_db, get_current_user, security
+
+# Define response models for token operations
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+class RefreshTokenResponse(BaseModel):
+    status: str
+    message: str
+    access_token: str
+    expires_in: int
 
 # Create router
 auth_router = APIRouter(tags=["Authentication"])
@@ -25,18 +37,18 @@ async def user_login(login_data: Users4syzLogin, db: AsyncIOMotorDatabase = Depe
     try:
         # Find user by email in users_4syz collection
         user = await db.users_4syz.find_one({"email": login_data.email})
-        
+
         if not user:
             raise HTTPException(status_code=401, detail="Invalid email or password")
-        
+
         # Check if user is active
         if not user.get("active", False):
             raise HTTPException(status_code=401, detail="User account is inactive")
-        
+
         # Verify password (supports both SHA-256 and bcrypt)
         if not verify_password(login_data.password, user.get("password")):
             raise HTTPException(status_code=401, detail="Invalid email or password")
-        
+
         # Auto-migrate password from SHA-256 to bcrypt if needed
         if is_sha256_hash(user.get("password")):
             new_hash = migrate_password_hash(login_data.password, user.get("password"))
@@ -44,7 +56,7 @@ async def user_login(login_data: Users4syzLogin, db: AsyncIOMotorDatabase = Depe
                 {"email": user["email"]},
                 {"$set": {"password": new_hash}}
             )
-        
+
         # Convert MongoDB document to response model
         user_response = Users4syzResponse(
             id=str(user["_id"]),
@@ -56,12 +68,12 @@ async def user_login(login_data: Users4syzLogin, db: AsyncIOMotorDatabase = Depe
             active=user["active"],
             notes=user.get("notes")
         )
-        
+
         # Create JWT token pair
         access_token, refresh_token = create_token_pair(
             data={"sub": user["email"]}
         )
-        
+
         return Users4syzLoginResponse(
             status="success",
             message="Login successful",
@@ -70,7 +82,7 @@ async def user_login(login_data: Users4syzLogin, db: AsyncIOMotorDatabase = Depe
             refresh_token=refresh_token,
             expires_in=30 * 60  # 30 minutes in seconds
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -83,7 +95,7 @@ async def logout(current_user = Depends(get_current_user), credentials: HTTPAuth
     try:
         token = credentials.credentials
         blacklist_token(token)
-        
+
         return Users4syzLogoutResponse(
             status="success",
             message="Successfully logged out"
@@ -119,15 +131,15 @@ async def create_user(user_data: Users4syzCreate, db: AsyncIOMotorDatabase = Dep
         existing_user = await db.users_4syz.find_one({"email": user_data.email})
         if existing_user:
             raise HTTPException(status_code=400, detail="User with this email already exists")
-        
+
         # Check if username already exists
         existing_username = await db.users_4syz.find_one({"username": user_data.username})
         if existing_username:
             raise HTTPException(status_code=400, detail="Username already exists")
-        
+
         # Hash the password using bcrypt
         hashed_password = get_password_hash(user_data.password)
-        
+
         # Prepare user document
         user_doc = {
             "username": user_data.username,
@@ -139,13 +151,13 @@ async def create_user(user_data: Users4syzCreate, db: AsyncIOMotorDatabase = Dep
             "active": user_data.active,
             "notes": user_data.notes
         }
-        
+
         # Insert user into database
         result = await db.users_4syz.insert_one(user_doc)
-        
+
         # Get the created user
         created_user = await db.users_4syz.find_one({"_id": result.inserted_id})
-        
+
         # Convert to response model
         user_response = Users4syzResponse(
             id=str(created_user["_id"]),
@@ -157,17 +169,45 @@ async def create_user(user_data: Users4syzCreate, db: AsyncIOMotorDatabase = Dep
             active=created_user["active"],
             notes=created_user.get("notes")
         )
-        
+
         return Users4syzCreateResponse(
             status="success",
             message="User created successfully",
             user=user_response
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"User creation failed: {str(e)}")
+
+# List users endpoint
+@auth_router.get("/users", response_model=List[Users4syzResponse])
+async def list_users(db: AsyncIOMotorDatabase = Depends(get_db)):
+    """Get all users from users_4syz collection"""
+    try:
+        # Get all users from database
+        users = await db.users_4syz.find({}).to_list(None)
+
+        # Convert to response models
+        user_responses = []
+        for user in users:
+            user_response = Users4syzResponse(
+                id=str(user["_id"]),
+                username=user["username"],
+                email=user["email"],
+                designation=user["designation"],
+                date_of_joining=user["date_of_joining"],
+                date_of_relieving=user.get("date_of_relieving"),
+                active=user["active"],
+                notes=user.get("notes")
+            )
+            user_responses.append(user_response)
+
+        return user_responses
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list users: {str(e)}")
 
 # Refresh token endpoint
 @auth_router.post("/refresh", response_model=RefreshTokenResponse)
@@ -176,14 +216,14 @@ async def refresh_token(refresh_data: RefreshTokenRequest):
     try:
         # Refresh the access token
         new_access_token = refresh_access_token(refresh_data.refresh_token)
-        
+
         return RefreshTokenResponse(
             status="success",
             message="Token refreshed successfully",
             access_token=new_access_token,
             expires_in=30 * 60  # 30 minutes in seconds
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:

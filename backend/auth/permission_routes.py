@@ -13,7 +13,7 @@ from models.foursyz.permissions import (
     Policy, PolicyCreate, PolicyUpdate, PolicyResponse, PolicyListResponse,
     PolicyAssignment, PolicyAssignmentRequest, PolicyAssignmentResponse,
     UserPoliciesResponse, PermissionEvaluationRequest, PermissionEvaluationResponse,
-    Action, Resource
+    Action, Resource, PolicyAssignmentListResponse
 )
 
 permission_router = APIRouter(tags=["Permission Management"])
@@ -262,14 +262,14 @@ async def get_user_policies(
     user_id: str,
     current_user: dict = Depends(require_permissions_read())
 ):
-    """Get all policies assigned to a user"""
+    """Get all policies assigned to a specific user"""
     try:
         policies = await permission_service.get_user_policies(user_id)
         assignments = await permission_service.get_user_assignments(user_id)
         
         return UserPoliciesResponse(
             status="success",
-            message=f"Retrieved {len(policies)} policies for user '{user_id}'",
+            message=f"Retrieved {len(policies)} policies for user",
             user_id=user_id,
             policies=policies,
             assignments=assignments
@@ -278,6 +278,32 @@ async def get_user_policies(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get user policies: {str(e)}"
+        )
+
+@permission_router.get("/assignments", response_model=PolicyAssignmentListResponse)
+async def get_all_assignments(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    current_user: dict = Depends(require_permissions_list())
+):
+    """Get all policy assignments"""
+    try:
+        assignments = await permission_service.get_all_assignments()
+        
+        # Apply pagination
+        total = len(assignments)
+        paginated_assignments = assignments[skip:skip + limit]
+        
+        return PolicyAssignmentListResponse(
+            status="success",
+            message=f"Retrieved {len(paginated_assignments)} assignments",
+            assignments=paginated_assignments,
+            total=total
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get assignments: {str(e)}"
         )
 
 # ============================================================================

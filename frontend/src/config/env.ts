@@ -37,7 +37,8 @@ export const env = {
       LOGIN: '/auth/login',
       REFRESH: '/auth/refresh',
       LOGOUT: '/auth/logout',
-      ME: '/auth/me'
+      ME: '/auth/me',
+      USERS: '/auth/users'
     },
     CLIENT_ENDPOINTS: {
       LIST: '/clients/',
@@ -59,6 +60,7 @@ export const env = {
     POLICY_ENDPOINTS: {
       POLICIES: '/permissions/policies',
       POLICY_ASSIGNMENTS: '/permissions/users',
+      ASSIGNMENTS: '/permissions/assignments',
       EVALUATE: '/permissions/evaluate',
       INITIALIZE: '/permissions/initialize',
       MIGRATE: '/permissions/migrate',

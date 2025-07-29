@@ -197,6 +197,13 @@ class PolicyAssignmentResponse(BaseModel):
     message: str
     assignment: Optional[PolicyAssignment] = None
 
+class PolicyAssignmentListResponse(BaseModel):
+    """Response model for listing policy assignments"""
+    status: str
+    message: str
+    assignments: List[PolicyAssignment]
+    total: int
+
 class UserPoliciesResponse(BaseModel):
     """Response model for getting user's policies"""
     status: str

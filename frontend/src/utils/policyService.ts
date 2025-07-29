@@ -1,5 +1,5 @@
 import { env } from '@/config/env'
-import { AuthService } from './auth'
+import { AuthService, UserData } from './auth'
 
 // Core interfaces
 export interface PermissionStatement {
@@ -351,6 +351,37 @@ export class PolicyService {
       return data.assignments
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user assignments'
+      throw new Error(errorMessage)
+    }
+  }
+
+  static async getAllAssignments(): Promise<PolicyAssignment[]> {
+    try {
+      const headers = await this.getAuthHeaders()
+      const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.POLICY_ENDPOINTS.ASSIGNMENTS}`, {
+        method: 'GET',
+        headers,
+      })
+      
+      const data: PolicyAssignmentListResponse = await this.handleResponse(response)
+      return data.assignments
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch all assignments'
+      throw new Error(errorMessage)
+    }
+  }
+
+  static async getUsers(): Promise<UserData[]> {
+    try {
+      const headers = await this.getAuthHeaders()
+      const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.AUTH_ENDPOINTS.USERS}`, {
+        method: 'GET',
+        headers,
+      })
+      
+      return await this.handleResponse(response)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch users'
       throw new Error(errorMessage)
     }
   }
