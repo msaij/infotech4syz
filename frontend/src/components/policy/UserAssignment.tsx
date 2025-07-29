@@ -20,6 +20,10 @@ interface GroupedAssignments {
   }
 }
 
+interface GroupedPolicies {
+  [resourceType: string]: Policy[]
+}
+
 export default function UserAssignment({ 
   users, 
   policies, 
@@ -38,6 +42,47 @@ export default function UserAssignment({
   const [showAssignmentForm, setShowAssignmentForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [collapsedUsers, setCollapsedUsers] = useState<Set<string>>(new Set())
+
+  // Group policies by resource type
+  const groupPoliciesByResource = (policies: Policy[]): GroupedPolicies => {
+    const grouped: GroupedPolicies = {}
+    
+    policies.forEach(policy => {
+      // Extract the primary resource from the first statement
+      let resourceType = 'Other'
+      
+      if (policy.statements && policy.statements.length > 0) {
+        const firstStatement = policy.statements[0]
+        if (firstStatement.resources && firstStatement.resources.length > 0) {
+          const primaryResource = firstStatement.resources[0]
+          
+          // Map resource patterns to readable names
+          if (primaryResource.includes('auth:')) {
+            resourceType = 'Authentication'
+          } else if (primaryResource.includes('user:')) {
+            resourceType = 'User Management'
+          } else if (primaryResource.includes('client:')) {
+            resourceType = 'Client Management'
+          } else if (primaryResource.includes('delivery_challan:')) {
+            resourceType = 'Delivery Challan'
+          } else if (primaryResource.includes('permissions:')) {
+            resourceType = 'Permission Management'
+          } else {
+            resourceType = 'Other'
+          }
+        }
+      }
+      
+      if (!grouped[resourceType]) {
+        grouped[resourceType] = []
+      }
+      grouped[resourceType].push(policy)
+    })
+    
+    return grouped
+  }
+
+  const groupedPolicies = groupPoliciesByResource(policies)
 
   // Group assignments by user
   const groupedAssignments: GroupedAssignments = assignments.reduce((acc, assignment) => {
@@ -245,10 +290,14 @@ export default function UserAssignment({
                   required
                 >
                   <option value="" className="text-gray-500">Select a policy</option>
-                  {policies.map(policy => (
-                    <option key={policy.id} value={policy.id} className="text-gray-900">
-                      {policy.name} (v{policy.version})
-                    </option>
+                  {Object.entries(groupedPolicies).map(([resourceType, policies]) => (
+                    <optgroup key={resourceType} label={resourceType}>
+                      {policies.map(policy => (
+                        <option key={policy.id} value={policy.id} className="text-gray-900">
+                          {policy.name} (v{policy.version})
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>

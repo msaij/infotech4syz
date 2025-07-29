@@ -122,6 +122,7 @@ class Policy(BaseModel):
 
 class PolicyAssignment(BaseModel):
     """User-to-policy assignment"""
+    id: Optional[str] = Field(None, description="Assignment ID (auto-generated)")
     user_id: str = Field(..., description="User ID from users_4syz collection")
     policy_id: str = Field(..., description="Policy ID from policies collection")
     assigned_at: datetime = Field(..., description="When the policy was assigned")

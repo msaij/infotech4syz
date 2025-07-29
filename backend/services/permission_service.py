@@ -156,6 +156,8 @@ class PermissionService:
         
         # Return created assignment
         created_assignment = await db.policy_assignments.find_one({"_id": result.inserted_id})
+        # Add the id field for frontend compatibility
+        created_assignment["id"] = str(created_assignment["_id"])
         return PolicyAssignment(**created_assignment)
     
     async def unassign_policy_from_user(self, user_id: str, policy_id: str) -> bool:

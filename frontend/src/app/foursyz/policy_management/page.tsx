@@ -150,11 +150,17 @@ export default function PolicyManagementPage() {
   const handleAssignPolicy = async (userId: string, policyId: string, assignmentData: AssignmentData) => {
     try {
       setLoading(true)
+      console.log('Assigning policy:', { userId, policyId, assignmentData })
+      
       const assignment = await PolicyService.assignPolicyToUser(userId, policyId, assignmentData)
+      console.log('Assignment successful:', assignment)
+      
       setAssignments(prev => [...prev, assignment])
       setSuccess('Policy assigned successfully')
     } catch (error: any) {
-      setError(error.message || 'Failed to assign policy')
+      console.error('Assignment error:', error)
+      const errorMessage = error.message || 'Failed to assign policy'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

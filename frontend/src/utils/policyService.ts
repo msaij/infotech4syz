@@ -292,13 +292,37 @@ export class PolicyService {
       await this.ensureCSRFToken()
       const headers = await this.getAuthHeaders()
       
+      // Get current user ID from the auth token
+      const token = AuthService.getStoredToken(env.STORAGE_KEYS.ACCESS_TOKEN)
+      if (!token) {
+        throw new Error('No authentication token found')
+      }
+      
+      // Decode the token to get user ID (assuming it contains user info)
+      const userData = await AuthService.validateUser(token)
+      if (!userData || !userData.id) {
+        throw new Error('Could not determine current user')
+      }
+      
+      // Prepare the request data with assigned_by field
+      const requestData = {
+        assigned_by: userData.id,
+        expires_at: assignmentData.expires_at || null,
+        notes: assignmentData.notes || null
+      }
+      
       const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.POLICY_ENDPOINTS.POLICY_ASSIGNMENTS}/${userId}/policies/${policyId}`, {
         method: 'POST',
         headers,
-        body: JSON.stringify(assignmentData),
+        body: JSON.stringify(requestData),
       })
       
       const data: PolicyAssignmentResponse = await this.handleResponse(response)
+      
+      if (!data.assignment) {
+        throw new Error('Assignment was not returned from server')
+      }
+      
       return data.assignment
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to assign policy to user'
