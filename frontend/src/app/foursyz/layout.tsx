@@ -6,7 +6,6 @@ import { AuthService, UserData } from '@/utils/auth'
 import { NavigationProvider } from '@/contexts/NavigationContext'
 import { DynamicNavigation } from '@/components/navigation/DynamicNavigation'
 import { NavigationErrorBoundary } from '@/components/navigation/NavigationErrorBoundary'
-import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { env } from '@/config/env'
 
 export default function FourSyzLayout({
@@ -124,7 +123,6 @@ export default function FourSyzLayout({
               />
               <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                 <div className="px-4 py-6 sm:px-0">
-                  <Breadcrumbs />
                   {children}
                 </div>
               </main>
