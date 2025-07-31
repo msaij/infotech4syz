@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService, UserData } from '@/utils/auth';
-import { PolicyService } from '@/utils/policyService';
+import { resourcePermissionService } from '@/utils/resourcePermissionService';
 import { env } from '@/config/env';
 
 interface CreateUserForm {
@@ -73,7 +73,7 @@ export default function CreateUserPage() {
       setUser(userData);
       
       // Check if user has permission to create users
-      const createUserPermission = await PolicyService.evaluatePermission({
+      const createUserPermission = await resourcePermissionService.evaluatePermission({
         user_id: userData.id,
         action: env.PERMISSIONS.ACTIONS.USER_CREATE,
         resource: env.PERMISSIONS.RESOURCES.USER_ALL

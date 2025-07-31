@@ -1,21 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { PermissionEvaluation, PermissionEvaluationData } from '@/utils/policyService'
+import { PermissionEvaluation, PermissionEvaluationData } from '@/utils/resourcePermissionService'
 import { UserData } from '@/utils/auth'
 import { env } from '@/config/env'
 
 interface PermissionEvaluatorProps {
   users: UserData[]
   onEvaluate: (evaluationData: PermissionEvaluationData) => void
-  result?: PermissionEvaluation
+  evaluationResult?: PermissionEvaluation
   loading: boolean
 }
 
 export default function PermissionEvaluator({ 
   users, 
   onEvaluate, 
-  result, 
+  evaluationResult, 
   loading 
 }: PermissionEvaluatorProps) {
   const [evaluationData, setEvaluationData] = useState<PermissionEvaluationData>({
@@ -71,9 +71,9 @@ export default function PermissionEvaluator({
   }
 
   const getResultIcon = () => {
-    if (!result) return null
+    if (!evaluationResult) return null
     
-    if (result.allowed) {
+    if (evaluationResult.allowed) {
       return (
         <svg className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -226,18 +226,18 @@ export default function PermissionEvaluator({
       </div>
 
       {/* Evaluation Result */}
-      {result && (
+      {evaluationResult && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Evaluation Result</h3>
           
           <div className="flex items-center space-x-4 mb-4">
             {getResultIcon()}
             <div>
-              <h4 className={`text-lg font-semibold ${result.allowed ? 'text-green-600' : 'text-red-600'}`}>
-                {result.allowed ? 'Permission Granted' : 'Permission Denied'}
+              <h4 className={`text-lg font-semibold ${evaluationResult.allowed ? 'text-green-600' : 'text-red-600'}`}>
+                {evaluationResult.allowed ? 'Permission Granted' : 'Permission Denied'}
               </h4>
               <p className="text-sm text-gray-600">
-                Evaluated at {formatDateTime(result.evaluation_time)}
+                {evaluationResult.reason}
               </p>
             </div>
           </div>
@@ -247,47 +247,34 @@ export default function PermissionEvaluator({
               <h5 className="text-sm font-medium text-gray-700 mb-2">Request Details</h5>
               <div className="bg-gray-50 p-3 rounded">
                 <div className="text-sm">
-                  <div><strong>User ID:</strong> {result.user_id}</div>
-                  <div><strong>Action:</strong> {result.action}</div>
-                  <div><strong>Resource:</strong> {result.resource}</div>
-                  {result.context && Object.keys(result.context).length > 0 && (
-                    <div><strong>Context:</strong> {JSON.stringify(result.context)}</div>
-                  )}
+                  <div><strong>Required Action:</strong> {evaluationResult.required_action}</div>
+                  <div><strong>Required Resource:</strong> {evaluationResult.required_resource}</div>
                 </div>
               </div>
             </div>
 
             <div>
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Matched Policies</h5>
+              <h5 className="text-sm font-medium text-gray-700 mb-2">Evaluated Policies</h5>
               <div className="bg-gray-50 p-3 rounded">
-                {result.matched_policies.length > 0 ? (
+                {evaluationResult.evaluated_policies.length > 0 ? (
                   <ul className="text-sm space-y-1">
-                    {result.matched_policies.map((policyId, index) => (
+                    {evaluationResult.evaluated_policies.map((policyId, index) => (
                       <li key={index} className="text-blue-600">{policyId}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-gray-500">No policies matched</p>
+                  <p className="text-sm text-gray-500">No policies evaluated</p>
                 )}
               </div>
             </div>
           </div>
-
-          {result.denied_reason && (
-            <div className="mb-4">
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Denial Reason</h5>
-              <div className="bg-red-50 border border-red-200 p-3 rounded">
-                <p className="text-sm text-red-800">{result.denied_reason}</p>
-              </div>
-            </div>
-          )}
 
           {/* Raw Result */}
           <div>
             <h5 className="text-sm font-medium text-gray-700 mb-2">Raw Result</h5>
             <div className="bg-gray-50 border border-gray-200 rounded p-3">
               <pre className="text-xs overflow-x-auto">
-                {JSON.stringify(result, null, 2)}
+                {JSON.stringify(evaluationResult, null, 2)}
               </pre>
             </div>
           </div>

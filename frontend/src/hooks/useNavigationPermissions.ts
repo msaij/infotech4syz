@@ -1,251 +1,166 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { PolicyService } from '@/utils/policyService';
-import { NavigationItem } from '@/config/navigation';
+import { useState, useEffect, useCallback } from 'react'
+import { resourcePermissionService, ResourcePermission } from '@/utils/resourcePermissionService'
+import { env } from '@/config/env'
 
-interface PermissionResult {
-  item: NavigationItem;
-  hasAccess: boolean;
-  loading: boolean;
-  error?: string;
+export interface NavigationPermission {
+  path: string
+  label: string
+  icon?: string
+  allowed: boolean
+  children?: NavigationPermission[]
 }
 
-interface NavigationPermissionsState {
-  items: PermissionResult[];
-  loading: boolean;
-  error?: string;
-  lastUpdated: Date | null;
-}
+export function useNavigationPermissions(userId: string) {
+  const [permissions, setPermissions] = useState<ResourcePermission[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-export const useNavigationPermissions = (userId?: string, items: NavigationItem[] = []) => {
-  const [state, setState] = useState<NavigationPermissionsState>({
-    items: [],
-    loading: true,
-    error: undefined,
-    lastUpdated: null
-  });
-
-  const cacheRef = useRef<Map<string, { result: boolean; timestamp: number }>>(new Map());
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Clear expired cache entries
-  const clearExpiredCache = useCallback(() => {
-    const now = Date.now();
-    for (const [key, value] of cacheRef.current.entries()) {
-      if (now - value.timestamp > CACHE_DURATION) {
-        cacheRef.current.delete(key);
-      }
-    }
-  }, []);
-
-  // Check if we have valid cached results
-  const hasValidCache = useCallback(() => {
-    if (!state.lastUpdated) return false;
-    return Date.now() - state.lastUpdated.getTime() < CACHE_DURATION;
-  }, [state.lastUpdated]);
-
-  // Get cached permission result
-  const getCachedPermission = useCallback((item: NavigationItem): boolean | null => {
-    const key = `${userId}-${item.requiredAction}-${item.requiredResource}`;
-    const cached = cacheRef.current.get(key);
-    
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      return cached.result;
-    }
-    
-    return null;
-  }, [userId]);
-
-  // Set cached permission result
-  const setCachedPermission = useCallback((item: NavigationItem, result: boolean) => {
-    const key = `${userId}-${item.requiredAction}-${item.requiredResource}`;
-    cacheRef.current.set(key, { result, timestamp: Date.now() });
-  }, [userId]);
-
-  // Evaluate permissions for navigation items
-  const evaluatePermissions = useCallback(async (forceRefresh = false) => {
-    if (!userId || items.length === 0) {
-      setState(prev => ({ ...prev, loading: false, items: [] }));
-      return;
-    }
-
-    // Don't refresh if we have valid cache and not forcing refresh
-    if (!forceRefresh && hasValidCache()) {
-      setState(prev => ({ ...prev, loading: false }));
-      return;
-    }
-
-    // Cancel any ongoing requests
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
-
-    setState(prev => ({ ...prev, loading: true, error: undefined }));
-
+  // Load user permissions
+  const loadUserPermissions = useCallback(async () => {
     try {
-      clearExpiredCache();
+      setLoading(true)
+      setError(null)
+      
+      const { permissions: userPermissions } = await resourcePermissionService.getUserResourcePermissions(userId)
+      setPermissions(userPermissions)
+    } catch (err) {
+      console.error('Error loading user permissions:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load permissions')
+    } finally {
+      setLoading(false)
+    }
+  }, [userId])
 
-      // Initialize items with loading state
-      const initialItems: PermissionResult[] = items.map(item => ({
-        item,
-        hasAccess: false,
-        loading: true
-      }));
+  useEffect(() => {
+    if (userId) {
+      loadUserPermissions()
+    }
+  }, [userId, loadUserPermissions])
 
-      setState(prev => ({ ...prev, items: initialItems }));
+  // Check if user has permission for a specific action and resource
+  const hasPermission = useCallback(async (action: string, resource: string): Promise<boolean> => {
+    try {
+      const evaluation = await resourcePermissionService.evaluatePermission({
+        user_id: userId,
+        action,
+        resource
+      })
+      return evaluation.allowed
+    } catch (error) {
+      console.error('Error checking permission:', error)
+      return false
+    }
+  }, [userId])
 
-             // Evaluate permissions in parallel with individual error handling
-       const permissionPromises = items.map(async (item) => {
-        try {
-          // Check cache first
-          const cachedResult = getCachedPermission(item);
-          if (cachedResult !== null) {
-            return {
-              item,
-              hasAccess: cachedResult,
-              loading: false
-            };
-          }
+  // Check if user has any permission for a resource category
+  const hasAnyPermissionForCategory = useCallback((category: string): boolean => {
+    return permissions.some(permission => permission.category === category)
+  }, [permissions])
 
-          // Evaluate permission via API
-          const evaluation = await PolicyService.evaluatePermission({
-            user_id: userId,
-            action: item.requiredAction,
-            resource: item.requiredResource
-          });
-
-          const result = evaluation.allowed;
-          
-          // Cache the result
-          setCachedPermission(item, result);
-
-          return {
-            item,
-            hasAccess: result,
-            loading: false
-          };
-                 } catch (error: unknown) {
-           // If permission check fails, default to false access
-           const errorMessage = error instanceof Error ? error.message : 'Permission check failed';
-           console.warn(`Permission check failed for ${item.id}:`, error);
-           return {
-             item,
-             hasAccess: false,
-             loading: false,
-             error: errorMessage
-           };
-         }
-      });
-
-      const results = await Promise.all(permissionPromises);
-
-      // Check if request was cancelled
-      if (abortControllerRef.current?.signal.aborted) {
-        return;
-      }
-
-      setState({
-        items: results,
-        loading: false,
-        error: undefined,
-        lastUpdated: new Date()
-      });
-
-         } catch (error: unknown) {
-       // Check if request was cancelled
-       if (abortControllerRef.current?.signal.aborted) {
-         return;
-       }
-
-       const errorMessage = error instanceof Error ? error.message : 'Failed to evaluate permissions';
-       console.error('Failed to evaluate navigation permissions:', error);
-       setState(prev => ({
-         ...prev,
-         loading: false,
-         error: errorMessage
-       }));
-     }
-  }, [userId, items, hasValidCache, clearExpiredCache, getCachedPermission, setCachedPermission]);
-
-  // Refresh permissions
-  const refreshPermissions = useCallback(() => {
-    evaluatePermissions(true);
-  }, [evaluatePermissions]);
-
-  // Get accessible items
-  const accessibleItems = state.items
-    .filter(item => 
-      (item.hasAccess && !item.loading) || item.item.alwaysAccessible
+  // Check if user has specific action permission for a resource
+  const hasActionPermission = useCallback((action: string, resource: string): boolean => {
+    return permissions.some(permission => 
+      permission.resource === resource && permission.actions.includes(action)
     )
-    .map(item => item.item);
+  }, [permissions])
 
+  // Get navigation items based on permissions
+  const getNavigationItems = useCallback((): NavigationPermission[] => {
+    const navigationItems: NavigationPermission[] = []
 
+    // Dashboard - always available
+    navigationItems.push({
+      path: env.ROUTES.DASHBOARD,
+      label: 'Dashboard',
+      icon: '📊',
+      allowed: true
+    })
 
-  // Get items with errors
-  const itemsWithErrors = state.items.filter(item => item.error);
+    // User Management
+    if (hasAnyPermissionForCategory('User Management')) {
+      navigationItems.push({
+        path: '/foursyz/create_user4syz',
+        label: 'Create User',
+        icon: '👤',
+        allowed: hasActionPermission('user:create', 'user:*')
+      })
+    }
 
-  // Check if specific item is accessible
-  const isItemAccessible = useCallback((itemId: string): boolean => {
-    const item = state.items.find(i => i.item.id === itemId);
-    if (!item) return false;
+    // Client Management
+    if (hasAnyPermissionForCategory('Client Management')) {
+      navigationItems.push({
+        path: '/foursyz/client_details',
+        label: 'Client Details',
+        icon: '🏢',
+        allowed: hasActionPermission('client:read', 'client:*') || hasActionPermission('client:list', 'client:*')
+      })
+    }
+
+    // Delivery Challan
+    if (hasAnyPermissionForCategory('Delivery Challan')) {
+      navigationItems.push({
+        path: '/foursyz/delivery_challan_tracker',
+        label: 'Delivery Challan Tracker',
+        icon: '📦',
+        allowed: hasActionPermission('delivery_challan:read', 'delivery_challan:*') || 
+                hasActionPermission('delivery_challan:list', 'delivery_challan:*')
+      })
+    }
+
+    // Permission Management
+    if (hasAnyPermissionForCategory('Permission Management')) {
+      navigationItems.push({
+        path: '/foursyz/policy_management',
+        label: 'Permission Management',
+        icon: '⚙️',
+        allowed: hasActionPermission('permissions:read', 'permissions:*') || 
+                hasActionPermission('permissions:list', 'permissions:*')
+      })
+    }
+
+    return navigationItems.filter(item => item.allowed)
+  }, [permissions, hasAnyPermissionForCategory, hasActionPermission])
+
+  // Check if user can access a specific route
+  const canAccessRoute = useCallback((route: string): boolean => {
+    const navigationItems = getNavigationItems()
     
-    // If item is marked as always accessible, return true
-    if (item.item.alwaysAccessible) return true;
-    
-    return item.hasAccess && !item.loading;
-  }, [state.items]);
+    // Direct path match
+    if (navigationItems.some(item => item.path === route)) {
+      return true
+    }
 
-  // Check if specific item is loading
-  const isItemLoading = useCallback((itemId: string): boolean => {
-    const item = state.items.find(i => i.item.id === itemId);
-    return item ? item.loading : false;
-  }, [state.items]);
+    // Check based on route patterns
+    if (route.includes('/foursyz/client_details') && hasAnyPermissionForCategory('Client Management')) {
+      return hasActionPermission('client:read', 'client:*') || hasActionPermission('client:list', 'client:*')
+    }
 
-  // Get error for specific item
-  const getItemError = useCallback((itemId: string): string | undefined => {
-    const item = state.items.find(i => i.item.id === itemId);
-    return item?.error;
-  }, [state.items]);
+    if (route.includes('/foursyz/delivery_challan_tracker') && hasAnyPermissionForCategory('Delivery Challan')) {
+      return hasActionPermission('delivery_challan:read', 'delivery_challan:*') || 
+             hasActionPermission('delivery_challan:list', 'delivery_challan:*')
+    }
 
-  // Effect to evaluate permissions when userId or items change
-  useEffect(() => {
-    evaluatePermissions();
-  }, [evaluatePermissions]);
+    if (route.includes('/foursyz/create_user4syz') && hasAnyPermissionForCategory('User Management')) {
+      return hasActionPermission('user:create', 'user:*')
+    }
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+    if (route.includes('/foursyz/policy_management') && hasAnyPermissionForCategory('Permission Management')) {
+      return hasActionPermission('permissions:read', 'permissions:*') || 
+             hasActionPermission('permissions:list', 'permissions:*')
+    }
+
+    return false
+  }, [getNavigationItems, hasAnyPermissionForCategory, hasActionPermission])
 
   return {
-    // State
-    items: state.items,
-    accessibleItems,
-    itemsWithErrors,
-    loading: state.loading,
-    error: state.error,
-    lastUpdated: state.lastUpdated,
-
-    // Actions
-    refreshPermissions,
-    evaluatePermissions,
-
-    // Utilities
-    isItemAccessible,
-    isItemLoading,
-    getItemError,
-
-    // Cache management
-    clearCache: () => {
-      cacheRef.current.clear();
-      setState(prev => ({ ...prev, lastUpdated: null }));
-    }
-  };
-}; 
+    permissions,
+    loading,
+    error,
+    hasPermission,
+    hasAnyPermissionForCategory,
+    hasActionPermission,
+    getNavigationItems,
+    canAccessRoute,
+    refreshPermissions: loadUserPermissions
+  }
+} 

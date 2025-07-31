@@ -7,6 +7,8 @@ from .auth_utils import (
     is_token_expired, 
     is_token_blacklisted
 )
+from services.resource_permission_service import ResourcePermissionService
+from models.foursyz.permissions import Action
 
 # Security
 security = HTTPBearer()
@@ -67,4 +69,91 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     user_dict['id'] = str(user['_id'])
     del user_dict['_id']
     
-    return user_dict 
+    return user_dict
+
+# Resource-based permission dependency functions
+def require_permission(action: Action, resource: str):
+    """Dependency factory for requiring specific resource permissions"""
+    async def _require_permission(current_user: dict = Depends(get_current_user)):
+        db = await get_async_database()
+        service = ResourcePermissionService(db)
+        
+        evaluation = await service.evaluate_user_permission(
+            user_id=current_user['id'],
+            action=action,
+            resource=resource
+        )
+        
+        if not evaluation.allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Permission denied: {evaluation.reason}"
+            )
+        
+        return current_user
+    
+    return _require_permission
+
+# Client permission dependencies
+def require_client_create():
+    return require_permission(Action.CLIENT_CREATE, "client:*")
+
+def require_client_read():
+    return require_permission(Action.CLIENT_READ, "client:*")
+
+def require_client_update():
+    return require_permission(Action.CLIENT_UPDATE, "client:*")
+
+def require_client_delete():
+    return require_permission(Action.CLIENT_DELETE, "client:*")
+
+def require_client_list():
+    return require_permission(Action.CLIENT_READ, "client:*")
+
+# Delivery challan permission dependencies
+def require_delivery_challan_create():
+    return require_permission(Action.DELIVERY_CHALLAN_CREATE, "delivery_challan:*")
+
+def require_delivery_challan_read():
+    return require_permission(Action.DELIVERY_CHALLAN_READ, "delivery_challan:*")
+
+def require_delivery_challan_update():
+    return require_permission(Action.DELIVERY_CHALLAN_UPDATE, "delivery_challan:*")
+
+def require_delivery_challan_delete():
+    return require_permission(Action.DELIVERY_CHALLAN_DELETE, "delivery_challan:*")
+
+def require_delivery_challan_list():
+    return require_permission(Action.DELIVERY_CHALLAN_READ, "delivery_challan:*")
+
+def require_delivery_challan_upload():
+    return require_permission(Action.DELIVERY_CHALLAN_UPLOAD, "delivery_challan:file")
+
+def require_delivery_challan_link_invoice():
+    return require_permission(Action.DELIVERY_CHALLAN_LINK_INVOICE, "delivery_challan:*")
+
+# User permission dependencies
+def require_user_create():
+    return require_permission(Action.USER_CREATE, "user:*")
+
+def require_user_read():
+    return require_permission(Action.USER_READ, "user:*")
+
+def require_user_update():
+    return require_permission(Action.USER_UPDATE, "user:*")
+
+def require_user_delete():
+    return require_permission(Action.USER_DELETE, "user:*")
+
+def require_user_list():
+    return require_permission(Action.USER_READ, "user:*")
+
+# Permission management dependencies
+def require_permissions_assign():
+    return require_permission(Action.PERMISSIONS_ASSIGN, "permissions:*")
+
+def require_permissions_read():
+    return require_permission(Action.PERMISSIONS_READ, "permissions:*")
+
+def require_permissions_evaluate():
+    return require_permission(Action.PERMISSIONS_EVALUATE, "permissions:*") 

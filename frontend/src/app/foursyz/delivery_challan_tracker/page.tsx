@@ -8,7 +8,7 @@ import DeliveryChallanService, {
   DeliveryChallanCreate 
 } from '@/utils/deliveryChallanService'
 import { AuthService, UserData } from '@/utils/auth'
-import { PolicyService } from '@/utils/policyService'
+import { resourcePermissionService } from '@/utils/resourcePermissionService'
 import { env } from '@/config/env'
 
 export default function DeliveryChallanTrackerPage() {
@@ -122,37 +122,37 @@ export default function DeliveryChallanTrackerPage() {
   const checkDeliveryChallanPermissions = async (userData: UserData) => {
     try {
       // Check all delivery challan-related permissions
-      const createPermission = await PolicyService.evaluatePermission({
+      const createPermission = await resourcePermissionService.evaluatePermission({
         user_id: userData.id,
         action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_CREATE,
         resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
       });
 
-      const readPermission = await PolicyService.evaluatePermission({
+      const readPermission = await resourcePermissionService.evaluatePermission({
         user_id: userData.id,
         action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_READ,
         resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
       });
 
-      const updatePermission = await PolicyService.evaluatePermission({
+      const updatePermission = await resourcePermissionService.evaluatePermission({
         user_id: userData.id,
         action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_UPDATE,
         resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
       });
 
-      const deletePermission = await PolicyService.evaluatePermission({
+      const deletePermission = await resourcePermissionService.evaluatePermission({
         user_id: userData.id,
         action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_DELETE,
         resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
       });
 
-      const uploadPermission = await PolicyService.evaluatePermission({
+      const uploadPermission = await resourcePermissionService.evaluatePermission({
         user_id: userData.id,
         action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_UPLOAD,
         resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL
       });
 
-      const linkInvoicePermission = await PolicyService.evaluatePermission({
+      const linkInvoicePermission = await resourcePermissionService.evaluatePermission({
         user_id: userData.id,
         action: env.PERMISSIONS.ACTIONS.DELIVERY_CHALLAN_LINK_INVOICE,
         resource: env.PERMISSIONS.RESOURCES.DELIVERY_CHALLAN_ALL

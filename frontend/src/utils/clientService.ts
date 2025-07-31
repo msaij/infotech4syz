@@ -86,7 +86,7 @@ export class ClientService {
         throw new Error('No access token available')
       }
       
-      const response = await fetch(`${env.API_BASE_URL}${env.CLIENT_ENDPOINTS.CSRF_TOKEN}`, {
+      const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.CLIENT_ENDPOINTS.CSRF_TOKEN}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export class ClientService {
     const headers = await this.getAuthHeaders()
     
     const response = await fetch(
-      `${env.API_BASE_URL}${env.CLIENT_ENDPOINTS.LIST}?skip=${skip}&limit=${limit}`,
+      `${env.API_BASE_URL}${env.API_ENDPOINTS.CLIENT_ENDPOINTS.LIST}?skip=${skip}&limit=${limit}`,
       { headers }
     )
     
@@ -126,7 +126,7 @@ export class ClientService {
     const headers = await this.getAuthHeaders()
     
     const response = await fetch(
-      `${env.API_BASE_URL}${env.CLIENT_ENDPOINTS.GET}/${clientId}`,
+      `${env.API_BASE_URL}${env.API_ENDPOINTS.CLIENT_ENDPOINTS.GET}/${clientId}`,
       { headers }
     )
     
@@ -143,7 +143,7 @@ export class ClientService {
     await this.ensureCSRFToken()
     const headers = await this.getAuthHeaders()
     
-    const response = await fetch(`${env.API_BASE_URL}${env.CLIENT_ENDPOINTS.CREATE}`, {
+    const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.CLIENT_ENDPOINTS.CREATE}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(clientData),
@@ -165,7 +165,7 @@ export class ClientService {
     await this.ensureCSRFToken()
     const headers = await this.getAuthHeaders()
     
-    const response = await fetch(`${env.API_BASE_URL}${env.CLIENT_ENDPOINTS.UPDATE}/${clientId}`, {
+    const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.CLIENT_ENDPOINTS.UPDATE}/${clientId}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify(clientData),
@@ -187,7 +187,7 @@ export class ClientService {
     await this.ensureCSRFToken()
     const headers = await this.getAuthHeaders()
     
-    const response = await fetch(`${env.API_BASE_URL}${env.CLIENT_ENDPOINTS.DELETE}/${clientId}`, {
+    const response = await fetch(`${env.API_BASE_URL}${env.API_ENDPOINTS.CLIENT_ENDPOINTS.DELETE}/${clientId}`, {
       method: 'DELETE',
       headers,
     })

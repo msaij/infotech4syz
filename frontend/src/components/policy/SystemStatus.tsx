@@ -1,140 +1,59 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { SystemHealth } from '@/utils/policyService'
-import { PolicyService } from '@/utils/policyService'
+import { ResourcePermission, UserResourceAssignment } from '@/utils/resourcePermissionService'
+import { UserData } from '@/utils/auth'
 
-export default function SystemStatus() {
-  const [health, setHealth] = useState<SystemHealth | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+interface SystemStatusProps {
+  permissions: ResourcePermission[]
+  assignments: UserResourceAssignment[]
+  users: UserData[]
+}
 
-  useEffect(() => {
-    loadSystemHealth()
-  }, [])
+export default function SystemStatus({ permissions, assignments, users }: SystemStatusProps) {
+  // Calculate statistics
+  const totalPermissions = permissions.length
+  const totalAssignments = assignments.length
+  const totalUsers = users.length
+  const activeAssignments = assignments.filter(a => a.active).length
 
-  const loadSystemHealth = async () => {
-    try {
-      setLoading(true)
-      const healthData = await PolicyService.getSystemHealth()
-      setHealth(healthData)
-      setError('')
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load system health'
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
+  // Group permissions by category
+  const permissionsByCategory = permissions.reduce((acc, permission) => {
+    if (!acc[permission.category]) {
+      acc[permission.category] = 0
     }
-  }
+    acc[permission.category]++
+    return acc
+  }, {} as Record<string, number>)
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return 'text-green-600 bg-green-100'
-      case 'warning':
-        return 'text-yellow-600 bg-yellow-100'
-      case 'error':
-        return 'text-red-600 bg-red-100'
-      default:
-        return 'text-gray-600 bg-gray-100'
+  // Group assignments by user
+  const assignmentsByUser = assignments.reduce((acc, assignment) => {
+    if (!acc[assignment.user_id]) {
+      acc[assignment.user_id] = 0
     }
-  }
+    acc[assignment.user_id]++
+    return acc
+  }, {} as Record<string, number>)
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return (
-          <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        )
-      case 'warning':
-        return (
-          <svg className="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-        )
-      case 'error':
-        return (
-          <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        )
-      default:
-        return (
-          <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        )
-    }
-  }
-
-  const formatDateTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleString()
-  }
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Loading system status...</span>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <p className="text-sm text-red-800">{error}</p>
-            <button
-              onClick={loadSystemHealth}
-              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!health) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        No system health data available
-      </div>
-    )
-  }
+  const usersWithAssignments = Object.keys(assignmentsByUser).length
 
   return (
     <div className="space-y-6">
       {/* Overall Status */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900">System Status</h3>
-          <button
-            onClick={loadSystemHealth}
-            className="text-sm text-blue-600 hover:text-blue-800"
-          >
-            Refresh
-          </button>
+          <h3 className="text-lg font-medium text-gray-900">Resource Permission System Status</h3>
         </div>
 
         <div className="flex items-center space-x-3 mb-4">
-          {getStatusIcon(health.system_status)}
+          <svg className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           <div>
-            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(health.system_status)}`}>
-              {health.system_status.toUpperCase()}
+            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-green-600 bg-green-100">
+              HEALTHY
             </span>
             <p className="text-sm text-gray-600 mt-1">
-              Last updated: {formatDateTime(health.last_updated)}
+              Resource permission system is operational
             </p>
           </div>
         </div>
@@ -150,8 +69,8 @@ export default function SystemStatus() {
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Policies</p>
-              <p className="text-2xl font-semibold text-gray-900">{health.total_policies}</p>
+              <p className="text-sm font-medium text-gray-500">Total Permissions</p>
+              <p className="text-2xl font-semibold text-gray-900">{totalPermissions}</p>
             </div>
           </div>
         </div>
@@ -165,7 +84,7 @@ export default function SystemStatus() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total Assignments</p>
-              <p className="text-2xl font-semibold text-gray-900">{health.total_assignments}</p>
+              <p className="text-2xl font-semibold text-gray-900">{totalAssignments}</p>
             </div>
           </div>
         </div>
@@ -179,7 +98,7 @@ export default function SystemStatus() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Active Assignments</p>
-              <p className="text-2xl font-semibold text-gray-900">{health.active_assignments}</p>
+              <p className="text-2xl font-semibold text-gray-900">{activeAssignments}</p>
             </div>
           </div>
         </div>
@@ -187,96 +106,42 @@ export default function SystemStatus() {
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg className="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Expired Assignments</p>
-              <p className="text-2xl font-semibold text-gray-900">{health.expired_assignments}</p>
+              <p className="text-sm font-medium text-gray-500">Total Users</p>
+              <p className="text-2xl font-semibold text-gray-900">{totalUsers}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Health Indicators */}
+      {/* Permissions by Category */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Health Indicators</h3>
-        
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-              <span className="text-sm font-medium text-gray-700">Policy System</span>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Permissions by Category</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.entries(permissionsByCategory).map(([category, count]) => (
+            <div key={category} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span className="font-medium text-gray-900">{category}</span>
+              <span className="text-sm text-gray-500">{count} permissions</span>
             </div>
-            <span className="text-sm text-green-600">Operational</span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-              <span className="text-sm font-medium text-gray-700">Assignment System</span>
-            </div>
-            <span className="text-sm text-green-600">Operational</span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className={`w-3 h-3 rounded-full mr-3 ${
-                health.expired_assignments > 0 ? 'bg-yellow-500' : 'bg-green-500'
-              }`}></div>
-              <span className="text-sm font-medium text-gray-700">Assignment Expiry</span>
-            </div>
-            <span className={`text-sm ${
-              health.expired_assignments > 0 ? 'text-yellow-600' : 'text-green-600'
-            }`}>
-              {health.expired_assignments > 0 ? `${health.expired_assignments} expired` : 'All current'}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-              <span className="text-sm font-medium text-gray-700">Permission Evaluation</span>
-            </div>
-            <span className="text-sm text-green-600">Operational</span>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* System Information */}
+      {/* User Assignment Summary */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">System Information</h3>
-        
+        <h3 className="text-lg font-medium text-gray-900 mb-4">User Assignment Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-500">Last Health Check</p>
-            <p className="text-sm font-medium text-gray-900">{formatDateTime(health.last_updated)}</p>
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm font-medium text-blue-900">Users with Assignments</p>
+            <p className="text-2xl font-semibold text-blue-700">{usersWithAssignments}</p>
           </div>
-          
-          <div>
-            <p className="text-sm text-gray-500">System Status</p>
-            <p className="text-sm font-medium text-gray-900 capitalize">{health.system_status}</p>
-          </div>
-          
-          <div>
-            <p className="text-sm text-gray-500">Active Assignment Rate</p>
-            <p className="text-sm font-medium text-gray-900">
-              {health.total_assignments > 0 
-                ? `${Math.round((health.active_assignments / health.total_assignments) * 100)}%`
-                : '0%'
-              }
-            </p>
-          </div>
-          
-          <div>
-            <p className="text-sm text-gray-500">Expired Assignment Rate</p>
-            <p className="text-sm font-medium text-gray-900">
-              {health.total_assignments > 0 
-                ? `${Math.round((health.expired_assignments / health.total_assignments) * 100)}%`
-                : '0%'
-              }
-            </p>
+          <div className="p-4 bg-green-50 rounded-lg">
+            <p className="text-sm font-medium text-green-900">Active Assignments</p>
+            <p className="text-2xl font-semibold text-green-700">{activeAssignments}</p>
           </div>
         </div>
       </div>

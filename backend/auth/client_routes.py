@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Header
 from typing import Optional
 from bson import ObjectId
 from database import get_async_database
-from .permission_dependencies import (
+from .dependencies import (
     require_client_create,
     require_client_read,
     require_client_update,

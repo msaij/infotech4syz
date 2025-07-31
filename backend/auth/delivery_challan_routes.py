@@ -5,7 +5,7 @@ from datetime import datetime, date
 import os
 import uuid
 from database import get_async_database
-from .permission_dependencies import (
+from .dependencies import (
     require_delivery_challan_create,
     require_delivery_challan_read,
     require_delivery_challan_update,

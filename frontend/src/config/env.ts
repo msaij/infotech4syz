@@ -42,6 +42,7 @@ export const env = {
     },
     CLIENT_ENDPOINTS: {
       LIST: '/clients/',
+      GET: '/clients/',
       CREATE: '/clients/',
       UPDATE: '/clients/',
       DELETE: '/clients/',

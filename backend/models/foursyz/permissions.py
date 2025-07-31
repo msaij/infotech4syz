@@ -66,18 +66,38 @@ class Effect(str, Enum):
 # CORE MODELS
 # ============================================================================
 
-class PermissionStatement(BaseModel):
-    """Individual permission statement within a policy"""
-    sid: str = Field(..., description="Statement ID (unique within policy)")
-    effect: Effect = Field(..., description="Allow or Deny")
-    actions: List[Action] = Field(..., description="List of actions this statement applies to")
-    resources: List[str] = Field(..., description="List of resource patterns this statement applies to")
-    conditions: Optional[Dict[str, Any]] = Field(None, description="Optional conditions for the statement")
+class PermissionEvaluation(BaseModel):
+    """Result of a permission evaluation"""
+    allowed: bool = Field(..., description="Whether the action is allowed")
+    reason: str = Field(..., description="Reason for the decision")
+    required_action: Optional[Action] = Field(None, description="Action that was requested")
+    required_resource: Optional[str] = Field(None, description="Resource that was requested")
+    evaluated_policies: List[str] = Field(default_factory=list, description="Policies that were evaluated")
 
-    @validator('sid')
-    def validate_sid(cls, v):
+# ============================================================================
+# RESOURCE-BASED PERMISSION MODELS
+# ============================================================================
+
+class ResourcePermission(BaseModel):
+    """Individual resource permission that can be assigned to users"""
+    id: str = Field(..., description="Unique permission identifier")
+    resource: str = Field(..., description="Resource this permission applies to")
+    actions: List[Action] = Field(..., description="List of actions allowed on this resource")
+    description: str = Field(..., description="Human-readable description of this permission")
+    category: str = Field(..., description="Category/group this permission belongs to")
+    created_at: Optional[datetime] = Field(None, description="Creation timestamp")
+    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
+
+    @validator('id')
+    def validate_id(cls, v):
         if not v.strip():
-            raise ValueError('Statement ID cannot be empty')
+            raise ValueError('Permission ID cannot be empty')
+        return v.strip()
+
+    @validator('resource')
+    def validate_resource(cls, v):
+        if not v.strip():
+            raise ValueError('Resource cannot be empty')
         return v.strip()
 
     @validator('actions')
@@ -86,47 +106,19 @@ class PermissionStatement(BaseModel):
             raise ValueError('At least one action must be specified')
         return v
 
-    @validator('resources')
-    def validate_resources(cls, v):
-        if not v:
-            raise ValueError('At least one resource must be specified')
-        return v
-
-class Policy(BaseModel):
-    """Policy containing multiple permission statements"""
-    id: str = Field(..., description="Unique policy identifier")
-    name: str = Field(..., description="Human-readable policy name")
-    description: str = Field(..., description="Policy description")
-    version: str = Field(..., description="Policy version")
-    statements: List[PermissionStatement] = Field(..., description="List of permission statements")
-    created_at: Optional[datetime] = Field(None, description="Creation timestamp")
-    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
-
-    @validator('id')
-    def validate_id(cls, v):
+    @validator('category')
+    def validate_category(cls, v):
         if not v.strip():
-            raise ValueError('Policy ID cannot be empty')
+            raise ValueError('Category cannot be empty')
         return v.strip()
 
-    @validator('name')
-    def validate_name(cls, v):
-        if not v.strip():
-            raise ValueError('Policy name cannot be empty')
-        return v.strip()
-
-    @validator('statements')
-    def validate_statements(cls, v):
-        if not v:
-            raise ValueError('At least one statement must be specified')
-        return v
-
-class PolicyAssignment(BaseModel):
-    """User-to-policy assignment"""
+class UserResourceAssignment(BaseModel):
+    """User-to-resource permission assignment"""
     id: Optional[str] = Field(None, description="Assignment ID (auto-generated)")
     user_id: str = Field(..., description="User ID from users_4syz collection")
-    policy_id: str = Field(..., description="Policy ID from policies collection")
-    assigned_at: datetime = Field(..., description="When the policy was assigned")
-    assigned_by: str = Field(..., description="User ID who assigned the policy")
+    resource_permission_id: str = Field(..., description="Resource permission ID")
+    assigned_at: datetime = Field(..., description="When the permission was assigned")
+    assigned_by: str = Field(..., description="User ID who assigned the permission")
     expires_at: Optional[datetime] = Field(None, description="When the assignment expires")
     notes: Optional[str] = Field(None, description="Assignment notes")
     active: bool = Field(True, description="Whether the assignment is active")
@@ -139,79 +131,52 @@ class PolicyAssignment(BaseModel):
             raise ValueError('User ID cannot be empty')
         return v.strip()
 
-    @validator('policy_id')
-    def validate_policy_id(cls, v):
+    @validator('resource_permission_id')
+    def validate_resource_permission_id(cls, v):
         if not v.strip():
-            raise ValueError('Policy ID cannot be empty')
+            raise ValueError('Resource permission ID cannot be empty')
         return v.strip()
 
-class PermissionEvaluation(BaseModel):
-    """Result of a permission evaluation"""
-    allowed: bool = Field(..., description="Whether the action is allowed")
-    reason: str = Field(..., description="Reason for the decision")
-    matched_statement: Optional[PermissionStatement] = Field(None, description="Statement that matched")
-    evaluated_policies: List[str] = Field(default_factory=list, description="Policies that were evaluated")
-    required_action: Optional[Action] = Field(None, description="Action that was requested")
-    required_resource: Optional[str] = Field(None, description="Resource that was requested")
-
-# ============================================================================
-# REQUEST/RESPONSE MODELS
-# ============================================================================
-
-class PolicyCreate(BaseModel):
-    """Model for creating a new policy"""
-    id: str
-    name: str
-    description: str
-    version: str = "2024-01-01"
-    statements: List[PermissionStatement]
-
-class PolicyUpdate(BaseModel):
-    """Model for updating an existing policy"""
-    name: Optional[str] = None
-    description: Optional[str] = None
-    version: Optional[str] = None
-    statements: Optional[List[PermissionStatement]] = None
-
-class PolicyResponse(BaseModel):
-    """Response model for policy operations"""
+# Request/Response models for resource permissions
+class ResourcePermissionResponse(BaseModel):
+    """Response model for resource permission operations"""
     status: str
     message: str
-    policy: Optional[Policy] = None
+    permission: Optional[ResourcePermission] = None
 
-class PolicyListResponse(BaseModel):
-    """Response model for listing policies"""
+class ResourcePermissionListResponse(BaseModel):
+    """Response model for listing resource permissions"""
     status: str
     message: str
-    policies: List[Policy]
+    permissions: List[ResourcePermission]
     total: int
 
-class PolicyAssignmentRequest(BaseModel):
-    """Request model for assigning policy to user"""
+class UserResourceAssignmentRequest(BaseModel):
+    """Request model for assigning resource permission to user"""
     assigned_by: str
     expires_at: Optional[datetime] = None
     notes: Optional[str] = None
 
-class PolicyAssignmentResponse(BaseModel):
-    """Response model for policy assignment operations"""
+class UserResourceAssignmentResponse(BaseModel):
+    """Response model for resource permission assignment operations"""
     status: str
     message: str
-    assignment: Optional[PolicyAssignment] = None
+    assignment: Optional[UserResourceAssignment] = None
 
-class PolicyAssignmentListResponse(BaseModel):
-    """Response model for listing policy assignments"""
+class UserResourceAssignmentListResponse(BaseModel):
+    """Response model for listing user resource assignments"""
     status: str
     message: str
-    assignments: List[PolicyAssignment]
+    assignments: List[UserResourceAssignment]
     total: int
 
-class UserPoliciesResponse(BaseModel):
-    """Response model for getting user's policies"""
+class UserResourcePermissionsResponse(BaseModel):
+    """Response model for getting user's resource permissions"""
     status: str
     message: str
     user_id: str
-    policies: List[Policy]
-    assignments: List[PolicyAssignment]
+    permissions: List[ResourcePermission]
+    assignments: List[UserResourceAssignment]
 
 class PermissionEvaluationRequest(BaseModel):
     """Request model for evaluating permissions"""
@@ -227,221 +192,150 @@ class PermissionEvaluationResponse(BaseModel):
     evaluation: PermissionEvaluation
 
 # ============================================================================
-# PREDEFINED POLICIES
+# PREDEFINED RESOURCE PERMISSIONS
 # ============================================================================
 
-PREDEFINED_POLICIES = {
-    # Authentication Policies
-    "AuthBasicAccess": Policy(
-        id="AuthBasicAccess",
-        name="Basic Authentication Access",
+PREDEFINED_RESOURCE_PERMISSIONS = {
+    # Authentication Resource Permissions
+    "auth_basic_access": ResourcePermission(
+        id="auth_basic_access",
+        resource=Resource.AUTH_ALL,
+        actions=[Action.AUTH_LOGIN, Action.AUTH_LOGOUT, Action.AUTH_REFRESH, Action.AUTH_ME],
         description="Basic authentication operations for all users",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="BasicAuth",
-                effect=Effect.ALLOW,
-                actions=[Action.AUTH_LOGIN, Action.AUTH_LOGOUT, Action.AUTH_REFRESH, Action.AUTH_ME],
-                resources=[Resource.AUTH_ALL]
-            )
-        ]
+        category="Authentication"
     ),
     
-    "UserManager": Policy(
-        id="UserManager",
-        name="User Management",
+    # User Management Resource Permissions
+    "user_full_access": ResourcePermission(
+        id="user_full_access",
+        resource=Resource.USER_ALL,
+        actions=[Action.USER_CREATE, Action.USER_READ, Action.USER_UPDATE, Action.USER_DELETE, Action.USER_LIST],
         description="Full user management capabilities",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="UserManagement",
-                effect=Effect.ALLOW,
-                actions=[Action.USER_CREATE, Action.USER_READ, Action.USER_UPDATE, Action.USER_DELETE, Action.USER_LIST],
-                resources=[Resource.USER_ALL]
-            )
-        ]
+        category="User Management"
     ),
     
-    "UserReadOnly": Policy(
-        id="UserReadOnly",
-        name="User Read Only Access",
+    "user_read_only": ResourcePermission(
+        id="user_read_only",
+        resource=Resource.USER_ALL,
+        actions=[Action.USER_READ, Action.USER_LIST],
         description="Can only read user information",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="UserRead",
-                effect=Effect.ALLOW,
-                actions=[Action.USER_READ, Action.USER_LIST],
-                resources=[Resource.USER_ALL]
-            )
-        ]
+        category="User Management"
     ),
     
-    # Client Management Policies
-    "ClientManager": Policy(
-        id="ClientManager",
-        name="Client Management",
-        description="Full client management capabilities (CEO level)",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="ClientFullAccess",
-                effect=Effect.ALLOW,
-                actions=[Action.CLIENT_CREATE, Action.CLIENT_READ, Action.CLIENT_UPDATE, Action.CLIENT_DELETE, Action.CLIENT_LIST],
-                resources=[Resource.CLIENT_ALL]
-            )
-        ]
+    # Client Management Resource Permissions
+    "client_full_access": ResourcePermission(
+        id="client_full_access",
+        resource=Resource.CLIENT_ALL,
+        actions=[Action.CLIENT_CREATE, Action.CLIENT_READ, Action.CLIENT_UPDATE, Action.CLIENT_DELETE, Action.CLIENT_LIST],
+        description="Full client management capabilities",
+        category="Client Management"
     ),
     
-    "ClientReadOnly": Policy(
-        id="ClientReadOnly",
-        name="Client Read Only Access",
+    "client_read_only": ResourcePermission(
+        id="client_read_only",
+        resource=Resource.CLIENT_ALL,
+        actions=[Action.CLIENT_READ, Action.CLIENT_LIST],
         description="Can only view client information",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="ClientRead",
-                effect=Effect.ALLOW,
-                actions=[Action.CLIENT_READ, Action.CLIENT_LIST],
-                resources=[Resource.CLIENT_ALL]
-            )
-        ]
+        category="Client Management"
     ),
     
-    # Delivery Challan Policies
-    "DeliveryChallanManager": Policy(
-        id="DeliveryChallanManager",
-        name="Delivery Challan Manager",
+    # Delivery Challan Resource Permissions
+    "delivery_challan_full_access": ResourcePermission(
+        id="delivery_challan_full_access",
+        resource=Resource.DELIVERY_CHALLAN_ALL,
+        actions=[
+            Action.DELIVERY_CHALLAN_CREATE,
+            Action.DELIVERY_CHALLAN_READ,
+            Action.DELIVERY_CHALLAN_UPDATE,
+            Action.DELIVERY_CHALLAN_DELETE,
+            Action.DELIVERY_CHALLAN_LIST,
+            Action.DELIVERY_CHALLAN_UPLOAD,
+            Action.DELIVERY_CHALLAN_LINK_INVOICE
+        ],
         description="Full delivery challan management capabilities",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="DeliveryChallanFullAccess",
-                effect=Effect.ALLOW,
-                actions=[
-                    Action.DELIVERY_CHALLAN_CREATE,
-                    Action.DELIVERY_CHALLAN_READ,
-                    Action.DELIVERY_CHALLAN_UPDATE,
-                    Action.DELIVERY_CHALLAN_DELETE,
-                    Action.DELIVERY_CHALLAN_LIST,
-                    Action.DELIVERY_CHALLAN_UPLOAD,
-                    Action.DELIVERY_CHALLAN_LINK_INVOICE
-                ],
-                resources=[Resource.DELIVERY_CHALLAN_ALL, Resource.DELIVERY_CHALLAN_FILE]
-            )
-        ]
+        category="Delivery Challan"
     ),
     
-    "DeliveryChallanCreator": Policy(
-        id="DeliveryChallanCreator",
-        name="Delivery Challan Creator",
-        description="Can create and read delivery challans, but cannot delete",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="DeliveryChallanCreateRead",
-                effect=Effect.ALLOW,
-                actions=[
-                    Action.DELIVERY_CHALLAN_CREATE,
-                    Action.DELIVERY_CHALLAN_READ,
-                    Action.DELIVERY_CHALLAN_UPDATE,
-                    Action.DELIVERY_CHALLAN_LIST,
-                    Action.DELIVERY_CHALLAN_UPLOAD,
-                    Action.DELIVERY_CHALLAN_LINK_INVOICE
-                ],
-                resources=[Resource.DELIVERY_CHALLAN_ALL, Resource.DELIVERY_CHALLAN_FILE]
-            )
-        ]
+    "delivery_challan_read_only": ResourcePermission(
+        id="delivery_challan_read_only",
+        resource=Resource.DELIVERY_CHALLAN_ALL,
+        actions=[Action.DELIVERY_CHALLAN_READ, Action.DELIVERY_CHALLAN_LIST],
+        description="Can only view delivery challan information",
+        category="Delivery Challan"
     ),
     
-    "DeliveryChallanViewer": Policy(
-        id="DeliveryChallanViewer",
-        name="Delivery Challan Viewer",
-        description="Read-only access to delivery challans",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="DeliveryChallanRead",
-                effect=Effect.ALLOW,
-                actions=[Action.DELIVERY_CHALLAN_READ, Action.DELIVERY_CHALLAN_LIST],
-                resources=[Resource.DELIVERY_CHALLAN_ALL]
-            )
-        ]
+    "delivery_challan_file_access": ResourcePermission(
+        id="delivery_challan_file_access",
+        resource=Resource.DELIVERY_CHALLAN_FILE,
+        actions=[Action.DELIVERY_CHALLAN_UPLOAD],
+        description="Can upload delivery challan files",
+        category="Delivery Challan"
     ),
     
-    # Permission Management Policies
-    "PermissionAdministrator": Policy(
-        id="PermissionAdministrator",
-        name="Permission System Administrator",
-        description="Full control over the permission system",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="PermissionFullAccess",
-                effect=Effect.ALLOW,
-                actions=[
-                    Action.PERMISSIONS_CREATE,
-                    Action.PERMISSIONS_READ,
-                    Action.PERMISSIONS_UPDATE,
-                    Action.PERMISSIONS_DELETE,
-                    Action.PERMISSIONS_LIST,
-                    Action.PERMISSIONS_ASSIGN,
-                    Action.PERMISSIONS_UNASSIGN,
-                    Action.PERMISSIONS_EVALUATE
-                ],
-                resources=[Resource.PERMISSIONS_ALL]
-            )
-        ]
+    # Permission Management Resource Permissions
+    "permissions_full_access": ResourcePermission(
+        id="permissions_full_access",
+        resource=Resource.PERMISSIONS_ALL,
+        actions=[
+            Action.PERMISSIONS_CREATE,
+            Action.PERMISSIONS_READ,
+            Action.PERMISSIONS_UPDATE,
+            Action.PERMISSIONS_DELETE,
+            Action.PERMISSIONS_LIST,
+            Action.PERMISSIONS_ASSIGN,
+            Action.PERMISSIONS_UNASSIGN,
+            Action.PERMISSIONS_EVALUATE
+        ],
+        description="Full permission management capabilities",
+        category="Permission Management"
     ),
     
-    "PermissionManager": Policy(
-        id="PermissionManager",
-        name="Permission Manager",
-        description="Can manage policy assignments but not create policies",
-        version="2024-01-01",
-        statements=[
-            PermissionStatement(
-                sid="PermissionManage",
-                effect=Effect.ALLOW,
-                actions=[
-                    Action.PERMISSIONS_READ,
-                    Action.PERMISSIONS_LIST,
-                    Action.PERMISSIONS_ASSIGN,
-                    Action.PERMISSIONS_UNASSIGN,
-                    Action.PERMISSIONS_EVALUATE
-                ],
-                resources=[Resource.PERMISSIONS_ALL]
-            )
-        ]
+    "permissions_read_only": ResourcePermission(
+        id="permissions_read_only",
+        resource=Resource.PERMISSIONS_ALL,
+        actions=[Action.PERMISSIONS_READ, Action.PERMISSIONS_LIST, Action.PERMISSIONS_EVALUATE],
+        description="Can only view and evaluate permissions",
+        category="Permission Management"
+    ),
+    
+    "permissions_assign_only": ResourcePermission(
+        id="permissions_assign_only",
+        resource=Resource.PERMISSIONS_ALL,
+        actions=[
+            Action.PERMISSIONS_READ,
+            Action.PERMISSIONS_LIST,
+            Action.PERMISSIONS_ASSIGN,
+            Action.PERMISSIONS_UNASSIGN,
+            Action.PERMISSIONS_EVALUATE
+        ],
+        description="Can assign/unassign permissions and evaluate them",
+        category="Permission Management"
     )
 }
 
-# Role-based policy sets
-ROLE_POLICY_SETS = {
-    "CEO": [
-        "AuthBasicAccess",
-        "UserManager",
-        "ClientManager",
-        "DeliveryChallanManager",
-        "PermissionAdministrator"
-    ],
-    "Admin": [
-        "AuthBasicAccess",
-        "UserManager",
-        "ClientReadOnly",
-        "DeliveryChallanManager",
-        "PermissionManager"
-    ],
-    "DC_Tracker_Manager": [
-        "AuthBasicAccess",
-        "UserReadOnly",
-        "ClientReadOnly",
-        "DeliveryChallanManager"
-    ],
-    "Regular_User": [
-        "AuthBasicAccess",
-        "UserReadOnly",
-        "ClientReadOnly",
-        "DeliveryChallanViewer"
-    ]
+# ============================================================================
+# RESOURCE PERMISSION CATEGORIES
+# ============================================================================
+
+RESOURCE_PERMISSION_CATEGORIES = {
+    "Authentication": {
+        "description": "Authentication and session management",
+        "permissions": ["auth_basic_access"]
+    },
+    "User Management": {
+        "description": "User account management and administration",
+        "permissions": ["user_full_access", "user_read_only"]
+    },
+    "Client Management": {
+        "description": "Client information and relationship management",
+        "permissions": ["client_full_access", "client_read_only"]
+    },
+    "Delivery Challan": {
+        "description": "Delivery challan tracking and management",
+        "permissions": ["delivery_challan_full_access", "delivery_challan_read_only", "delivery_challan_file_access"]
+    },
+    "Permission Management": {
+        "description": "System permissions and access control",
+        "permissions": ["permissions_full_access", "permissions_read_only", "permissions_assign_only"]
+    }
 } 

@@ -3,26 +3,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { NavigationItem } from '@/config/navigation';
+import { NavigationPermission } from '@/hooks/useNavigationPermissions';
 import { UserData } from '@/utils/auth';
 
 interface NavigationLinkProps {
-  item: NavigationItem & { hasAccess: boolean; loading: boolean; error?: string };
+  item: NavigationPermission & { loading: boolean; error?: string };
   isActive: boolean;
   onClick?: () => void;
   className?: string;
 }
 
 const NavigationLink: React.FC<NavigationLinkProps> = ({ item, isActive, onClick, className = '' }) => {
-  const Icon = item.icon;
-  
-  if (!item.hasAccess) {
+  if (!item.allowed) {
     return null;
   }
 
   return (
     <Link
-      href={item.href}
+      href={item.path}
       onClick={onClick}
       className={`
         flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
@@ -34,15 +32,10 @@ const NavigationLink: React.FC<NavigationLinkProps> = ({ item, isActive, onClick
         ${className}
       `}
       aria-current={isActive ? 'page' : undefined}
-      title={item.description}
+      title={item.label}
     >
-      <Icon />
+      <span className="text-lg">{item.icon}</span>
       <span className="ml-3">{item.label}</span>
-      {item.badge && (
-        <span className="ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {item.badge}
-        </span>
-      )}
       {item.loading && (
         <div className="ml-auto animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
       )}
@@ -58,7 +51,6 @@ interface UserMenuProps {
 const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { userMenuItems } = useNavigation();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -98,22 +90,13 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout }) => {
             <div className="text-xs">{user.email}</div>
           </div>
           
-          {userMenuItems.map(item => {
-            // Check if item has access or is always accessible (like logout)
-            if (!item.hasAccess && !item.alwaysAccessible) return null;
-            
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={item.id === 'logout' ? handleLogout : undefined}
-                className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-              >
-                <Icon />
-                <span className="ml-3">{item.label}</span>
-              </button>
-            );
-          })}
+          <button
+            onClick={handleLogout}
+            className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+          >
+            <span className="text-lg">🚪</span>
+            <span className="ml-3">Logout</span>
+          </button>
         </div>
       )}
     </div>
@@ -145,7 +128,7 @@ const MobileMenuToggle: React.FC<MobileMenuToggleProps> = ({ isOpen, onToggle })
 );
 
 interface MobileNavigationProps {
-  items: (NavigationItem & { hasAccess: boolean; loading: boolean; error?: string })[];
+  items: (NavigationPermission & { loading: boolean; error?: string })[];
   onItemClick: () => void;
 }
 
@@ -154,7 +137,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ items, onItemClick 
     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
       {items.map(item => (
         <NavigationLink
-          key={item.id}
+          key={item.path}
           item={item}
           isActive={false}
           onClick={onItemClick}
@@ -243,9 +226,9 @@ export const DynamicNavigation: React.FC<DynamicNavigationProps> = ({ user, onLo
           <div className="hidden md:flex items-center space-x-8">
             {navigationItems.map(item => (
               <NavigationLink
-                key={item.id}
+                key={item.path}
                 item={item}
-                isActive={currentPath === item.href}
+                isActive={currentPath === item.path}
               />
             ))}
           </div>
