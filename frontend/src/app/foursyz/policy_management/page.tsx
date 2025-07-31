@@ -28,7 +28,6 @@ export default function PolicyManagementPage() {
 
   // Form states
   const [showAssignmentModal, setShowAssignmentModal] = useState(false)
-  const [selectedPermissionForAssignment, setSelectedPermissionForAssignment] = useState<string>('')
 
   useEffect(() => {
     checkUserAndLoadData()
@@ -83,16 +82,14 @@ export default function PolicyManagementPage() {
   const loadInitialData = async () => {
     try {
       setLoading(true)
-      const [permissionsData, assignmentsData] = await Promise.all([
+      const [permissionsData, assignmentsData, usersData] = await Promise.all([
         resourcePermissionService.getResourcePermissions(),
-        resourcePermissionService.getAllUserAssignments()
+        resourcePermissionService.getAllUserAssignments(),
+        resourcePermissionService.getUsers()
       ])
       setPermissions(permissionsData)
       setAssignments(assignmentsData)
-      
-      // Load users (this needs to be implemented or use existing auth service)
-      // For now, we'll use a placeholder
-      setUsers([])
+      setUsers(usersData)
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load data'
       setError(errorMessage)
@@ -163,7 +160,6 @@ export default function PolicyManagementPage() {
   }
 
   const handleAssignPermissionFromList = (permissionId: string) => {
-    setSelectedPermissionForAssignment(permissionId)
     setShowAssignmentModal(true)
     setActiveTab('assignments')
   }

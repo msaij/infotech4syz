@@ -1,4 +1,5 @@
 import { env } from '@/config/env'
+import { UserData } from '@/utils/auth'
 
 // Types for resource permissions
 export interface ResourcePermission {
@@ -207,11 +208,10 @@ class ResourcePermissionService {
     return response.assignments
   }
 
-  // Get users (assuming this is available from auth service)
-  async getUsers(): Promise<Record<string, unknown>[]> {
-    // This would typically come from a user service
-    // For now, we'll need to implement this or use existing auth service
-    throw new Error('getUsers method needs to be implemented or use existing auth service')
+  // Get users from auth service
+  async getUsers(): Promise<UserData[]> {
+    const response = await this.makeRequest<UserData[]>('/auth/users')
+    return response
   }
 
   // Helper method to check if user has permission

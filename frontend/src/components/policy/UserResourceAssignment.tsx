@@ -25,6 +25,7 @@ export default function UserResourceAssignment({
   const [expiryDate, setExpiryDate] = useState<string>('')
   const [isAssigning, setIsAssigning] = useState(false)
   const [isUnassigning, setIsUnassigning] = useState(false)
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set())
 
   const handleAssignPermission = async () => {
     if (!selectedUser || !selectedPermission) {
@@ -74,6 +75,29 @@ export default function UserResourceAssignment({
 
   const getPermissionById = (permissionId: string) => {
     return permissions.find(permission => permission.id === permissionId)
+  }
+
+  const toggleUserExpansion = (userId: string) => {
+    const newExpandedUsers = new Set(expandedUsers)
+    if (newExpandedUsers.has(userId)) {
+      newExpandedUsers.delete(userId)
+    } else {
+      newExpandedUsers.add(userId)
+    }
+    setExpandedUsers(newExpandedUsers)
+  }
+
+  const isUserExpanded = (userId: string) => {
+    return expandedUsers.has(userId)
+  }
+
+  const expandAllUsers = () => {
+    const allUserIds = users.map(user => user.id)
+    setExpandedUsers(new Set(allUserIds))
+  }
+
+  const collapseAllUsers = () => {
+    setExpandedUsers(new Set())
   }
 
 
@@ -175,32 +199,80 @@ export default function UserResourceAssignment({
       {/* User Assignments List */}
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Current Assignments</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900">Current Assignments</h3>
+            {users.some(user => getUserAssignments(user.id).filter(assignment => assignment.active).length > 0) && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={expandAllUsers}
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  Expand All
+                </button>
+                <button
+                  onClick={collapseAllUsers}
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  Collapse All
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="divide-y divide-gray-200">
           {users.map((user) => {
             const userAssignments = getUserAssignments(user.id)
             const activeAssignments = userAssignments.filter(assignment => assignment.active)
+            const isExpanded = isUserExpanded(user.id)
             
             return (
               <div key={user.id} className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="text-lg font-medium text-gray-900">{user.username}</h4>
-                    <p className="text-sm text-gray-500">{user.email}</p>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => toggleUserExpansion(user.id)}
+                      className="flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-colors"
+                      aria-label={isExpanded ? 'Collapse permissions' : 'Expand permissions'}
+                    >
+                      <svg
+                        className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                    <div>
+                      <h4 className="text-lg font-medium text-gray-900">{user.username}</h4>
+                      <p className="text-sm text-gray-500">{user.email}</p>
+                    </div>
                   </div>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {activeAssignments.length} permission{activeAssignments.length !== 1 ? 's' : ''}
-                  </span>
+                  <div className="flex items-center space-x-3">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {activeAssignments.length} permission{activeAssignments.length !== 1 ? 's' : ''}
+                    </span>
+                    {activeAssignments.length > 0 && (
+                      <span className="text-sm text-gray-500">
+                        {isExpanded ? 'Click to collapse' : 'Click to expand'}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {activeAssignments.length > 0 ? (
-                  <div className="space-y-3">
+                {activeAssignments.length > 0 && isExpanded && (
+                  <div className="space-y-3 mt-4 pl-9">
                     {activeAssignments.map((assignment) => {
                       const permission = getPermissionById(assignment.resource_permission_id)
                       return (
-                        <div key={assignment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={assignment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
                               <span className="font-medium text-gray-900">{permission?.id}</span>
@@ -227,8 +299,10 @@ export default function UserResourceAssignment({
                       )
                     })}
                   </div>
-                ) : (
-                  <div className="text-center py-4">
+                )}
+
+                {activeAssignments.length === 0 && (
+                  <div className="text-center py-4 pl-9">
                     <p className="text-gray-500">No permissions assigned to this user</p>
                   </div>
                 )}
