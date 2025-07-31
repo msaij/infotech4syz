@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { UserResourceAssignment as UserResourceAssignmentType, ResourcePermission, AssignmentData } from '@/utils/resourcePermissionService'
 import { UserData } from '@/utils/auth'
 
@@ -76,18 +76,7 @@ export default function UserResourceAssignment({
     return permissions.find(permission => permission.id === permissionId)
   }
 
-  const getUserById = (userId: string) => {
-    return users.find(user => user.id === userId)
-  }
 
-  const isPermissionAssigned = (userId: string, permissionId: string) => {
-    return assignments.some(
-      assignment => 
-        assignment.user_id === userId && 
-        assignment.resource_permission_id === permissionId && 
-        assignment.active
-    )
-  }
 
   return (
     <div className="space-y-6">

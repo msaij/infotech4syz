@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { NavigationPermission, useNavigationPermissions } from '@/hooks/useNavigationPermissions';
 import { UserData } from '@/utils/auth';
@@ -37,7 +37,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
   // Use navigation permissions hook
   const {
-    permissions,
     loading,
     error,
     getNavigationItems,

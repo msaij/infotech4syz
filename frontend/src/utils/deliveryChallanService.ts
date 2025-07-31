@@ -107,7 +107,7 @@ class DeliveryChallanService {
         this.csrfToken = null
         throw new Error('Failed to get CSRF token')
       }
-    } catch (error) {
+    } catch {
       // Clear any stale token
       localStorage.removeItem(env.STORAGE_KEYS.CSRF_TOKEN)
       this.csrfToken = null

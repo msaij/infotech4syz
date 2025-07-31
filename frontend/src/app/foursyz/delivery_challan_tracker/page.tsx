@@ -7,7 +7,7 @@ import DeliveryChallanService, {
   DeliveryChallanFilters,
   DeliveryChallanCreate 
 } from '@/utils/deliveryChallanService'
-import { AuthService, UserData } from '@/utils/auth'
+import { UserData } from '@/utils/auth'
 import { resourcePermissionService } from '@/utils/resourcePermissionService'
 import { env } from '@/config/env'
 

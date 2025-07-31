@@ -27,7 +27,7 @@ export interface UserResourceAssignment {
 export interface PermissionEvaluation {
   allowed: boolean
   reason: string
-  matched_statement?: any
+  matched_statement?: Record<string, unknown>
   evaluated_policies: string[]
   required_action?: string
   required_resource?: string
@@ -60,7 +60,7 @@ export interface PermissionEvaluationRequest {
   user_id: string
   action: string
   resource: string
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 }
 
 export interface PermissionEvaluationResponse {
@@ -85,7 +85,7 @@ export interface PermissionEvaluationData {
   user_id: string
   action: string
   resource: string
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 }
 
 class ResourcePermissionService {
@@ -208,7 +208,7 @@ class ResourcePermissionService {
   }
 
   // Get users (assuming this is available from auth service)
-  async getUsers(): Promise<any[]> {
+  async getUsers(): Promise<Record<string, unknown>[]> {
     // This would typically come from a user service
     // For now, we'll need to implement this or use existing auth service
     throw new Error('getUsers method needs to be implemented or use existing auth service')

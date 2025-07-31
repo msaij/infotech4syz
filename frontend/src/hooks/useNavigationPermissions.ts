@@ -119,7 +119,7 @@ export function useNavigationPermissions(userId: string) {
     }
 
     return navigationItems.filter(item => item.allowed)
-  }, [permissions, hasAnyPermissionForCategory, hasActionPermission])
+  }, [hasAnyPermissionForCategory, hasActionPermission])
 
   // Check if user can access a specific route
   const canAccessRoute = useCallback((route: string): boolean => {

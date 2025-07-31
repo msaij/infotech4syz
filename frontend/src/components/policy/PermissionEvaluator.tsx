@@ -88,9 +88,7 @@ export default function PermissionEvaluator({
     }
   }
 
-  const formatDateTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleString()
-  }
+
 
   return (
     <div className="space-y-6">

@@ -11,7 +11,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [_logoutLoading, setLogoutLoading] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function DashboardPage() {
     try {
       const user = JSON.parse(userData);
       setUser(user);
-    } catch (_error) {
+    } catch (error) {
       handleLogout('Invalid user data. Please login again.');
     } finally {
       setLoading(false);
@@ -59,8 +59,8 @@ export default function DashboardPage() {
           },
         });
       }
-    } catch (_error) {
-      console.error('Logout API call failed:', _error);
+    } catch (error) {
+      console.error('Logout API call failed:', error);
     } finally {
       // Clear all auth data
       AuthService.clearAuthTokens();

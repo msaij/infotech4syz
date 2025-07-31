@@ -32,7 +32,7 @@ export default function PolicyManagementPage() {
 
   useEffect(() => {
     checkUserAndLoadData()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkUserAndLoadData = async () => {
     try {

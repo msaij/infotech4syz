@@ -11,7 +11,7 @@ export default function ClientDetailsPage() {
   const router = useRouter()
   const [clients, setClients] = useState<ClientData[]>([])
   const [loading, setLoading] = useState(true)
-  const [_user, setUser] = useState<UserData | null>(null)
+  const [user, setUser] = useState<UserData | null>(null)
   const [permissions, setPermissions] = useState({
     canCreateClient: false,
     canUpdateClient: false,
