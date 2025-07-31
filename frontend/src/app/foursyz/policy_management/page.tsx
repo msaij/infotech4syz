@@ -98,24 +98,7 @@ export default function PolicyManagementPage() {
     }
   }
 
-  const handleInitializePermissions = async () => {
-    try {
-      setLoading(true)
-      const result = await resourcePermissionService.initializeResourcePermissions()
-      
-      if (result.status === 'success') {
-        setSuccess(`Successfully initialized ${result.permissions_created} resource permissions`)
-        await loadInitialData() // Reload data
-      } else {
-        setError(result.message)
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to initialize permissions'
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }
+
 
   const handleAssignPermission = async (userId: string, permissionId: string, assignmentData: AssignmentData) => {
     try {
@@ -187,22 +170,12 @@ export default function PolicyManagementPage() {
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="px-4 py-6 sm:px-0">
-          <div className="flex items-center justify-between">
-            <div>
+                      <div>
               <h1 className="text-3xl font-bold text-gray-900">Resource Permission Management</h1>
               <p className="mt-2 text-sm text-gray-600">
                 Manage resource-based permissions and user assignments
               </p>
             </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={handleInitializePermissions}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                Initialize Permissions
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Error/Success Messages */}
