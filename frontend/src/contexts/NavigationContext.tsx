@@ -6,16 +6,9 @@ import { NavigationItem, NAVIGATION_ITEMS, QUICK_ACTIONS, USER_MENU_ITEMS } from
 import { useNavigationPermissions } from '@/hooks/useNavigationPermissions';
 import { UserData } from '@/utils/auth';
 
-interface BreadcrumbItem {
-  label: string;
-  href: string;
-  current: boolean;
-}
-
 interface NavigationContextType {
   // Navigation state
   currentPath: string;
-  breadcrumbs: BreadcrumbItem[];
   
   // Permission state
   navigationItems: (NavigationItem & { hasAccess: boolean; loading: boolean; error?: string })[];
@@ -53,10 +46,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   const pathname = usePathname();
   
   const [currentPath, setCurrentPath] = useState(pathname);
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
-
-  // Create a ref to store the updateBreadcrumbs function
-  const updateBreadcrumbsRef = useRef<((path: string) => void) | null>(null);
 
   // Use navigation permissions hook for main navigation items
   const {
@@ -100,56 +89,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   // Update current path when pathname changes
   useEffect(() => {
     setCurrentPath(pathname);
-    if (updateBreadcrumbsRef.current) {
-      updateBreadcrumbsRef.current(pathname);
-    }
   }, [pathname]);
-
-  // Update breadcrumbs based on current path
-  const updateBreadcrumbs = useCallback((path: string) => {
-    const pathSegments = path.split('/').filter(Boolean);
-    const breadcrumbItems: BreadcrumbItem[] = [];
-    
-    // Always add home
-    breadcrumbItems.push({
-      label: 'Home',
-      href: '/foursyz/dashboard',
-      current: path === '/foursyz/dashboard'
-    });
-
-    // Add path-specific breadcrumbs
-    if (path.includes('/foursyz/')) {
-      const foursyzSegments = pathSegments.slice(pathSegments.indexOf('foursyz') + 1);
-      
-      let currentPath = '/foursyz';
-      
-      foursyzSegments.forEach((segment, index) => {
-        currentPath += `/${segment}`;
-        
-        // Skip if this would create a duplicate of the home breadcrumb
-        if (currentPath === '/foursyz/dashboard') {
-          return;
-        }
-        
-        // Convert segment to readable label
-        const label = segment
-          .split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-        
-        breadcrumbItems.push({
-          label,
-          href: currentPath,
-          current: index === foursyzSegments.length - 1
-        });
-      });
-    }
-
-    setBreadcrumbs(breadcrumbItems);
-  }, []);
-
-  // Store the updateBreadcrumbs function in the ref
-  updateBreadcrumbsRef.current = updateBreadcrumbs;
 
   // Navigate to a specific route
   const navigateTo = useCallback((href: string) => {
@@ -249,7 +189,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   const contextValue: NavigationContextType = {
     // Navigation state
     currentPath,
-    breadcrumbs,
     
     // Permission state
     navigationItems,
