@@ -111,7 +111,6 @@ export const env = {
       DELIVERY_CHALLAN_CREATE: 'delivery_challan:create',
       DELIVERY_CHALLAN_READ: 'delivery_challan:read',
       DELIVERY_CHALLAN_UPDATE: 'delivery_challan:update',
-      DELIVERY_CHALLAN_DELETE: 'delivery_challan:delete',
       DELIVERY_CHALLAN_LIST: 'delivery_challan:list',
       DELIVERY_CHALLAN_UPLOAD: 'delivery_challan:upload',
       DELIVERY_CHALLAN_LINK_INVOICE: 'delivery_challan:link_invoice',

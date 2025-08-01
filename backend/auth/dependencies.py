@@ -120,8 +120,7 @@ def require_delivery_challan_read():
 def require_delivery_challan_update():
     return require_permission(Action.DELIVERY_CHALLAN_UPDATE, "delivery_challan:*")
 
-def require_delivery_challan_delete():
-    return require_permission(Action.DELIVERY_CHALLAN_DELETE, "delivery_challan:*")
+
 
 def require_delivery_challan_list():
     return require_permission(Action.DELIVERY_CHALLAN_READ, "delivery_challan:*")

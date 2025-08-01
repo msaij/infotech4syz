@@ -263,26 +263,7 @@ class DeliveryChallanService {
     }
   }
 
-  async deleteDeliveryChallan(id: string): Promise<void> {
-    try {
-      await this.ensureCSRFToken()
 
-      const response = await fetch(`${this.baseUrl}/${id}`, {
-        method: 'DELETE',
-        headers: this.getHeadersWithCSRF()
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.detail || `Failed to delete delivery challan: ${response.statusText}`)
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new Error('Network error: Unable to connect to server')
-      }
-      throw error
-    }
-  }
 
   async getClients(): Promise<string[]> {
     try {

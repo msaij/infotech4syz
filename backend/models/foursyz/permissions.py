@@ -33,7 +33,6 @@ class Action(str, Enum):
     DELIVERY_CHALLAN_CREATE = "delivery_challan:create"
     DELIVERY_CHALLAN_READ = "delivery_challan:read"
     DELIVERY_CHALLAN_UPDATE = "delivery_challan:update"
-    DELIVERY_CHALLAN_DELETE = "delivery_challan:delete"
     DELIVERY_CHALLAN_LIST = "delivery_challan:list"
     DELIVERY_CHALLAN_UPLOAD = "delivery_challan:upload"
     DELIVERY_CHALLAN_LINK_INVOICE = "delivery_challan:link_invoice"
@@ -247,12 +246,11 @@ PREDEFINED_RESOURCE_PERMISSIONS = {
             Action.DELIVERY_CHALLAN_CREATE,
             Action.DELIVERY_CHALLAN_READ,
             Action.DELIVERY_CHALLAN_UPDATE,
-            Action.DELIVERY_CHALLAN_DELETE,
             Action.DELIVERY_CHALLAN_LIST,
             Action.DELIVERY_CHALLAN_UPLOAD,
             Action.DELIVERY_CHALLAN_LINK_INVOICE
         ],
-        description="Full delivery challan management capabilities",
+        description="Full delivery challan management capabilities (excluding delete)",
         category="Delivery Challan"
     ),
     

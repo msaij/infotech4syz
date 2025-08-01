@@ -9,7 +9,6 @@ from .dependencies import (
     require_delivery_challan_create,
     require_delivery_challan_read,
     require_delivery_challan_update,
-    require_delivery_challan_delete,
     require_delivery_challan_list,
     require_delivery_challan_upload,
     require_delivery_challan_link_invoice,
@@ -30,7 +29,6 @@ from models.foursyz.delivery_challan_tracker import (
     DeliveryChallanTrackerListResponse,
     DeliveryChallanTrackerCreateResponse,
     DeliveryChallanTrackerUpdateResponse,
-    DeliveryChallanTrackerDeleteResponse,
     FileUploadResponse,
     ClientListResponse,
     InvoiceLinkResponse,
@@ -331,48 +329,7 @@ async def update_delivery_challan(
         "delivery_challan": updated_challan
     }
 
-@delivery_challan_router.delete("/{challan_id}", response_model=DeliveryChallanTrackerDeleteResponse)
-async def delete_delivery_challan(
-    challan_id: str,
-    current_user: dict = Depends(require_delivery_challan_delete()),
-    x_csrf_token: str = Header(..., alias="X-CSRF-Token")
-):
-    """Delete a delivery challan (Manager only with CSRF protection)"""
-    try:
-        # Validate CSRF token
-        require_csrf_token(x_csrf_token, current_user['id'])
-        
-        if not ObjectId.is_valid(challan_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid delivery challan ID format"
-            )
-        
-        db = await get_async_database()
-        collection = db.deliveryChallan_tracker
-        
-        # Check if challan exists
-        existing_challan = await collection.find_one({"_id": ObjectId(challan_id)})
-        if not existing_challan:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Delivery challan not found"
-            )
-        
-        # Delete challan
-        await collection.delete_one({"_id": ObjectId(challan_id)})
-        
-        return {
-            "status": "success",
-            "message": "Delivery challan deleted successfully"
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete delivery challan: {str(e)}"
-        )
+
 
 @delivery_challan_router.post("/upload-file", response_model=FileUploadResponse)
 async def upload_file(

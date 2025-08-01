@@ -129,9 +129,7 @@ class DeliveryChallanTrackerUpdateResponse(BaseModel):
     message: str
     delivery_challan: DeliveryChallanTrackerResponse
 
-class DeliveryChallanTrackerDeleteResponse(BaseModel):
-    status: str
-    message: str
+
 
 class FileUploadResponse(BaseModel):
     status: str
