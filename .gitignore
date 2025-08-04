@@ -1,2 +1,7 @@
 # ignore pycache files
 __pycache__/
+
+## ignore terraform state files [terraform version = "4.38.1"]
+.terraform
+*.tfstate
+*.tfstate.backup

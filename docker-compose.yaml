@@ -1,0 +1,36 @@
+services:
+  # backend service
+  backend:
+    build:
+      context: .
+      dockerfile: backend.dockerfile
+    container_name: container-backend-fastapi
+    working_dir: /backend
+    image: image-backend-fastapi
+    ports:
+      - "8000:8000"
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+    # for mongodb connection
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - MONGODB_URL=mongodb://host.docker.internal:27017/infotech4syz
+    networks:
+      - default
+
+  # frontend service
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.dockerfile
+    container_name: container-frontend-nextjs
+    image: image-frontend-nextjs
+    ports:
+      - "3000:3000"
+    command: npm run dev
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
